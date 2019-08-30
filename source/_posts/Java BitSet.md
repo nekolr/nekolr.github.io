@@ -137,7 +137,19 @@ public boolean get(int bitIndex) {
 }
 ```
 
-get 方法用来判断一个元素是否在 BitSet 中。首先同样根据元素值计算该元素应该放在哪个 long 型数组元素上，即计算 wordIndex。如果已经使用的 long 型数组长度小于或等于该元素需要放置的数组索引值，则表示该元素一定不在 BitSet 中。
+get 方法用来判断一个元素是否在 BitSet 中。首先同样根据元素值计算该元素应该放在哪个 long 型数组元素上，即计算 wordIndex。如果已经使用的 long 型数组长度小于或等于该元素需要放置的数组索引值，则表示该元素一定不在 BitSet 中。接下来的 `1L << bitIndex` 可以计算出该元素在哪个 bit 位上，然后同 long 型数组对应的元素进行与运算，如果结果不等于 0，说明该元素存在。举个例子，假设要查找的元素为 5：
+
+```
+1L << bitIndex          00100000
+// 如果已经存在元素 5
+words[wordIndex]        00100000
+// 如果并不存在元素 5（这里存在其它元素：0 1 2 3 4）
+words[wordIndex]        00011111
+```
+
+可以看到，原数组元素上是否存在其它元素并不影响该元素本身的判断，因为 `1L << bitIndex` 只在指定位置上为 1，其它位置均为 0，进行与运算后，其它位置的结果同样是 0。
 
 # 参考
 > [Java 的 BitSet 原理及应用](https://www.jianshu.com/p/4fbad3a6d253)
+
+> [漫画：什么是Bitmap算法？](https://juejin.im/post/5c4fd2af51882525da267385)
