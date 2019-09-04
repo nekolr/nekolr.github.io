@@ -522,10 +522,10 @@ if __name__ == '__main__':
     loop.close()
 ```
 
-`@asyncio.coroutine`把一个 generator 标记为 coroutine 类型，然后放到 EventLoop 中去执行。由于 `asyncio.sleep()` 也是一个协程，所以我们可以使用 yield from 接收，但是主线程并不会一直等待它执行完毕，而是直接中断并去执行下一个消息循环。当 `asyncio.sleep()` 返回时，主线程就可以从 yield from 处拿到返回值（此处是 None），然后继续向下执行。  
+@asyncio.coroutine 把一个 generator 标记为 coroutine 类型，然后放到 EventLoop 中去执行。由于 `asyncio.sleep()` 也是一个协程，所以我们可以使用 yield from 接收，但是主线程并不会一直等待它执行完毕，而是直接中断并去执行下一个消息循环。当 `asyncio.sleep()` 返回时，主线程就可以从 yield from 处拿到返回值（此处是 None），然后继续向下执行。  
 
 ## async/await
-为了更好的标识异步 IO，从 Python 3.5 开始引入了新的语法 `async` 和 `await`，使用该语法只需要将 `@asyncio.coroutine` 替换为 `async`，再把 yield from 替换为 await 即可。  
+为了更好的标识异步 IO，从 Python 3.5 开始引入了新的语法 `async` 和 `await`，使用该语法只需要将 @asyncio.coroutine 替换为 `async`，再把 yield from 替换为 await 即可。  
 
 ```python
 #!/usr/bin/env python3
