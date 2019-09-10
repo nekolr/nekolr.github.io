@@ -1,8 +1,8 @@
 ---
 title: ACID
 date: 2018/11/24 15:30:0
-tags: [SQL]
-categories: [SQL]
+tags: [数据库]
+categories: [数据库]
 ---
 ACID 是指数据库管理系统（DBMS）在写入或者更新数据的过程中，为保证事务的正确可靠所具备的四个特征：原子性（atomicity）、一致性（consistency）、隔离性（isolation）和持久性（durability）。  
 

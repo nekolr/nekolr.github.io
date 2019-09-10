@@ -1,7 +1,7 @@
 ---
 title: CAP 原则与 BASE 理论
 date: 2018/11/25 19:22:0
-tags: [SQL,分布式]
+tags: [分布式]
 categories: [分布式]
 ---
 
