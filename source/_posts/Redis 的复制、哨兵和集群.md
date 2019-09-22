@@ -5,7 +5,7 @@ tags: [Redis]
 categories: [Redis]
 ---
 
-在 Redis 中，复制功能的主要作用是实现数据备份，TODO
+在 Redis 中，复制功能的主要作用是实现读写分离和数据备份，哨兵的作用是实现故障切换（failover），集群的主要作用是实现数据分片（sharding），解决单机的资源和性能瓶颈问题。
 
 <!--more-->
 
@@ -19,6 +19,8 @@ Redis 基础的复制功能允许一个 Redis 服务去复制另一个 Redis 服
 ```
 
 那么服务 `127.0.0.1:12345` 将成为 `127.0.0.1:6379` 的从服务，而 `127.0.0.1:6379` 将成为 `127.0.0.1:12345` 的主服务。
+
+> 需要注意的时这种方式设置的主从是临时的，重启服务后失效。在配置文件中设置才会永久生效。
 
 ## 复制的实现
 **Redis 的复制功能分为同步（sync）和命令传播（command propagate）两个操作。**同步操作用于将从服务的状态更新至主服务当前的状态。命令传播操作则用于当主服务状态被修改后，主从服务出现状态不一致时，让从服务重新回到一致的状态。
@@ -43,5 +45,124 @@ Redis 基础的复制功能允许一个 Redis 服务去复制另一个 Redis 服
 部分重同步的重点包括复制偏移量（replication offset）、复制积压缓冲区（replication backlog）和运行 ID（run ID）。
 
 ## 心跳检测
-在命令传播阶段，心跳检测用于检测主从之前的网络连接状态、辅助实现 min-slaves 选项以及检测命令丢失。
+在命令传播阶段，心跳检测用于检测主从之间的网络连接状态、辅助实现 min-slaves 选项以及检测命令丢失。
+
+## 关于复制的几个重要事实
+- 从服务能够接受其他从服务的连接。除了可以将多个从服务连接到主服务外，还可以将从服务连接到其他从服务，所有的从服务都将从主服务接收完全相同的复制流。
+- 复制在主服务中没有阻塞。当一个或多个从服务与主服务进行初次同步或部分重同步时，主服务可以继续处理其他请求。
+- 复制在从服务中基本也没有阻塞。在开始执行初始同步时，从服务可以继续提供旧版本的数据。在接收到主服务发送的 RDB 文件之后，从服务必须删除旧的数据集，加载新的数据集，此时从服务会被阻塞。从 Redis 4.0 开始，可以配置使旧数据集的删除发生在其他线程，但是新数据集的加载仍然要在主线程中进行，此时从服务还是会阻塞。
+- 默认情况下，从服务是以只读模式启动的，该模式可以通过 slave-read-only 选项控制。只读模式下从服务只能接收读命令，所有的写命令都会返回错误。
+- 可以使用无盘复制（生成的 RDB 文件不存盘而实直接发送给从节点）来降低主服务的磁盘开销，这适用于主服务所在的机器磁盘性能较差但网络良好的场景。
+
+# 哨兵（Sentinel）
+哨兵是 Redis 高可用的解决方案，该方案是由一个或多个 Sentinel 实例组成 Sentinel 系统，这个系统可以监视多个主服务以及这些主服务下的所有从服务，在被监视的主服务进入下线状态时，自动将下线主服务下属的某个从服务提升为新的主服务，然后由新的主服务继续处理命令请求。
+
+## 哨兵的运行过程
+使用 `redis-sentinel /path/sentinel.conf` 可以启动一个 Sentinel，由于 Sentinel 本质上就是一个运行在特殊模式下的 Redis 服务，所以也可以使用 `redis-server /path/sentinel.conf --sentinel` 命令来启动。
+
+### 初始化服务
+启动 Sentinel 的第一步就是初始化一个普通的 Redis 服务，但是该服务不会载入 RDB 或 AOF 文件。
+
+### 使用专用代码
+接下来第二步就是将普通 Redis 服务使用的代码替换成 Sentinel 专用的代码。比如说，普通 Redis 服务使用 `server.c/redisCommandTable` 作为服务的命令表，而 Sentinel 则使用 `sentinel.c/sentinelcmds` 作为服务的命令表，从该命令表可以看出 Sentinel 只能使用 PING、SENTINEL、INFO、SUBSCRIBE、UNSUBSCRIBE、PSUBSCRIBE 和 PUNSUBSCRIBE 这些命令。
+
+### 初始化状态
+接着就是初始化 Sentinel 的状态，即通过读取配置文件来初始化 `sentinel.c/sentinelState` 结构，其中 masters 字典属性记录了所有被 Sentinel 监视的主服务信息。这里有一个配置文件的例子：
+
+```conf
+#####################
+# master1 configure #
+#####################
+sentinel monitor master1 127.0.0.1 6379 2
+sentinel down-after-milliseconds master1 30000
+sentinel parallel-syncs master1 1
+sentinel failover-timeout master1 900000
+#####################
+# master2 configure #
+#####################
+sentinel monitor master2 127.0.0.1 12345 5
+sentinel down-after-milliseconds master2 50000
+sentinel parallel-syncs master2 5
+sentinel failover-timeout master2 450000
+```
+
+### 创建连向主服务的连接
+初始化 Sentinel 的最后一步就是创建连向监视主服务的网络连接，Sentinel 将成为主服务的客户端，它可以向主服务发送命令，并从命令回复中获取相关的信息。对于每个被 Sentinel 监视的主服务来说，Sentinel 会创建两个连向主服务的异步网络连接，一个是命令连接，用于发送命令和接收回复；另一个是订阅连接，专门用于订阅主服务的 `__sentinel__:hello` 频道。
+
+> 在 Redis 目前的发布和订阅功能中，被发送的信息都不会保存在 Redis 服务中，所以如果在信息发送时，接收的客户端不在线或者断线，则信息就会丢失。因此为了不丢失 `__sentinel__:hello` 频道的任何信息，Sentinel 必须专门用一个订阅连接来接收该频道的信息。
+
+### 获取主从服务的信息
+Sentinel 默认会以每 10 秒一次的频率通过命令连接向被监视的主服务发送 INFO 命令来获取主服务的当前信息，INFO 命令的回复类似于以下内容：
+
+```
+# Server
+...
+run_id:7611c59dc3a29aa6fa0609f841bb6a1019008a9c
+...
+
+# Replication
+role:master
+...
+slave0:ip=127.0.0.1,port=11111,state=online,offset=43,lag=0
+slave1:ip=127.0.0.1,port=22222,state=online,offset=43,lag=0
+slave2:ip=127.0.0.1,port=33333,state=online,offset=43,lag=0
+...
+
+# Other sections
+...
+```
+
+根据 INFO 命令返回的信息，Sentinel 将对主服务的实例结构 `sentinelRedisInstance` 进行更新，比如主服务重启后，它的运行 ID 就会和之前保存的不同，Sentinel 会检测到该情况并进行更新。同时主服务返回的从服务信息将会被保存到主服务实例结构中的 slaves 字典属性里，从服务的实例结构同样使用 `sentinelRedisInstance`。
+
+![主从服务信息的存储结构](https://img.nekolr.com/images/2019/09/22/ymR.png)
+
+Sentinel 在分析 INFO 命令返回的从服务信息时，会检查对应的从服务实例结构是否已经存在，如果存在就进行更新；如果不存在，就会在 slaves 字典中创建一个新的实例结构，同时会创建连接到从服务的命令连接和订阅连接，并同样会以每 10 秒一次的频率通过命令连接向从服务发送 INFO 命令，并根据返回信息更新从服务实例的结构。
+
+### 向所有服务发送信息
+默认情况下，Sentinel 会以每 2 秒一次的频率，通过命令连接向所有被监视的主服务和从服务发送以下格式的命令：
+
+```
+PUBLISH __sentinel__:hello "<s_ip>,<s_port>,<s_runid>,<s_epoch>,<m_name>,<m_ip>,<m_port>,<m_epoch>"
+```
+
+这条命令向所有服务的 `__sentinel__:hello` 频道发送了一条信息，其中 s_ 开头的是 Sentinel 本身的信息，而 m_ 开头的信息，如果 Sentinel 正在监视的是主服务，则这些就是主服务的信息；如果 Sentinel 正在监视的从服务，则这些就是从服务正在复制的主服务的信息。
+
+### 订阅所有服务的信息
+当 Sentinel 与一个主服务或者从服务建立了订阅连接后，Sentinel 就会通过订阅连接向服务发送以下命令：
+
+```
+SUBSCRIBE __sentinel__:hello
+```
+
+该订阅会一直维持到 Sentinel 与服务的连接断开为止。这也就是说，对于每个与 Sentinel 连接的服务，Sentinel 既会通过命令连接向服务的 `__sentinel__:hello` 频道发送命令信息，又通过订阅连接从服务的 `__sentinel__:hello` 频道接收消息。对于监视同一个服务的多个 Sentinel 来说，一个 Sentinel 发送的信息会被其他 Sentinel 接收到（因为其他 Sentinel 也订阅了该服务的该频道）。
+
+### 更新 sentinels 字典并创建命令连接
+Sentinel 为主服务创建的实例结构中的 sentinels 字典保存了所有监视该服务的 Sentinel 的信息，Sentinel 的实例结构同样使用 `sentinelRedisInstance`。当一个 Sentinel 接收到其他 Sentinel 发来的信息时，会从信息中分析并提取源 Sentinel 的信息，然后检查自己的 sentinels 字典，如果已经存在该 Sentinel 实例，则进行更新；否则会在 sentinels 字典中创建一个新的 Sentinel 实例结构，同时还会创建一个连向新 Sentinel 的命令连接，而新 Sentinel 同样也会创建连向这个 Sentinel 的命令连接，最终监视同一主服务的多个 Sentinel 将会形成互相连接的网络。
+
+### 检测主观下线状态
+默认情况下，Sentinel 会以每秒一次的频率向所有与它创建了命令连接的实例（包括主服务、从服务和其他 Sentinel）发送 PING 命令，如果一个实例在 down-after-milliseconds 毫秒内都向 Sentinel 返回无效回复，那么 Sentinel 会修改这个实例对应的实例结构，在 flags 属性中打开 SRI_S_DOWN 标识，表示该实例已经进入主观下线状态。
+
+> 用户设置的 down-after-milliseconds 不仅用来判断主服务的主观下线状态，还被用于判断主服务下属的所有从服务，以及所有同样监听该主服务的其他 Sentinel 的主观下线状态。不同的 Sentinel 设置的主观下线时长可能不同，当一个 Sentinel 将主服务判断为主观下线时，其他 Sentinel 可能仍然认为主服务处于在线状态，只有当主服务的断线时长超过其他 Sentinel 设置的时长后，所有的 Sentinel 才会认为该主服务处于主观下线状态。
+
+### 检查客观下线状态
+当 Sentinel 将一个主服务判断为主观下线之后，为了确认这个主服务是否真的下线，它会向同样监视该主服务的其他 Sentinel 进行询问，看它们是否也认为该主服务处于下线状态。当它收集到足够数量（Sentinel 配置中设置的 quorum 参数的值）下线判断后，就会将主服务判定为客观下线，并对主服务执行故障转移操作。
+
+> 命令 `sentinel monitor master 127.0.0.1 6379 2` 中最后的那个值就是 quorum 参数的值，每个 Sentinel 配置的 quorum 参数的值可能不同，因此判断客观下线的条件也就不同。
+
+### 选举领头 Sentinel
+当一个主服务被判断为客观下线时，监视这个下线主服务的各个 Sentinel 会进行协商，选举出一个领头的 Sentinel，由领头的 Sentinel 对下线的主服务执行故障转移操作。
+
+### 故障转移
+故障转移包含三个步骤，首先会在已经下线的主服务下属的所有从服务中挑选一个从服务，向它发送 `SLAVEOF no one` 命令，将其转换为主服务，接着会向已经下线的主服务下属的所有从服务发送 SLAVEOF 命令，让它们去复制新的主服务，最后要将已经下线的主服务设置为新的主服务的从服务，并在该从服务恢复上线后，向它发送 SLAVEOF 命令，让它真正成为新的主服务的从服务。
+
+## 总结
+- Sentinel 只是一个运行在特殊模式下的 Redis 服务，它使用了和普通模式不同的命令表，因此能够使用的命令也和普通 Redis 服务不同。
+- Sentinel 会读取用户指定的配置文件，为每个要被监视的主服务创建相应的实例结构，同时创建连向主服务的命令连接和订阅连接。
+- Sentinel 通过向主服务发送 INFO 命令来获取主服务和主服务下属的所有从服务的信息，并为这些从服务创建相应的实例结构，以及连向这些从服务的命令连接和订阅连接。
+- Sentinel 默认会以每十秒一次的频率向被监视的主服务和从服务发送 INFO 命令，当主服务处于下线状态或者 Sentinel 正在对主服务进行故障转移时，Sentinel 向从服务发送 INFO 命令的频率会改为每秒一次。
+- 对于监视同一主服务和从服务的多个 Sentinel 来说，它们会以每两秒一次的频率，通过向被监视服务的 `__sentinel__:hello` 频道发送消息来向其他 Sentinel 宣告自己的存在。
+- 每个 Sentienl 也会从 `__sentinel__:hello` 频道中接收其他 Sentinel 发来的消息，并根据这些信息为其他 Sentinel 创建相应的实例结构，以及命令连接。
+- Sentinel 以每秒一次的频率向实例（包括主服务、从服务和其他 Sentinel）发送 PING 命令，并根据回复来判断实例是否在线。当一个实例在指定的时长中连续向 Sentinel 发送无效回复时，Sentinel 会将这个实例判断为主观下线。
+- 当 Sentinel 将一个主服务判断为主观下线时，它会向其他同样监视该主服务的 Sentinel 询问，看它们是否同意该主服务已经主观下线，当收集到足够数量的主观下线投票后，它会认为该主服务为客观下线，会发起一次针对主服务的故障转移操作。
+- 故障转移操作之前需要所有监视下线主服务的 Sentinel 发起 Leader 选举，并由 Leader 对下线主服务执行故障转移操作。该选举方法是对 Raft 算法的实现。
 
