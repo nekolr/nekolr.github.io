@@ -12,9 +12,6 @@ Redis 是一个开源高性能的 key-value 数据库软件，主要有以下特
 
 Redis 分为服务端和客户端，一个服务端可以与多个客户端建立连接，每个客户端向服务端发送命令请求，服务端接收请求处理后返回信息给客户端。除了自带的 `redis-cli`，还可以使用其他语言提供的客户端来操作。  
 
-# 安装
-安装不提。  
-
 # 配置
 - 获取所有配置项  
 `CONFIG GET *`
@@ -1282,30 +1279,42 @@ typedef struct redisDb {
 ## Redis 为什么这么快？
 - 完全基于内存，绝大部分操作都是纯粹的内存操作。  
 - 数据结构简单，同时对数据的操作也简单。  
-- 采用单线程，避免了不必要的上下文切换，也不会存在多线程下为了线程安全而加锁出现的性能损耗。  
+- 采用单线程，避免了不必要的上下文切换，也不会因为多线程下为了线程安全而加锁导致性能损耗。  
 - 使用 I/O 多路复用，可以让单个线程能够更高效的处理更多的连接请求，相对来说减少了网络 IO 的时间消耗，同时这也是 Redis 能够承受很大的客户端并发量的原因。  
 
 ## 为什么 Redis 是单线程的？
-首先需要强调的是，我们一直提到的 Redis 是单线程的是指 Redis 在处理我们的网络请求时只使用一个线程来处理，实际上一个 Redis 实例在运行时肯定使用了不止一个线程。这里引用官网的一段解释：  
-> **Redis is single threaded. How can I exploit multiple CPU / cores?**  
+首先需要强调的是，我们一直提到的 Redis 是单线程的是指 Redis 在处理我们的网络请求时只使用一个线程来处理（I/O 多路复用），同时大部分的内存操作也是单线程的，实际上一个 Redis 实例在运行时肯定使用了不止一个线程。这里引用官网的一段解释：
 
-> It's not very frequent that CPU becomes your bottleneck with Redis, as usually Redis is either memory or network bound. For instance, using pipelining Redis running on an average Linux system can deliver even 1 million requests per second, so if your application mainly uses O(N) or O(log(N)) commands, it is hardly going to use too much CPU.
+> Redis is single threaded. How can I exploit multiple CPU / cores?
+
+> It’s not very frequent that CPU becomes your bottleneck with Redis, as usually Redis is either memory or network bound. For instance, using pipelining Redis running on an average Linux system can deliver even 1 million requests per second, so if your application mainly uses O(N) or O(log(N)) commands, it is hardly going to use too much CPU.
 However, to maximize CPU usage you can start multiple instances of Redis in the same box and treat them as different servers. At some point a single box may not be enough anyway, so if you want to use multiple CPUs you can start thinking of some way to shard earlier.
 You can find more information about using multiple Redis instances in the Partitioning page.
-However with Redis 4.0 we started to make Redis more threaded. For now this is limited to deleting objects in the background, and to blocking commands implemented via Redis modules. For the next releases, the plan is to make Redis more and more threaded.  
+However with Redis 4.0 we started to make Redis more threaded. For now this is limited to deleting objects in the background, and to blocking commands implemented via Redis modules. For the next releases, the plan is to make Redis more and more threaded.
 
-摘取其中的重点就是，Redis 在 4.0 版本以后使用了多线程在后台删除对象，当然其他大部分操作还是只使用了一个线程，为何不使用多个线程去操作内存数据呢？  
+摘取其中的重点就是，限制 Redis 使用的瓶颈通常并不是 CPU，而是内存和网络，Redis 在 4.0 版本以后使用了多线程在后台删除对象，其他大部分操作还是只使用了一个线程。
 
-我们知道多线程执行任务有个致命的问题就是线程切换，线程在获得 CPU 执行权执行一段时间后，可能其他线程获得了执行权，此时该线程需要释放执行权，而任务很可能还没有执行完，因此需要保存线程执行的上下文，以便后续该线程的恢复。这个操作需要消耗大量的 CPU 执行时间，事实上，这也是操作系统中消耗最大的操作。另外，如果线程切换是跨核上下文切换，则会引起缓存丢失，结果就需要访问本地内存，这个代价是更高的。  
+这里给出了一个不使用多线程的原因，就是当前的瓶颈并不在于 CPU 而在于内存和网络，那么如果使用多个线程去操作内存数据又会带来哪些问题呢？
 
-Redis 采用单个线程绑定一块内存，针对这部分内存数据的读写都是在一个 CPU 上完成的，不存在上下文切换的开销，在只有内存读写时效率最高。并且需要知道的是，Redis 的性能瓶颈不是 CPU，而是内存大小和网络带宽，既然 CPU 不会成为瓶颈，而使用多线程又会增加复杂度，因此使用单线程也就顺理成章了。   
+我们知道多线程执行任务有个致命的问题就是线程切换，线程在获得 CPU 执行权执行一段时间后，可能其他线程获得了执行权，此时该线程需要释放执行权，而任务很可能还没有执行完，因此需要保存线程执行的上下文，以便后续该线程的恢复。这个操作需要消耗大量的 CPU 执行时间，事实上，这也是操作系统中消耗最大的操作。另外，如果线程切换是跨核上下文切换，则会引起缓存丢失，结果就需要访问本地内存，这个代价是更高的。
 
-## 如何利用多核 CPU？
-由于 Redis 的主要操作只使用一个线程，为了充分利用多核 CPU，一般会在一个服务器上启动多个 Redis 实例，并且为了减少线程切换的开销，需要为每个实例指定所运行的 CPU。在 Linux 中可以通过 taskset 命令将某个进程绑定到一个特定的 CPU。  
+Redis 采用单个线程绑定一块内存，针对这部分内存数据的读写都是在一个 CPU 上完成的，不存在上下文切换的开销，在只有内存读写时效率最高。并且需要知道的是，Redis 的性能瓶颈不是 CPU，而是内存大小和网络带宽，既然 CPU 不会成为瓶颈，而使用多线程又会增加复杂度，因此使用单线程也就顺理成章了。
+
+总结：Redis 目前使用单线程和 I/O 多路复用处理客户端的连接，使用单线程处理内存操作，只有后台删除使用了多线程，原因是当前的瓶颈并不在于 CPU 而在于内存和网络，如果使用多线程去处理内存操作，不光增加了复杂度，也会因为线程的上下文切换增加 CPU 的开销。
 
 ## Redis 与 I/O 多路复用
- Redis 没有使用 Libevent 而是选择实现了自己的 Event Library，因为 Libevent 为了通用性编写了过多的代码，并且牺牲了在特定平台的许多特性。  
- 
+Redis 没有使用 Libevent 而是选择实现了自己的 Event Library，因为 Libevent 为了通用性编写了过多的代码，并且牺牲了在特定平台的许多特性。  
+
+## 如何利用多核优势
+可以在多核机器上启动多个 Redis 实例组成主从或者集群，然后通过内核绑定程序（比如 taskset、numactl）将实例与内核进行绑定，即一个内核绑定一个实例，这样可以避免内核分配不均，从而避免线程争用和跨核上下文切换。
+
+## 未来为什么要引入多线程
+在 2019 年的 2 月份，Redis 的作者 antirez 在他的博客上发表了一篇题为：An update about Redis developments in 2019 的文章，其中提到了 Redis 在将来可能使用多线程的几种方式。
+
+对于目前单线程的 Redis 来说，性能瓶颈主要在于网络 I/O 的消耗，读写网络数据的 read/write 系统调用在 Redis 执行期间占用了大量的 CPU 时间，如果把网络读写改为多线程的方式可以充分利用多核优势，提高网络 I/O 性能。
+
+在即将到来的 Redis 6.0 中，Redis 将会引入多线程支持。与 Memcached 这种从网络 I/O 处理到数据访问的多线程实现模式不同，Redis 的多线程部分只用于处理网络数据的读写和协议的解析，真正执行命令的仍然是单线程，这样可以避免很多并发问题。其中，主线程负责接收建立连接的请求，在读事件到来时放到全局等待读队列中，在主线程处理完读事件之后，会将这些读请求分配给 I/O 线程，然后主线程忙等，当所有的 I/O 线程将请求数据读取并解析完成后，主线程负责执行所有的命令并清空队列。
+
 # 参考
 
 > [Skip Lists: A Probabilistic Alternative to Balanced Trees](https://www.cl.cam.ac.uk/teaching/0506/Algorithms/skiplists.pdf)
