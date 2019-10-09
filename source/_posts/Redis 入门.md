@@ -1214,21 +1214,26 @@ Sorted Set 根据编码的不同，有压缩列表和跳跃表两种实现。如
 # 事务
 Redis 通过 MULTI、DISCARD、EXEC 和 WATCH 四个命令实现事务的功能。  
 
-Redis 的事务是将一系列命令打包，然后一次性的按顺序执行，事务在执行期间不会主动中断，只有服务端在执行完事务中的所有命令后，才会继续处理其他客户端的命令。  
+Redis 的事务是将一系列命令打包，然后一次性的按顺序执行，事务在执行期间不会主动中断，只有服务端在执行完事务中所有的命令后，才会继续处理其他客户端的命令。客户端使用 MULTI 命令开启事务，在事务状态下，除了那四个事务命令外，其他的命令都不会立即执行，而是会被放入一个 FIFO 事务队列中，当使用 EXEC 命令时，服务端顺序执行事务队列中的命令，并将每个命令的执行结果顺序放入一个 FIFO 的回复队列中，在全部命令执行完毕后返回。
 
+```bash
+127.0.0.1:6379> MULTI
+OK
+127.0.0.1:6379> SET book-name "Effective Java"
+QUEUED
+127.0.0.1:6379> GET book-name
+QUEUED
+127.0.0.1:6379> SADD tag "Java" "Programming"
+QUEUED
+127.0.0.1:6379> SMEMBERS tag
+QUEUED
+127.0.0.1:6379> EXEC
+1) OK
+2) "Effective Java"
+3) (integer) 2
+4) 1) "Java"
+   2) "Programming"
 ```
-:: 开启事务
-MULTI
-:: 一系列命令
-SET book-name "Effective Java"
-GET book-name
-SADD tag "Java" "Programming"
-SMEMBERS tag
-:: 执行事务
-EXEC
-```
-
-客户端使用 MULTI 命令开启事务，在事务状态下，除了那四个事务命令外，其他的命令都不会立即执行，而是会被放入一个 FIFO 事务队列中，当使用 EXEC 命令时，服务端顺序执行事务队列中的命令，并将每个命令的执行结果顺序放入一个 FIFO 的回复队列中，在全部命令执行完毕后返回。  
 
 Redis 的事务不可嵌套，即如果客户端已经处于事务状态，如果客户端再发送 MULTI 命令，服务端也只是简单返回一个错误，然后继续等待其他命令进入事务队列。  
 
