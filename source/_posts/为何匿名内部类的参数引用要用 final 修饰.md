@@ -98,7 +98,7 @@ public class Outer {
 }
 ```
 
-同样，反汇编查看编译后的匿名内部类，代码如下：  
+同样，反编译查看编译后的匿名内部类，代码如下：  
 
 ```java
 class Outer$1 implements Inner {
