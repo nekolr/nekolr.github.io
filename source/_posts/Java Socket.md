@@ -1,8 +1,8 @@
 ---
 title: Java Socket
 date: 2017/10/5 18:4:0
-tags: [Java,Java Socket]
-categories: [Java Socket]
+tags: [Java]
+categories: [Java]
 ---
 打算将 Socket 编程再复习下，为后续学习 netty 做准备。		
 <!--more-->
