@@ -1,5 +1,5 @@
 ---
-title: RPC
+title: RPC 概述
 date: 2019/11/13 11:24:0
 tags: [分布式,RPC]
 categories: [分布式]
@@ -47,9 +47,21 @@ Java Serialization | 二进制 | Java 平台 | 使用简单 | 可读性较差，
 Apache Thrift | 二进制 | 无 | 序列化后的数据量较小，序列化和反序列化性能较高 | 可读性较差，向后兼容有一定的限制，采用 id 递增的方式标识并以 optional 修饰来添加
 Google protobuf | 二进制 | 无 | 序列化后的数据量较小，序列化和反序列化性能较高 | 可读性较差，向后兼容有一定的限制
 
+我们接着说，假设客户端上的应用发起了远程过程调用，方法的参数在序列化之后连同请求一起通过底层的网络协议传输到服务器，服务器在接收到请求后，需要对参数进行反序列化的操作，将参数恢复为内存中的表达方式，然后通过寻址找到对应的方法，从而进行本地调用并得到返回值。返回值同样需要经过序列化返回给客户端上的应用，客户端在接收到响应后，同样需要进行反序列化恢复为内存中的表达方式。
+
+![rpc](https://img.nekolr.com/images/2019/11/15/qjz.png)
+
+RPC 可以粗略的划分为平台相关和平台无关两大类。平台相关的代表有 Java RMI、.NET Remoting 等。平台无关的有早期的 CORBA、XML-RPC、XML-RPC 的后继者 SOAP、Web Service、JSON-RPC 等，以及很多现代 RPC 框架比如 Google gRPC、Apache Thrift、Apache Avro、Hprose 等。
+
 # 参考
 > [远程过程调用](https://en.wikipedia.org/wiki/Remote_procedure_call)
 
 > [谁能用通俗的语言解释一下什么是 RPC 框架？](https://www.zhihu.com/question/25536695)
 
 > [Apache Thrift 系列详解(三) - 序列化机制](https://zhuanlan.zhihu.com/p/45206710)
+
+> [什么是 RESTful？到底 REST 和 SOAP、RPC 有何区别？](https://segmentfault.com/q/1010000003064904?_ea=298208)
+
+> [那些年，我们追过的 RPC](https://www.cnblogs.com/sunsky303/p/7718192.html)
+
+> [咖啡馆的故事：FTP, RMI , XML-RPC, SOAP, REST 一网打尽](https://mp.weixin.qq.com/s/OXIFJGSozoRWNaLhnD0wxw)
