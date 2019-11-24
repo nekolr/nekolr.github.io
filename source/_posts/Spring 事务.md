@@ -15,7 +15,7 @@ categories: [Spring]
 Spring 解决了全局事务和本地事务的弊端，它可以在不同的环境中使用一致的编程模型，只需要编写一次代码，就可以在不同的环境中使用不同的事务管理策略。
 
 # 核心接口
-![核心接口](https://img.nekolr.com/images/2019/10/15/pla.png)
+![核心接口](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/10/15/pla.png)
 
 ## 事务管理器
 Spring 并不直接管理事务，而是提供了多种事务管理器，事务管理器将事务委托给具体的持久化相关平台框架（比如 Hibernate、JTA、JDBC 等）来完成。事务管理器的核心接口为 `PlatformTransactionManager`，所有的事务管理器都需要实现该接口。

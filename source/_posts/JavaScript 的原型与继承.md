@@ -20,7 +20,7 @@ categories: [JavaScript]
 ## 函数创建过程
 首先写一个函数字面量：
 		
-![函数字面量 ](https://img.nekolr.com/images/2018/04/14/eL.png)
+![函数字面量 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/eL.png)
 		
 函数 fn 除了 name 等属性外，还包含一个 prototype 属性和一个原型指针。
 		
@@ -28,13 +28,13 @@ categories: [JavaScript]
 		
 函数 fn 的原型指针指向 Function.prototype
 		
-![构造函数指向函数本身 ](https://img.nekolr.com/images/2018/04/14/Jj.png)
+![构造函数指向函数本身 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Jj.png)
 		
-![函数的结构 ](https://img.nekolr.com/images/2018/04/14/6L.png)
+![函数的结构 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/6L.png)
 		
 用更直观的图来表示就是：
 		
-![函数的结构_图 ](https://img.nekolr.com/images/2018/04/14/mK.png)
+![函数的结构_图 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/mK.png)
 		
 ## 构造函数
 按照 ECMA 的定义：
@@ -48,21 +48,21 @@ categories: [JavaScript]
 		
 通过 new 关键字和构造函数创建的对象的原型，就是构造函数的 prototype 属性指向的那个原型对象。
 		
-![prototype](https://img.nekolr.com/images/2018/04/14/q0.png)
+![prototype](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/q0.png)
 		
 上面的代码，反映在图中：
 		
-![prototype_图 ](https://img.nekolr.com/images/2018/04/14/v8.png)
+![prototype_图 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/v8.png)
 		
 那么原型有什么用呢？在这之前，先了解一下 new 运算符。
 		
-![new](https://img.nekolr.com/images/2018/04/14/7l.png)
+![new](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/7l.png)
 		
-![new 结构 ](https://img.nekolr.com/images/2018/04/14/jP.png)
+![new 结构 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/jP.png)
 		
 通过使用 new 运算符和构造函数调用，能够创建一个新对象。那为什么不直接使用对象字面量的方式（var obj = {}）呢？通过上图能够发现，通过对象字面量创建的对象继承自 Object.prototype，而通过 new 和构造函数调用创建的对象继承自 Fn.prototype
 		
-![new1](https://img.nekolr.com/images/2018/04/14/QV.png)
+![new1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/QV.png)
 		
 其实这个 new 操作，大体上可以分为三步：
 		
@@ -90,7 +90,7 @@ JavaScript 中所有的对象都有一个 [[Prototype]] 属性，保存着对象
 ### 让函数 A 的原型指向函数 B 的原型
 方式一：使用 `__proto__`
 		
-![方式一 ](https://img.nekolr.com/images/2018/04/14/nM.png)
+![方式一 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/nM.png)
 		
 
 
@@ -100,21 +100,21 @@ JavaScript 中所有的对象都有一个 [[Prototype]] 属性，保存着对象
 		
 方式二：通过 new 和构造函数调用
 		
-![方式二 ](https://img.nekolr.com/images/2018/04/14/Dw.png)
+![方式二 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Dw.png)
 		
 这里隐含着，将 A.prototype.[[Prototype]] = B.prototype。但是这样做会产生一个问题，就是 A.prototype.constructor 为 undefined。
 		
-![方式二结构 ](https://img.nekolr.com/images/2018/04/14/Mp.png)
+![方式二结构 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Mp.png)
 		
 此时需要再将 A.prototype.constructor 重新赋值回去。
 		
-![方式二 1](https://img.nekolr.com/images/2018/04/14/BO.png)
+![方式二 1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/BO.png)
 		
-![方式二结构 1](https://img.nekolr.com/images/2018/04/14/wX.png)
+![方式二结构 1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/wX.png)
 		
 ## 重写原型
 		
-![重写原型 ](https://img.nekolr.com/images/2018/04/14/3n.png)
+![重写原型 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/3n.png)
 		
 **总结：**
 		

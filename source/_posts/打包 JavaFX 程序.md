@@ -13,19 +13,19 @@ categories: [JavaFX]
 
 首先在 IDEA 中打开项目的 Project Structure，选择 Artifacts 新建一个 JavaFX Application 构件。  
 
-![new JavaFX Application](https://img.nekolr.com/images/2018/10/31/LgX.png)  
+![new JavaFX Application](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/10/31/LgX.png)  
 
 在这里将 sirius-inc_main 和 sirius-inc_test 都加入到 jar 包下。  
 
-![加入到 jar 包中](https://img.nekolr.com/images/2018/10/31/4e4.png)  
+![加入到 jar 包中](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/10/31/4e4.png)  
 
 这里需要注意的是，如果源代码目录下有 resources 资源目录，则需要手工将该目录加入到 jar 包下。  
 
-![加入资源目录](https://img.nekolr.com/images/2018/10/31/l2q.png)  
+![加入资源目录](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/10/31/l2q.png)  
 
 选择到 Java FX 标签页，配置主程序入口和本地包类型（如 exe）。  
 
-![javafx 配置](https://img.nekolr.com/images/2018/10/31/dMM.png)  
+![javafx 配置](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/10/31/dMM.png)  
 
 这些都配置好后，选择 Build 中的 Build Artifacts 来生成构件，等待完成后就可以在 bundles 目录下的项目目录中找到 exe 可执行文件。  
 
@@ -35,7 +35,7 @@ categories: [JavaFX]
 
 首先 eclipse 要安装 e(fx)clipse 插件，然后通过 eclipse 新建一个 JavaFX 项目，eclipse 会在项目目录中生成一个 build.fxbuild 文件，打开该文件，填写配置。  
 
-![build.fxbuild](https://img.nekolr.com/images/2018/11/01/Rl6.png)  
+![build.fxbuild](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/01/Rl6.png)  
 
 配置好后，点击右侧的 Generate ant build.xml only 来生成 build 目录和文件。  
 
@@ -43,11 +43,11 @@ categories: [JavaFX]
 
 修改 build.xml 文件，在 `<path id="fxant">` 的文件列表中添加一行 `<file name="${basedir}"/>` 用来包含资源文件，如图标。  
 
-![指定资源文件](https://img.nekolr.com/images/2018/11/01/AGN.png)  
+![指定资源文件](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/01/AGN.png)  
 
 修改程序的版本。  
 
-![修改版本](https://img.nekolr.com/images/2018/11/01/9by.png)  
+![修改版本](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/01/9by.png)  
 
 修改完毕后，右键 build.xml 文件 Run as Ant build 来打包。等待打包完毕后，会在 build/deploy 目录生成可执行文件，目录结构与通过 IDEA 打包生成的结构一致，唯一不同的是程序的图标已经变成自定义的了。  
 

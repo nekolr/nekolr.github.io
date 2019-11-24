@@ -8,9 +8,9 @@ JVM 管理的内存可以总体划分为两部分：Heap Memory 和 Native Memor
 
 <!--more-->
 
-![JVM 内存管理](https://img.nekolr.com/images/2019/07/12/gzM.png)
+![JVM 内存管理](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/07/12/gzM.png)
 
-![JVM 内存划分](https://img.nekolr.com/images/2019/07/12/VAD.png)
+![JVM 内存划分](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/07/12/VAD.png)
 
 # 方法区
 在 Java 虚拟机规范中，Java 的运行时数据区域包括**虚拟机栈、本地方法栈、程序计数器、堆和方法区**，其中堆和方法区是线程共享的内存区域。方法区被用于存储已经被虚拟机加载的类信息、常量、静态变量、JIT 编译器编译后的代码等数据，同时运行时常量池也是方法区的一部分，存储类在编译器生成的各种字面量和符号引用。  

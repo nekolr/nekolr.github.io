@@ -13,11 +13,11 @@ categories: [问题集]
 
 我使用的是 IDEA。点开 Maven Projects（一般在 IDEA 右侧），然后选择某个 Module，然后右键选择 Show Dependencies，IDEA 会打开一个视图。  
 
-![依赖视图](https://img.nekolr.com/images/2019/06/19/2x3.png)  
+![依赖视图](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/19/2x3.png)  
 
 使用 `Ctrl + F` 搜索需要寻找的包名，然后就可以看到该包是通过哪个其他的 jar 包引入的。  
 
-![定位包](https://img.nekolr.com/images/2019/06/19/VYD.png)  
+![定位包](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/19/VYD.png)  
 
 第二种方式就是通过 Maven 命令去查找。  
 

@@ -15,12 +15,12 @@ ZooKeeper 集群有三种角色，Leader、Follower 和 Observer。一个 ZooKee
 
 ZooKeeper 增加 Observer 角色是为了能在不影响集群写性能的情况下扩展集群，从而提高集群的读性能。由于写入操作需要集群中超过一半的 Follower 节点更新成功才会真正写入，为了提高集群读性能而增加 Follower 节点会因为网络消耗等原因导致投票的成本增加，从而造成集群的写入性能下降，而 Observer 与 Follower 不同的是它不参与 Leader 的选举过程，也不参与写操作的过半写成功策略。Observer 另外的一个优势就是，由于不参与选举和投票，所以即使它们从集群中断开也不会影响集群的可用性。  
 
-![ZooKeeper 集群](https://img.nekolr.com/images/2018/12/14/0g2.jpg)  
+![ZooKeeper 集群](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/12/14/0g2.jpg)  
 
 ## 数据模型
 ZooKeeper 的数据模型是一个 ZNode 节点树，与标准的文件系统非常类似，该数据模型的命名空间使用斜杠（/）进行分隔，每一个节点都由路径来标识。  
 
-![ZooKeeper 数据模型](https://img.nekolr.com/images/2018/12/14/2z0.jpg)  
+![ZooKeeper 数据模型](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/12/14/2z0.jpg)  
 
 ## 会话
 会话指的是客户端与服务器之间的一个 TCP 长连接，客户端与服务端的一切交互都是通过这个长连接进行的。会话会在客户端身份验证失败或与服务器断开连接后，在设置的 sessionTimeout 时间内没有重新建立连接后失效。  

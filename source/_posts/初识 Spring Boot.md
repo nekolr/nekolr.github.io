@@ -24,17 +24,17 @@ Spring Boot 有很多重要的特性：
 如果使用 eclipse 等 IDE 可以安装 [Spring Tool Suite ](http://spring.io/tools/sts/)插件，这里使用 IDEA 作为 IDE。  
 
 **1. create new project**		
-![create new project1](https://img.nekolr.com/images/2019/04/29/dlM.png)		
+![create new project1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/04/29/dlM.png)		
 		
-![create new project2](https://img.nekolr.com/images/2019/04/29/8nn.png)		
+![create new project2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/04/29/8nn.png)		
 		
 **2. dependencies**		
 		
-![dependencies](https://img.nekolr.com/images/2019/04/29/kvA.png)		
+![dependencies](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/04/29/kvA.png)		
 		
 **3. project structure**		
 		
-![project archive](https://img.nekolr.com/images/2019/04/29/pQv.png)		
+![project archive](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/04/29/pQv.png)		
 		
 ### pom.xml 分析
 ```xml

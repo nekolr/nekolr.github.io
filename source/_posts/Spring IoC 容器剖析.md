@@ -13,7 +13,7 @@ categories: [Spring]
 
 # BeanFactory 容器设计
 
-![ConfigurableBeanFactory](https://img.nekolr.com/images/2018/05/27/3q7.png)
+![ConfigurableBeanFactory](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/27/3q7.png)
 
 这是一条主要的`BeanFactory`设计路线。  
 
@@ -24,7 +24,7 @@ categories: [Spring]
 
 在这条路线上，有一个实现了基本容器功能的类 `DefaultListableBeanFactory`。  
 
-![DefaultListableBeanFactory](https://img.nekolr.com/images/2018/05/27/o6x.png)
+![DefaultListableBeanFactory](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/27/o6x.png)
 
 `DefaultListableBeanFactory` 已经实现了容器的基本功能，也就是说我们可以直接使用它了。该类还有一个子类 `XmlBeanFactory`，不过已经不推荐使用了。  
 
@@ -66,11 +66,11 @@ public static void main(String[] args) {
 
 # ApplicationContext 容器设计
 
-![ApplicationContext](https://img.nekolr.com/images/2018/05/27/WnD.png)
+![ApplicationContext](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/27/WnD.png)
 
 IoC 容器的第二条设计路线以 `ApplicationContext` 接口为主，在继承了 `BeanFactory` 的同时，还继承了 `MessageSource`、`ApplicationEventPublisher`、`ResourceLoader` 等接口。  
 
-![ConfigurableWebApplicationContext](https://img.nekolr.com/images/2018/05/27/YAN.png)
+![ConfigurableWebApplicationContext](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/27/YAN.png)
 
  `ApplicationContext` 作为 `BeanFactory` 的实现，和 `XmlBeanFactory` 一样，也是在 `DefaultListableBeanFactory` 这个基本的容器实现上做扩展。我们常用的应用上下文基本上都是 `ConfigurableApplicationContext` 或 `WebApplicationContext` 的实现。  
 
@@ -89,7 +89,7 @@ IoC 容器的第二条设计路线以 `ApplicationContext` 接口为主，在继
 
 IoC 容器的初始化过程主要是通过 `AbstractApplicationContext` 的 `refresh` 方法完成。  
 
-![AbstractApplicationContext](https://img.nekolr.com/images/2018/05/28/LXL.png)
+![AbstractApplicationContext](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/28/LXL.png)
 
 ```java
 @Override
@@ -842,7 +842,7 @@ private void invokeAwareMethods(final String beanName, final Object bean) {
 - 容器级别的方法
 这个包括 bean 后置处理器 `BeanPostProcessor` 和 `InstantiationAwareBeanPostProcessor` 接口的方法，bean 工厂后置处理器 `BeanFactoryPostProcessor` 接口的方法。  
 
-![Spring bean 生命周期 ](https://img.nekolr.com/images/2018/05/31/dQz.png)  
+![Spring bean 生命周期 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/31/dQz.png)  
 
 # 参考
 

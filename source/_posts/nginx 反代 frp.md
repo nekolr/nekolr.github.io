@@ -8,7 +8,7 @@ categories: [NAT]
 
 服务端和客户端同时安装 frp 程序，安装和配置的过程都比较简单。在对应的平台下载对应的 release 包后，修改配置文件，启动即可。由于这台主机对外只开放了 80 和 443 端口，使用 nginx 提供反向代理，隐藏了内部的各个系统，同样的，我需要使用 nginx 反代 frp 的服务。  
 
-![大体流程图](https://img.nekolr.com/images/2019/06/18/xGr.png)
+![大体流程图](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/xGr.png)
 
 ```conf
 # nginx.conf

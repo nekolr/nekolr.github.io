@@ -8,7 +8,7 @@ categories: [Git]
 
 由于我使用的开发平台是 Windows，因此就犯了提交的代码文本风格全部为 CRLF 的错误。这些代码在 UNIX/Linux 平台使用 vim 打开时，就会是以下的样子。  
 
-![错误的文本风格](https://img.nekolr.com/images/2018/09/14/Lkp.png)
+![错误的文本风格](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/09/14/Lkp.png)
 
 可以看到，所有应该是回车的地方都多出来了 ^M（如果使用 vim 打开不是这样的，可以输入 :e ++ff=UNIX 调整显示）。  
 
@@ -59,7 +59,7 @@ git config --global core.autocrlf input
 
 另一种方式就比较严格了。首先关闭 Git 客户端的自动转换，同时设置 IDE 的换行符为 UNIX/Linux 风格。比如在 IDEA 下：  
 
-![UNIX 风格换行](https://img.nekolr.com/images/2018/09/14/4kd.png)
+![UNIX 风格换行](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/09/14/4kd.png)
 
 ## 统一规范（仅参考）
 
@@ -67,11 +67,11 @@ git config --global core.autocrlf input
 - 设置 IDE 换行为 UNIX/Linux 风格。
 - 设置项目编码为 UTF-8 without BOM。  
 
-![utf-8](https://img.nekolr.com/images/2018/09/14/lqv.png)
+![utf-8](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/09/14/lqv.png)
 
 - 如果是 maven 项目，自定义合适的配置。  
 
-![maven](https://img.nekolr.com/images/2018/09/14/dy8.png)
+![maven](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/09/14/dy8.png)
 
 - 设置 Tab 为四个空格。  
 

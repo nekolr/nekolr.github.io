@@ -81,11 +81,11 @@ vrrp_instance VI_1 {
 
 Master 的网络配置：
 
-![Master](https://img.nekolr.com/images/2019/08/16/kxY.png)
+![Master](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/08/16/kxY.png)
 
 Backup 的网络配置：
 
-![Backup](https://img.nekolr.com/images/2019/08/16/5Lk.png)
+![Backup](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/08/16/5Lk.png)
 
 接下来停掉 Master 的 keepalived，再观察 Backup 的网络配置，会发现 VIP 漂移到了该机器上。然后重新启动 Master 的 keepalived，再次观察，会发现 VIP 又重新漂移到了主机器上。
 
@@ -252,10 +252,10 @@ fi
 
 一切准备就绪后，分别启动两台机器上的 Nginx 服务和 keepalived 服务。查看网络配置情况，其中 `10.5.96.3` 的配置如下：
 
-![3号机器配置](https://img.nekolr.com/images/2019/08/18/E3E.png)
+![3号机器配置](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/08/18/E3E.png)
 
 `10.5.96.4` 的配置如下：
 
-![4号机器配置](https://img.nekolr.com/images/2019/08/18/eyg.png)
+![4号机器配置](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/08/18/eyg.png)
 
 当某一台机器发生故障时，VIP 漂移，另一个机器就会同时接管这两个 VIP，当机器故障恢复后，VIP 又会漂移回去，恢复到一开始的配置。

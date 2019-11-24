@@ -510,7 +510,7 @@ public class NekoWebSocketConfig implements WebSocketConfigurer {
 
 MvcConfig 与之前的写法一样，WebInitializer 需要将 NekoWebSocketConfig 加入并注册。与此同时，页面需要引入 sockjs.js 并将 `new WebSocket` 修改为 `new SockJS`。  
 
-![演示](https://img.nekolr.com/images/2019/07/12/7vn.gif)
+![演示](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/07/12/7vn.gif)
 
 ## 参考
 > [JSR 356, Java API for WebSocket](http://www.oracle.com/technetwork/articles/java/jsr356-1937161.html)

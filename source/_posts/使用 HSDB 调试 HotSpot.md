@@ -47,25 +47,25 @@ public class Main {
 
 ## 编译代码
 
-![编译代码 ](https://img.nekolr.com/images/2018/04/17/Xzp.png)
+![编译代码 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/Xzp.png)
 
 ## 启动 jdb
 
 我们在使用 IDE 时，可以很方便地在代码中打上断点进行调试，如果不依赖 IDE，我们可以使用 Oracle JDK 自带的 `jdb` 工具来完成这项任务。  
 
-![启动 jdb](https://img.nekolr.com/images/2018/04/17/PPk.png)
+![启动 jdb](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/PPk.png)
 
 启动 `jdb` 时，设定 java 程序使用 `Serial GC` 和 10MB 的堆内存。  
 
-![设置断点 ](https://img.nekolr.com/images/2018/04/17/y2j.png)
+![设置断点 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/y2j.png)
 
 使用 `stop in` 命令在指定的 java 方法入口处设置断点。  
 
-![run](https://img.nekolr.com/images/2018/04/17/zry.png)
+![run](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/zry.png)
 
 使用 `run` 命令指定主类来启动 Java 程序。  
 
-![next](https://img.nekolr.com/images/2018/04/17/x38.png)
+![next](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/x38.png)
 
 使用 `next`、`step` 等命令来控制前进。  
 
@@ -73,7 +73,7 @@ public class Main {
 
 另起一个终端。  
 
-![jps](https://img.nekolr.com/images/2018/04/17/rgG.png)
+![jps](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/rgG.png)
 
 ## 启动 HSDB
 
@@ -85,19 +85,19 @@ java -cp ".;%JAVA_HOME%/lib/sa-jdi.jar" sun.jvm.hotspot.HSDB
 
 这时就会启动 HSDB 了。  
 
-![HSDB](https://img.nekolr.com/images/2018/04/17/baN.png)
+![HSDB](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/baN.png)
 
-![attach](https://img.nekolr.com/images/2018/04/17/a6e.png)
+![attach](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/a6e.png)
 
-![](https://img.nekolr.com/images/2018/04/17/O2w.png)
+![](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/O2w.png)
 
 输入 Main 程序的进程 id。  
 
-![进程信息 ](https://img.nekolr.com/images/2018/04/17/GPL.png)
+![进程信息 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/GPL.png)
 
 这里是线程信息。  
 
-![栈内存信息 ](https://img.nekolr.com/images/2018/04/17/Kbq.png)
+![栈内存信息 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/17/Kbq.png)
 
 选中主线程，然后选择 `Stack Memory` 一栏，会显示 main 线程的栈信息。  
 

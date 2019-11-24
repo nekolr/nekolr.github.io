@@ -79,7 +79,7 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 
 为了实现运行时可插拔，需要实现 `javax.servlet.ServletContainerInitializer` 接口，同时，我们的实现必须在 jar 包的 META-INF/services 目录中一个名为 `javax.servlet.ServletContainerInitializer` 的文件中指定。  
 
-![javax.servlet.ServletContainerInitializer](https://img.nekolr.com/images/2018/04/27/O7n.png)
+![javax.servlet.ServletContainerInitializer](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/27/O7n.png)
 
 ```java
 public class WebInitializer implements ServletContainerInitializer {
@@ -95,7 +95,7 @@ public class WebInitializer implements ServletContainerInitializer {
 
 典型的例子是 spring 的实现。查看 spring-web-4.3.13.RELEASE.jar，在 META-INF/services 下果然有一个名为 javax.servlet.ServletContainerInitializer 的文件。  
 
-![spring-web](https://img.nekolr.com/images/2018/04/27/a9N.png)
+![spring-web](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/27/a9N.png)
 
 内容为：  
 

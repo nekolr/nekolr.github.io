@@ -70,7 +70,7 @@ public E remove(int index) {
 		
 回到源码，看看 `remove` 方法是怎么复制的：`System.arraycopy(elementData, index+1, elementData, index, numMoved)`，很容易理解吧？它将要删除的元素后面所有的元素都往前移动了。
 		
-![移动图示 ](https://img.nekolr.com/images/2018/04/14/06J.png)
+![移动图示 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/06J.png)
 		
 注意，关键来了！遇到第一个值为“java”的元素时，索引为 **3**，此时删除索引为 **3** 的元素，所有的后续元素前移，以前索引为 **4** 的元素跑到了 **3** 的位置，但是当前遍历的位置就是 **3** ，继续执行的结果可想而知。
 		

@@ -15,9 +15,9 @@ Docker 是世界领先的软件容器平台。
 
 Docker 与虚拟机不同，但是可以看做是一种轻量化的虚拟机。我们将在本地运行的应用和依赖的环境打包成 Docker 镜像，然后就可以在别的平台使用这个镜像的应用而不用担心环境部署等问题。但是使用虚拟机可以在一个 OS 中运行出多个不同或相同的 OS，而使用 Docker 只能在一个 OS 中模拟出多个相同的该 OS。  
 	
-![virtual machines](https://img.nekolr.com/images/2018/04/14/zj.png)
+![virtual machines](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/zj.png)
 		
-![docker](https://img.nekolr.com/images/2018/04/14/kx.png)
+![docker](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/kx.png)
 
 ## Docker 解决了什么？
 - **解决环境不一致问题**  
@@ -43,11 +43,11 @@ Docker 在启动容器的时候，需要创建文件系统，为 rootfs 提供�
 
 典型的 Linux 文件系统由 bootfs 和 rootfs 两部分组成，bootfs（boot file system）主要包含 bootloader 和 kernel，bootloader 主要是引导加载 kernel，当 kernel 被加载到内存中后 bootfs 就被 umount 了。 rootfs（root file system）包含的就是典型的 Linux 系统中的 /dev，/proc，/bin，/etc 等标准目录和文件。	
 
-![unionfs](https://img.nekolr.com/images/2018/04/14/Ob.png)
+![unionfs](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Ob.png)
 		
 对于不同的 Linux 发行版，bootfs 基本是一致的，rootfs 会有差别，因此不同的发行版可以公用 bootfs。		
 		
-![unionfs_bootjs](https://img.nekolr.com/images/2018/04/14/rd.jpg)
+![unionfs_bootjs](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rd.jpg)
 		
 **Docker Client**  
 Docker 提供给用户的一个终端，用户输入 Docker 命令管理本地或者远程的服务器。  
@@ -60,7 +60,7 @@ Docker 镜像（Docker 容器的基础）。说白了镜像就是一系列的文
 
 Docker 镜像的典型结构如下图。传统的 Linux 加载 bootfs 时会先将 rootfs 设为 read-only，然后在系统自检之后将 rootfs 从 read-only 改为 read-write，然后我们就可以在 rootfs 上进行写和读的操作了。但 Docker 的镜像却不是这样，它在 bootfs 自检完毕之后并不会把 rootfs 的 read-only 改为 read-write。而是利用 union mount（UFS 的一种挂载机制）将一个或多个 read-only 的 rootfs 加载到之前的 read-only 的 rootfs 层之上。在加载了这么多层的 rootfs 之后，仍然让它看起来只像是一个文件系统，在 Docker 的体系里把 union mount 的这些 read-only 的 rootfs 叫做 Docker 的镜像。但是，此时的每一层 rootfs 都是 read-only 的，我们此时还不能对其进行操作。当我们创建一个容器，也就是将 Docker 镜像进行实例化，系统会在一层或是多层 read-only 的 rootfs 之上分配一层空的 read-write 的 rootfs。  
 
-![docker_image](https://img.nekolr.com/images/2018/04/14/Kl.png)
+![docker_image](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Kl.png)
 		
 一组 Readonly 和一个 Readwrite 的结构构成一个 Container 的运行目录。得益于 AUFS 的特性，每一个对 readonly 层文件/目录的修改都只会存在于上层的 writeable 层中。这样由于不存在竞争，多个 container 可以共享 readonly 的 layer。所以 docker 将 readonly 的层称作“image”，对于 container 而言整个 rootfs 都是 read-write 的，但事实上所有的修改都写入最上层的 writeable 层中。
 		
@@ -79,7 +79,7 @@ Docker 的容器。Docker Container 是真正跑项目程序、消耗机器资�
 ## 安装 Docker
 Docker 提供 CE 和 EE 版本。		
 		
-![docker_ce_ee](https://img.nekolr.com/images/2018/07/26/Wqk.png)		
+![docker_ce_ee](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/07/26/Wqk.png)		
 		
 Docker 的安装非常简单，官方提供了详尽的安装方法，桌面系统只提供了 Docker CE 版。		
 		
@@ -142,7 +142,7 @@ Docker 官方镜像加速：<https://www.docker-cn.com/registry-mirror>
 DaoCloud 镜像加速：<https://www.daocloud.io/mirror>		
 
 ## Docker 架构
-![architecture](https://img.nekolr.com/images/2018/04/14/G7.png)
+![architecture](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/G7.png)
 
 ## Docker 体验
 首先从远程仓库拉取一个镜像，使用 `docker pull [OPTIONS] name[:TAG]`。
@@ -209,7 +209,7 @@ Docker 默认情况下会分配一个独立的 network namespace，也就是 Bri
 
 如果指定 Docker 的网络类型为 Null，则 Docker 不会获得网络资源。
 		
-![docker_network](https://img.nekolr.com/images/2018/04/14/0J.jpg)
+![docker_network](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/0J.jpg)
 		
 上图中，eth0 是宿主机的网卡，在 Host 模式下，Docker 容器使用的网卡与宿主机相同。在 Bridge 模式下，Docker 首先创建一个 docker0 这样的网桥与宿主机的网卡连接，同时自己会虚拟出一个网卡（因此容器中会有自己的 IP、端口等），这个网卡与网桥相连，这样 Docker 就可以与宿主机进行通信了。		
 		

@@ -8,7 +8,7 @@ categories: [Shell]
 
 <!--more-->  
 
-![Linux 下的 Shell](https://img.nekolr.com/images/2019/01/16/Q4w.png)  
+![Linux 下的 Shell](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/01/16/Q4w.png)  
 
 # 广义上的 Shell
 广义上讲，只要能够为使用者提供与内核交互的都可以认为是 Shell，因此 Shell 可以分为两大类：图形界面 Shell（GUI Shell）与命令行 Shell（CLI Shell）。  

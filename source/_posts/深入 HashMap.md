@@ -9,7 +9,7 @@ categories: [Java 集合框架]
 
 <!--more-->  
 
-![HashMap](https://img.nekolr.com/images/2018/10/23/NWp.png)
+![HashMap](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/10/23/NWp.png)
 
 # 常量
 

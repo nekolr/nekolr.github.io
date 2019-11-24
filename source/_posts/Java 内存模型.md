@@ -15,7 +15,7 @@ categories: [JVM]
 		
 多 CPU 系统中，每个 CPU 都有自己的高速缓存，这些缓存共享同一个主内存（Main Memory），当多个 CPU 的运算都涉及到同一块内存区域时，可能导致各自的高速缓存中的数据不一致。为了解决这个问题，需要各个高速缓存都遵循一些协议，依照这些协议来读写数据。		
 		
-![cpu_cache_memory](https://img.nekolr.com/images/2018/04/14/Ybb.png)
+![cpu_cache_memory](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Ybb.png)
 
 # Java 内存模型抽象
 
@@ -23,7 +23,7 @@ Java 内存模型（JMM）主要是定义各种变量的访问规则，这里的
 		
 Java 内存模型规定所有的变量都存储在主内存中。每个线程都有自己的工作内存（Working Memory，是 JMM 的抽象概念，并不真实存在），类似于处理器的高速缓存，线程的工作内存保存了该线程使用到的在主内存的变量的一份拷贝。线程对变量的读写操作都必须在工作内存中进行，不同线程不能直接访问对方的工作内存，线程间变量值的传递均需要经过主内存来完成。		
 		
-![java 内存模型 ](https://img.nekolr.com/images/2018/04/14/Lny.png)
+![java 内存模型 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Lny.png)
 
 # 内存间交互操作
 

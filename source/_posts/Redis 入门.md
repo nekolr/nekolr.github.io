@@ -148,7 +148,7 @@ C 语言的字符串，除了末尾处，其他位置不能包含空字符，否
 
 ### 双端链表的数据结构
 
-![双端链表](https://img.nekolr.com/images/2018/07/26/YQg.png)
+![双端链表](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/07/26/YQg.png)
 
 源代码在 addlist.h 中。  
 
@@ -268,7 +268,7 @@ typedef struct dictEntry {
 ```
 总体结构如下图：  
 
-![dict](https://img.nekolr.com/images/2018/08/02/Py6.png)
+![dict](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/Py6.png)
 
 ### 创建字典
 dictCreate 函数创建并返回一个新的字典：  
@@ -277,7 +277,7 @@ dictCreate 函数创建并返回一个新的字典：
 dict *d = dictCreate(&hash_type, NULL);
 ```
 
-![创建字典](https://img.nekolr.com/images/2018/08/02/abR.png)
+![创建字典](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/abR.png)
 
 新创建的字典中，两个哈希表都没有分配任何空间，只有在以下情况才会分配：  
 
@@ -286,7 +286,7 @@ dict *d = dictCreate(&hash_type, NULL);
 
 ### 添加键值对
 
-![添加键值对](https://img.nekolr.com/images/2018/08/02/yAL.png)
+![添加键值对](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/yAL.png)
 
 其中，有三种特殊的情况需要处理：  
 
@@ -299,22 +299,22 @@ dict *d = dictCreate(&hash_type, NULL);
 
 字典未初始化时：  
 
-![字典未初始化](https://img.nekolr.com/images/2018/08/02/z99.png)
+![字典未初始化](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/z99.png)
 
 字典初始化，并添加了一个键值对后：  
 
-![字典初始化并添加了一个键值对](https://img.nekolr.com/images/2018/08/02/xDJ.png)
+![字典初始化并添加了一个键值对](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/xDJ.png)
 
 ### 哈希冲突的解决
 字典解决哈希冲突采用的方法为链地址法，即将哈希值相同的节点放在桶结构上，形成一个链表。  
 
 没有哈希冲突时：  
 
-![没有哈希冲突时](https://img.nekolr.com/images/2018/08/02/rlx.png)
+![没有哈希冲突时](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/rlx.png)
 
 哈希冲突时：  
 
-![哈希冲突时](https://img.nekolr.com/images/2018/08/02/bML.png)
+![哈希冲突时](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/02/bML.png)
 
 ### 触发 rehash 操作
 使用链地址法处理冲突时，如果冲突比较严重，哈希表的查找性能会严重下降。最坏的情况下会退化成线性查找，即所有的节点都在一个桶结构上，时间复杂度为 O(N)。哈希表的性能可以通过哈希表的大小（数组大小，size）与节点数量（used）之间的比率来衡量。  
@@ -346,16 +346,16 @@ if (d->ht[0].used >= d->ht[0].size &&
 - 在需要扩容，执行 dictExpand 方法时，rehashidx 就被设置成了 0，这标志着 rehash 的开始。
 - 为 ht[1]->table 分配空间，大小至少是 ht[0]->table 的 2倍。
 
-![开始 rehash](https://img.nekolr.com/images/2018/08/04/ONr.png)
+![开始 rehash](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/04/ONr.png)
 
 #### rehash 进行中
 在这个阶段，ht[0]->table 上的节点并不会一次性全部迁移，而是逐渐迁移到 ht[1]->table 上，字典的 rehashidx 会记录 rehash 进行到了 ht[0] 的哪个位置。以下是 rehashidx 值为 2 时，字典的样子：  
 
-![rehash 进行中](https://img.nekolr.com/images/2018/08/04/0Lk.png)
+![rehash 进行中](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/04/0Lk.png)
 
 #### 节点迁移完毕
 
-![迁移完毕](https://img.nekolr.com/images/2018/08/04/Kd6.png)
+![迁移完毕](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/04/Kd6.png)
 
 #### rehash 完毕
 节点迁移完毕后，还需要执行以下步骤：  
@@ -365,7 +365,7 @@ if (d->ht[0].used >= d->ht[0].size &&
 - 将 ht[1] 指向一个新的空哈希表
 - 将字典的 rehashidx 重新设置为 -1，表示 rehash 已经结束
 
-![rehash 结束](https://img.nekolr.com/images/2018/08/04/2lD.png)
+![rehash 结束](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/04/2lD.png)
 
 ### 渐进式 rehash
 rehash 并不是在启动后就立马执行直到完成，而是分为多次、渐进式地完成。  
@@ -382,7 +382,7 @@ rehash 并不是在启动后就立马执行直到完成，而是分为多次、�
 
 在 rehash 开始进行之后（d->rehashidx 不为 -1），每次执行一次添加、查找、删除操作，_dictRehashStep 都会被执行一次。  
 
-![_dictRehashStep](https://img.nekolr.com/images/2018/08/04/VjG.png)
+![_dictRehashStep](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/04/VjG.png)
 
 因为字典会让哈希表的大小和节点数量的比率维持在一个较小的范围内，所以每个索引上的节点数量不会很多，这样每次在执行添加、查找和删除操作的同时，对单个索引上的节点进行迁移就几乎不会对响应时间造成影响。  
 
@@ -562,7 +562,7 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
 }
 ```
 
-![添加元素](https://img.nekolr.com/images/2018/08/06/Jly.png)
+![添加元素](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/06/Jly.png)
 
 ### 升级操作
 添加元素时，如果发现现有的编码不能存储新元素，则通过 intsetUpgradeAndAdd 完成升级和添加元素的工作。  
@@ -1125,12 +1125,12 @@ typedef struct redisObject {
 
 下图展示了 redisObject、type 和 encoding 的关系。  
 
-![三者之间的关系](https://img.nekolr.com/images/2018/08/12/Bny.png)
+![三者之间的关系](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/12/Bny.png)
 
 ### 命令的类型检查和多态
 有了 redisObject 的存在，Redis 在执行命令时进行类型检查和对编码进行多态操作就简单多了。  
 
-![命令检查和多态处理](https://img.nekolr.com/images/2018/08/12/ePx.png)
+![命令检查和多态处理](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/12/ePx.png)
 
 ### 对象共享（已废弃）
 Redis 中有很多对象是很常见的，比如命令的返回值 OK、ERROR 等字符，还有一些小范围的整数等，为了利用这些经常出现的对象，Redis 使用了 Flyweight 模式，通过预分配一些常见的值对象，并在多个数据结构之间共享这些对象来避免重复分配，节约部分 CPU 时间和内存。  
@@ -1151,14 +1151,14 @@ Redis 预分配的值对象有：
 ## String
 String 类型是二进制安全的，即可以包含任何数据，如序列化的对象、图片、视频，一个键最大可以存储 512 MB 大小的数据。  
 
-![字符串编码](https://img.nekolr.com/images/2018/08/12/w2g.png)
+![字符串编码](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/12/w2g.png)
 
 ## Hash
 Hash 是一个键值对集合，键和值都是 String 类型的，该数据类型适合存储对象。每个 Hash 可以存储 2^32 - 1 个键值对。  
 
 Hash 根据编码的不同，有压缩列表和字典两种实现。  
 
-![哈希表编码](https://img.nekolr.com/images/2018/08/12/mba.png)
+![哈希表编码](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/12/mba.png)
 
 在创建空白的哈希表时，默认使用压缩列表数据结构，当满足以下任意一个条件时，结构切换成字典。  
 - 哈希表中某个键或某个值的长度大于 server.hash_max_ziplist_value（默认值为 64）。  
@@ -1169,7 +1169,7 @@ List 是简单的字符串列表，按照插入顺序排列，同时还可以将
 
 List 根据编码的不同，有压缩列表和双端列表两种实现。  
 
-![列表编码](https://img.nekolr.com/images/2018/08/19/nWJ.png)
+![列表编码](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/19/nWJ.png)
 
 创建新列表时默认使用 REDIS_ENCODING_ZIPLIST 编码，当满足以下任意一个条件时，列表会被转换成 REDIS_ENCODING_LINKEDLIST 编码。  
 - 试图往列表新添加一个字符串值，且这个字符串的长度超过 server.list_max_ziplist_value（默认值为 64）。  
@@ -1178,7 +1178,7 @@ List 根据编码的不同，有压缩列表和双端列表两种实现。
 ### 阻塞命令
 在列表为空时执行 BLPOP、BRPOP 和 BRPOPLPUSH 这三个命令会阻塞。Redis 会将该客户端的状态设置为“正在阻塞”，并记录阻塞这个客户端的各个键，以及阻塞的超时时间。Redis 将客户端的这些信息记录到 server.db[i] -> blocking_keys 字典中，字典的键就是造成客户端阻塞的键，值是一个链表，保存了因为这个键被阻塞的客户端。这个链表形成了一个 FIFO 队列，当满足取消阻塞条件时，先被阻塞客户端的先取消阻塞状态。  
 
-![阻塞客户端](https://img.nekolr.com/images/2018/08/19/6WM.png)
+![阻塞客户端](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/19/6WM.png)
 
 当出现以下情况之一时，客户端会从阻塞状态脱离：  
 - 其他客户端在造成阻塞的键上推入了新元素。  
@@ -1188,7 +1188,7 @@ List 根据编码的不同，有压缩列表和双端列表两种实现。
 ## Set
 Set 是 String 类型的无序集合，集合的成员是唯一的，不能重复。Redis 中的集合是通过哈希实现的，所以添加、删除和查找的时间复杂度都是 O(1)，最大成员数为 2^32 - 1。  
 
-![集合的编码](https://img.nekolr.com/images/2018/08/19/3do.png)
+![集合的编码](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/19/3do.png)
 
 Set 根据编码的不同，有整数集合和字典两种实现。第一个添加到集合的元素，决定了创建集合时所使用的编码：  
 - 如果第一个元素可以表示为 long long 类型值（即它是一个整数），那么集合的初始编码为 REDIS_ENCODING_INTSET。  
@@ -1201,7 +1201,7 @@ Set 根据编码的不同，有整数集合和字典两种实现。第一个添�
 ## Sorted Set
 与 Set 一样也是 String 类型的集合，且不允许重复。不同的是每个元素都会关联一个 double 类型的分数，集合中的元素通过该分数从大到小排序。其中，分数可以重复。  
 
-![有序集合的编码](https://img.nekolr.com/images/2018/08/19/oYv.png)
+![有序集合的编码](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/19/oYv.png)
 
 Sorted Set 根据编码的不同，有压缩列表和跳跃表两种实现。如果第一个元素符合以下条件的话，就创建一个 REDIS_ENCODING_ZIPLIST 编码的有序集：  
 - server.zset_max_ziplist_entries 的值大于 0（默认为 128）。  
@@ -1268,12 +1268,12 @@ typedef struct redisDb {
 } redisDb;
 ```
 
-![watched_keys](https://img.nekolr.com/images/2018/08/23/WKk.png)
+![watched_keys](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/23/WKk.png)
 
 ### WATCH 的触发
 在对任意的数据库键空间进行修改的命令（如 FLUSHDB、SET、DEL、LPUSH、SADD、ZREM 等）执行成功后，multi.c/touchWatchedKey 函数都会被调用，它检查数据库的 watched_keys 字典，查看是否有客户端在监视已经修改的键，如果有的话，将所有监视这个已经被修改的键的客户端的 REDIS_DIRTY_CAS 选项打开。  
 
-![WATCH 触发状态变化](https://img.nekolr.com/images/2018/08/23/Yng.png)
+![WATCH 触发状态变化](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/23/Yng.png)
 
 当客户端发送 EXEC 命令时，服务端会对客户端的状态进行检查：  
 - 如果客户端的 REDIS_DIRTY_CAS 选项已经被打开，说明客户端监视的键至少有一个已经被修改了，事务的安全性已经被破坏。服务端会放弃执行这个事务，并返回一个空的回复表示事务执行失败。  

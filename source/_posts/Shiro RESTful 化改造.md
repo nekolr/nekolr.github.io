@@ -35,7 +35,7 @@ employee = user:read:*
 其实总的来看，Shiro 默认的过滤器已经能够满足基本的需求了，但是缺点是不够灵活，所以对其进行改造。在改造之前，先简单研究一下 Shiro 的设计。  
 
 # Shiro 架构
-![Shiro 架构](https://img.nekolr.com/images/2018/04/14/rzG.png)  
+![Shiro 架构](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rzG.png)  
 
 - **Subject**  
 主体，代表当前用户。这个主体不一定是一个人，和当前应用交互的都是主体。在使用 Shiro 的过程中更多的是与 Subject 交互，所有的 Subject 都绑定到 Security Manager 中，与 Subject 的交互最终都会由 Security Manager 来执行。  

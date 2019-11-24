@@ -12,14 +12,14 @@ BeanFactory 和 FactoryBean 的区别面试经常会被问到，这里简单总�
 # BeanFactory
 BeanFactory 是 Spring Framework 中一个很重要的接口，从接口名称我们应该能大概猜到它的作用：bean 的工厂。它提供最基本的从工厂获取 bean 实例的方法，我们日常使用的从各种 ApplicationContext 获取 bean 实例的方法都是实现自该接口。可以说，该接口是 Spring 容器最基本的形式，在它的基础上添加了一些更加高级的功能，包括国际化的消息访问、AOP 支持、Web 支持、事件传播等，才形成了我们日常使用的各种 ApplicationContext。  
 
-![BeanFactory](https://img.nekolr.com/images/2019/06/18/kvA.png)
+![BeanFactory](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/kvA.png)
 
 # FactoryBean
 一般情况下，Spring 是根据 bean 的配置信息，然后通过反射机制来实例化 bean 并放入容器中的，但是有时 bean 的实例化过程比较复杂，如果按照之前的方式，则需要大量的 bean 的配置信息，这时采用编码的方式来获得 bean 实例会更加简单直接。  
 
 Spring 就提供了这样一个接口：`org.springframework.beans.factory.FactoryBean`。  
 
-![FactoryBean](https://img.nekolr.com/images/2019/06/18/dlM.png)
+![FactoryBean](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/dlM.png)
 
 用户可以通过实现该接口来定制实例化 bean 的逻辑。Spring 会在实例化该 bean 时检查是否实现了该接口，如果实现了该接口则会通过 getObject() 方法获取实例对象。为了验证这个结论，我们可以从我们常用的 getBean() 方法入手。  
 

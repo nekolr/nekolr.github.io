@@ -30,13 +30,13 @@ WebSocket 是 IETF 提出的一个应用层协议，2008 年诞生，2011 年成
 传统的 web 应用与服务器交互，需要提交一个表单，服务器接收表单数据，返回一个新的页面。一般前后页面的变化并不大，这一过程其实传输了大量的冗余数据，占用带宽。AJAX 的出现解决了这个问题，同时也满足了强调用户体验的 web2.0 的初期发展的要求。但是随着互联网的发展，一些需要实时通讯的 web 应用出现，AJAX 开始显现出它的不足。
 		
 我们首先从协议上看，由于 AJAX 其实还是基于 HTTP 协议的，因此它本质上并没有改变 HTTP 的请求响应模型。		
-![http_model](https://img.nekolr.com/images/2018/04/14/2Q2.png)		
+![http_model](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/2Q2.png)		
 		
 客户端发送 HTTP 请求，在 HTTP 工作之前，客户端首先通过三次握手与服务器建立 TCP 连接，连接建立后，客户端请求发出，服务器接收到请求后响应。在 HTTP 1.0 版本中，这意味着一次请求响应处理完成，需要通过四次握手关闭连接。但是有时候短期内客户端可能会大量请求服务器，这个时候如果每次请求都要建立连接，可想而知是多么消耗资源和时间，因此在 HTTP 1.1 版本中，可以通过添加头信息 Connection: keep-alive 来使得通信的双方保持住连接，以便下次通信时，可以不用建立连接，节省了时间和带宽（保持连接不是完美的，在 HTTP 1.1 中，默认情况下所有的连接都会被保持，即使通信的双方不再传输数据，除非显式指定 Connection: close，连接关闭。而操作系统能够支持的最大连接数有限，如果大量的连接被保持，则后续的连接可能无法建立）。		
 		
-![wireshark](https://img.nekolr.com/images/2018/04/14/j0A.png)
+![wireshark](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/j0A.png)
 		
-![keep_alive](https://img.nekolr.com/images/2018/04/14/QOQ.png)
+![keep_alive](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/QOQ.png)
 		
 其实可以看出，即便是 HTTP 1.1，也只是增加了连接的复用，HTTP 的请求响应模型并没有发生变化，**服务器还是不能主动发送消息给客户端，客户端与服务器不能全双工通信**。		
 		
@@ -57,7 +57,7 @@ WebSocket 是 IETF 提出的一个应用层协议，2008 年诞生，2011 年成
 		
 如果能有一个可以双向实时通信，并且数据格式轻量的协议就好了。WebSocket 就是这样一个协议。		
 		
-![websocket_vs_http](https://img.nekolr.com/images/2018/04/14/qNA.png)
+![websocket_vs_http](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/qNA.png)
 		
 ## WebSocket 协议的特点		
 - 建立在 TCP 协议之上
@@ -72,13 +72,13 @@ WebSocket 在握手阶段使用 HTTP 协议，默认端口也是 80 和 443。
 ## 通信过程分析
 通过抓包来查看 WebSocket 的通信过程：		
 		
-![websocket](https://img.nekolr.com/images/2018/04/14/vDa.png)		
+![websocket](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/vDa.png)		
 		
 (1) 首先客户端通过 TCP 三次握手建立连接（粉色部分）。
 		
 (2) 客户端 WebSocket 请求发出，WebSocket 的请求头部与普通的 HTTP 请求有些区别。		
 		
-![websocket_header](https://img.nekolr.com/images/2018/04/14/DJ4.png)
+![websocket_header](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/DJ4.png)
 		
 先看请求头信息：		
 ```

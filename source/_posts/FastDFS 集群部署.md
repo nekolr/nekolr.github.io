@@ -13,7 +13,7 @@ categories: [FastDFS]
 - 统一系统环境为 CentOS Linux release 7.5.1804  
 
 # 架构示意图
-![架构图](https://img.nekolr.com/images/2018/10/28/Y7P.png)
+![架构图](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/10/28/Y7P.png)
 
 # 安装 FastDFS
 需要在所有的环境上都安装 FastDFS。  

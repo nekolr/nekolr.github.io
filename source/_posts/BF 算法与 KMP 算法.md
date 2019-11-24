@@ -62,7 +62,7 @@ KMP 算法的核心是一个被称为部分匹配表（Partial Match Table）的
 
 比如要在字符串 `ababababca` 中查找字符串 `abababca`，如果在指针 j（或者 i）处字符不匹配，那么主串 i 指针之前的 PMT[j - 1] 位就一定与模式字符串的第 0 位到第 PMT[j - 1] 位是相同的。具体来说，因为在指针 j（或者 i）处不匹配，所以主串从 i - j 到 i 之前这段与模式字符串的 0 到 j 之前这段是完全相同的，在这个例子中就是 `ababab` 这段，它的前缀集合和后缀集合的交集的最长元素为 `abab`，长度为 4。所以可以说，主串 i 指针之前的 4 位与模式字符串的第 0 位到第 4 位是相同的，这样我们就可以省略掉这些字符的比较，保持 i 指针不动，将 j 指针指向模式字符串的 PMT[j - 1] 位（也就是第 4 位）即可。  
 
-![KMP 算法](https://img.nekolr.com/images/2019/06/18/Qlw.png)
+![KMP 算法](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/Qlw.png)
 
 从上面可以看出，如果在 j 位置失配，那么 j 指针回溯的位置其实是第 j - 1 位置的 PMT 的值。为了编程方便（没有其他意义），我们将 PMT 数组整体向右偏移一位（其中第一位始终为 -1），我们把新得到的数组称为 next 数组。  
 
@@ -106,15 +106,15 @@ static int kmpSearch(String ts, String ps) {
 
 接下来就是如何通过编码求得 next 数组了。求 next 数组的过程完全可以看成字符串匹配的过程，即以模式字符串为主串，以模式字符串的前缀为目标字符串，从模式字符串的第一位（不包括第 0 位）开始对自身进行匹配，在任一位置，能匹配的最长长度就是当前位置的 next 值。  
 
-![next2](https://img.nekolr.com/images/2019/06/18/qKM.png)
+![next2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/qKM.png)
 
-![next3](https://img.nekolr.com/images/2019/06/18/vGY.png)
+![next3](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/vGY.png)
 
-![next4](https://img.nekolr.com/images/2019/06/18/DYk.png)
+![next4](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/DYk.png)
 
-![next6](https://img.nekolr.com/images/2019/06/18/7Om.png)
+![next6](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/7Om.png)
 
-![next7](https://img.nekolr.com/images/2019/06/18/jN4.png)
+![next7](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/jN4.png)
 
 > 之所以错开一位进行匹配，也就是用从 0 开始的模式字符串与从 1 开始的模式字符串匹配，是因为从 0 开始的 p 串对应的是字符串的前缀，而从 1 开始的 p 串对应的是字符串的后缀，之后双方都匹配的部分就是公共前后缀，也就是 PMT 数组的值。  
 

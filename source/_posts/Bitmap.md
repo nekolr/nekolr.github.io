@@ -15,11 +15,11 @@ categories: [算法]
 
 从字面上好像不太好理解这个定义，下面通过一个例子来详细说明。假如我们需要对 0 到 7 之间的五个整数 `5 3 7 6 4` 进行排序，这五个整数没有重复。根据定义，要表示 0 到 7 之间的数就需要 8 bit 的存储空间。我们首先开辟 1byte 的空间，然后将这个空间中所有的 bit 位都置为 0。接下来遍历整数集合，第一个元素为 5 ，则将 5 对应的位置置为 1。
 
-![第一次遍历](https://img.nekolr.com/images/2019/08/27/RRl.png)
+![第一次遍历](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/08/27/RRl.png)
 
 以此类推，最终遍历的结果为：
 
-![最终结果](https://img.nekolr.com/images/2019/08/28/mQB.png)
+![最终结果](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/08/28/mQB.png)
 
 所有的数都落到了对应的位置上，接下来根据排序规则，将值为 1 的位置输出即可。
 

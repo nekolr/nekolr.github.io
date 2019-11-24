@@ -50,6 +50,6 @@ grunt custom:-ajax
 
 现在你可以去 dist 目录看看了，你会发现构建出来的 jQuery 代码少了很多，至于可以剔除哪些模块，可以看 jQuery 的 github 仓库的说明：<https://github.com/jquery/jquery>  
 
-![缩减前 ](https://img.nekolr.com/images/2018/04/14/ppg.png)
+![缩减前 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/ppg.png)
 
-![缩减后 ](https://img.nekolr.com/images/2018/04/14/Nkr.png)
+![缩减后 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Nkr.png)

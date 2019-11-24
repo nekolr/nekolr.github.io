@@ -130,7 +130,7 @@ public class APIDemo {
 
 # 简单 Socket 通信练习
 Socket 通信基于 TCP 和 UDP 协议，针对这两个协议有不同的写法。		
-![socket 通信模型 ](https://img.nekolr.com/images/2018/04/14/gm.jpg)
+![socket 通信模型 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/gm.jpg)
 		
 ```java
 package com.nekolr.socket;

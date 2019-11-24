@@ -9,9 +9,9 @@ categories: [架构]
 
 <!--more-->
 
-![架构演变 ](https://img.nekolr.com/images/2018/05/07/KBb.png)
+![架构演变 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/KBb.png)
 
-![架构演变解释 ](https://img.nekolr.com/images/2018/05/07/0d7.png)
+![架构演变解释 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/0d7.png)
 
 这是从大的阶段划分的，下面针对每个阶段大概分析一下，不涉及过多的细节。  
 
@@ -19,13 +19,13 @@ categories: [架构]
 
 一个小网站，一台服务器就足够了，文件服务、数据库服务和应用都部署在一起，俗称 All In One。随着用户增多，流量增大，硬盘、CPU 和内存吃紧，一台服务器已经不能满足了。  
 
-![单一应用架构 ](https://img.nekolr.com/images/2018/05/07/28e.png)
+![单一应用架构 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/28e.png)
 
 ## 升级：硬件服务分离
 
 一台服务器不行了，常规的思路就是加机器，将硬件服务分开。一台服务器部署应用，一台作为文件服务器，一台作为数据库服务器。  
 
-![硬件服务分离 ](https://img.nekolr.com/images/2018/05/07/Vzz.png)
+![硬件服务分离 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/Vzz.png)
 
 > **思考**：增加了新机器，理论上肯定会得到性能提升。但是这是建立在服务器间通信质量可靠的前提下，因为将数据服务和应用服务拆分意味着应用的每次数据库读写都要通过网络传输，而之前的单机模式下，应用可以直接访问本地数据库（几乎不存在通信问题）。还有一种方式为纵向扩展，借助目前的云服务，可以很方便的进行服务器的硬件配置升级（升级 CPU、扩大硬盘和内存），这样就避免了网络通信问题，不失为一个好的方式。  
 
@@ -35,31 +35,31 @@ categories: [架构]
 
 > **思考**：缓存从来不是数据库查询的特权，根据 28 原则，只要是应用中被大量访问的数据，我们都可以将它们缓存下来，然后看场景选择存放在本地（Local Cache）还是其他地方（Remote Cache）、是集中式存放还是分布式存放（Distributed Cache）。  
 
-![缓存 ](https://img.nekolr.com/images/2018/05/07/gnd.png)
+![缓存 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/gnd.png)
 
 ## 升级：读写分离、分库分表
 
 读写分离即将对数据库的读操作和写操作分离开，读操作一个数据库，写操作另一个数据库（分成主从数据库），写操作完成后同步到另一个数据库。  
 
-![读写分离 ](https://img.nekolr.com/images/2018/05/07/jqN.jpg)
+![读写分离 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/jqN.jpg)
 
 当业务增长到一定规模，数据库软件管理了大量的数据库表和数据，数据库操作开始变慢，这时候通常采用的方式就是分库分表。大量的数据在数据库中一般表现为，大量的数据分散到大量的表中造成表数量巨大或者是表数量并不是很多但每张表的数据量巨大，因此分库分表大体上有两种方式：一种是垂直拆分，即把关系紧密（比如一个模块）的表拆分出来放在一个单独的数据库中；一种是水平拆分，即把表中的数据按照某种规则（例如散列）拆分到多个数据库中。当然，很多时候需要根据实际情况进行混合拆分。  
 
-![垂直拆分 ](https://img.nekolr.com/images/2018/05/07/qG7.jpg)
+![垂直拆分 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/qG7.jpg)
 
-![水平拆分 ](https://img.nekolr.com/images/2018/05/07/v4m.jpg)
+![水平拆分 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/v4m.jpg)
 
 ## 升级：动静分离
 
 将用户请求的资源分为两种：静态资源和动态资源。静态资源如：图片、js 文件、css 文件等，动态资源如：jsp、php 等需要服务器端程序处理后才返回的资源。动静分离要求将对这两种资源的请求分开处理，之所以这么分，一是可以缓解单一 Web 服务器的压力；二是可以对静态资源使用 CDN 加速。  
 
-![动静分离 ](https://img.nekolr.com/images/2018/05/07/7rY.png)
+![动静分离 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/7rY.png)
 
 ## 升级：负载均衡
 
 每台服务器的进程是有限的，我们不能无限扩展服务器的配置，因此有必要将多个服务器组合起来处理业务。通常采用负载均衡技术，根据每台服务器的状态来判断用户的请求交由哪个服务器处理。  
 
-![负载均衡 ](https://img.nekolr.com/images/2018/05/07/Q34.png)
+![负载均衡 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/07/Q34.png)
 
 ## 注意
 

@@ -20,7 +20,7 @@ apache 官网说明：
 ## Application Server
 Application Server（应用服务器）在 Java 领域是指具备处理 HTTP 请求的能力，支持 JavaEE 技术比如 JMS、DI、JPA、Transactions、Concurrency 等，同时包含了 Web Container 的应用。		
 		
-![app_server](https://img.nekolr.com/images/2018/04/14/8Ry.png)
+![app_server](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/8Ry.png)
 		
 与 Web Server 只提供简单的静态页面文件访问相比，App Server 为客户端提供访问业务逻辑的接口，客户端可以通过 HTTP 协议或其他协议来调用逻辑、获取返回的结果。		
 		
@@ -31,11 +31,11 @@ Application Server（应用服务器）在 Java 领域是指具备处理 HTTP �
 		
 可以看出，其实 Tomcat 也是一种 Web Server，只不过它处理静态页面文件的能力不如 Apache，但是它可以作为 JSP 和 Servlet 的容器（Web Container）。		
 		
-![tomcat](https://img.nekolr.com/images/2018/04/14/NAW.png)
+![tomcat](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/NAW.png)
 		
 在应对大型分布式应用时，我们可以选择使用 WebLogic、WebSphere 等 App Server，当然也完全可以搭配 Nginx 等来组合使用，如使用 Nginx + WebLogic。		
 		
-![组合 ](https://img.nekolr.com/images/2018/04/14/pPL.png)		
+![组合 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/pPL.png)		
 		
 对于中小型的应用，我们可以使用 Tomcat 作为容器，配和第三方的框架（Spring、Hibernate 等）来组成一个 App Server，当然也可以搭配 Nginx 等来组合使用。		
 		

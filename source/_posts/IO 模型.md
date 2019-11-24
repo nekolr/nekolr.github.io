@@ -62,21 +62,21 @@ categories: [操作系统]
 > 第二个阶段之所以说用户线程或者内核将数据从内核缓冲区拷贝到用户线程是因为：如果是非阻塞 I/O（这里说的非阻塞 I/O 其实还是同步 I/O），将数据从内核缓冲区拷贝到用户线程的操作是需要用户线程参与处理的；而在异步 I/O 中，真正的 I/O 操作，即将数据从内核缓冲区拷贝到用户线程是内核来完成的，不需要用户线程参与。  
 
 ## 阻塞 I/O（blocking I/O）
-![blocking io](https://img.nekolr.com/images/2018/11/15/bXl.png)  
+![blocking io](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/15/bXl.png)  
 
 recvfrom() 函数是一个系统调用，用来接收指定的 Socket 传来的数据。当用户进程调用了这个函数时，就陷入了内核代码中，此时处理器处于特权级中，可以使用内核的内存空间，此时内核就开始了 I/O 读的第一个阶段，准备数据（对于网络 I/O 来说，很多时候数据在一开始还没有到达。比如，由于还没有收到一个完整的 UDP 包，这个时候内核就需要等待足够的数据到来）。这个过程需要等待，也就是说数据被拷贝到内核缓冲区是需要时间的。而在用户进程这边，整个进程就会被阻塞。当数据准备就绪时，I/O 读的第二个阶段开始进行，用户线程会将数据从内核缓冲区拷贝到用户内存空间，这个过程也会一直阻塞，直到数据拷贝结束，recvfrom() 函数返回结果，用户进程才会解除阻塞状态，继续向下执行。  
 
 > 阻塞 I/O 的特点就是在 IO 操作的两个阶段都发生了阻塞。  
 
 ## 非阻塞 I/O（non-blocking I/O）
-![non-blocking io](https://img.nekolr.com/images/2018/11/17/aDj.png)  
+![non-blocking io](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/17/aDj.png)  
 
 recvfrom() 函数有一个参数，可以设置以非阻塞的方式检查内核数据是否准备就绪。当内核还没有准备好数据时，recvfrom() 函数直接返回一个错误值 EWOULDBLOCK，当内核中的数据准备就绪并且用户进程再次调用 recfrom() 时，用户线程会马上进行 I/O 读操作的第二个阶段，将内核缓冲区的数据拷贝到用户内存空间中。  
 
 > 非阻塞 I/O 的特点就是在等待数据就绪阶段不会阻塞，而在数据拷贝阶段才会阻塞。  
 
 ## I/O 多路复用（I/O multiplexing）
-![io multiplexing](https://img.nekolr.com/images/2018/11/17/OYo.png)  
+![io multiplexing](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/17/OYo.png)  
 
 在用户进程中调用 `select` 来监听多个 Socket 对象，该函数会阻塞当前进程，直到当某个 Socket 中有数据准备就绪，`select` 函数就会返回，此时用户进程再调用 `recvfrom` 将内核缓冲区中的数据拷贝到用户内存空间中。  
 
@@ -88,7 +88,7 @@ recvfrom() 函数有一个参数，可以设置以非阻塞的方式检查内核
 由于很少使用，可以不了解。  
 
 ## 异步 I/O（asynchronous I/O）
-![asynchronous io](https://img.nekolr.com/images/2018/11/19/GxK.png)  
+![asynchronous io](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/19/GxK.png)  
 
 当用户进程发起 I/O 读请求后，aio_read 函数会立刻返回，用户进程可以去做其他事情，内核会等待数据准备就绪后，主动将数据拷贝到用户内存空间中，然后再向用户进程发送一个 signal，通知用户进程操作完成。  
 

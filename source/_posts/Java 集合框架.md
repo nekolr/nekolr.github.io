@@ -14,7 +14,7 @@ Map 属不属于集合？在讨论这个问题之前，要先分清什么才是�
 		
 集合框架属于 Java 的基础知识，也是日常开发中常用的工具，面试也经常考察，因此作为一个 Java 程序员应该熟练掌握它。
 		
-![collection_framework](https://img.nekolr.com/images/2018/04/14/d2n.png)
+![collection_framework](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/d2n.png)
 		
 ### ArrayList
 底层维护着一个 Object 数组。使用默认的构造函数会初始化一个容量为 0 的数组，在放第一个元素时会扩容成容量为 10 的数组。可指定初始化容量。扩容时会重新开辟一个计算好容量的数组，并使用 `System.arraycopy() `复制元素，每次扩容后容量为上次容量的 1.5 倍，容量上限为 `Integer.MAX_VALUE - 8（2^31-1-8）`

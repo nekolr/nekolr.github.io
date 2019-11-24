@@ -114,7 +114,7 @@ slave2:ip=127.0.0.1,port=33333,state=online,offset=43,lag=0
 
 根据 INFO 命令返回的信息，Sentinel 将对主服务的实例结构 `sentinelRedisInstance` 进行更新，比如主服务重启后，它的运行 ID 就会和之前保存的不同，Sentinel 会检测到该情况并进行更新。同时主服务返回的从服务信息将会被保存到主服务实例结构中的 slaves 字典属性里，从服务的实例结构同样使用 `sentinelRedisInstance`。
 
-![主从服务信息的存储结构](https://img.nekolr.com/images/2019/09/22/ymR.png)
+![主从服务信息的存储结构](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/09/22/ymR.png)
 
 Sentinel 在分析 INFO 命令返回的从服务信息时，会检查对应的从服务实例结构是否已经存在，如果存在就进行更新；如果不存在，就会在 slaves 字典中创建一个新的实例结构，同时会创建连接到从服务的命令连接和订阅连接，并同样会以每 10 秒一次的频率通过命令连接向从服务发送 INFO 命令，并根据返回信息更新从服务实例的结构。
 
@@ -172,7 +172,7 @@ Sentinel 为主服务创建的实例结构中的 sentinels 字典保存了所有
 ## 节点
 节点就是运行在集群模式下的 Redis 服务，集群模式需要在配置文件中指定，对应 cluster-enabled 选项。在节点运行时，除了会继续使用所有在单机模式下的服务组件，使用 redisServer 和 redisClient 结构保存服务端和客户端的状态外，还会使用新的结构来保存在集群模式下需要用到的数据。其中，使用 clusterNode 结构保存节点状态，使用 clusterLink 结构保存连接节点所需的信息，使用 clusterState 保存当前节点视角下的集群状态。
 
-![集群节点结构](https://img.nekolr.com/images/2019/09/23/27R.png)
+![集群节点结构](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/09/23/27R.png)
 
 一个 Redis 集群通常由多个节点组成，在刚开始时，每个节点都是互相独立的，只有将它们连接起来才能构成一个包含多个节点的集群。连接节点需要使用 `CLUSTER MEET <ip> <port>` 命令，该命令可以让该节点与指定节点进行握手（handshake），握手成功的两个节点会将彼此添加到 clusterState.nodes 字典中，同时该节点会将指定节点的信息通过 Gossip 协议传播给集群中的其他节点，让其他节点也与指定节点进行握手。
 
@@ -187,7 +187,7 @@ Redis 集群通过分片的方式来保存数据库中的键值对，集群的�
 
 Redis 集群使用 clusterNode 结构中的 slots 属性记录节点负责处理哪些槽，使用 numslots 属性记录节点处理槽的数量。其中 slots 属性是一个二进制位数组（bit array），数组的长度为 16384/8 = 2048 个字节，共包含 16384 个二进制位。Redis 以 0 为起始索引，为这 16384 个二进制位进行编号，并根据索引 i 对应的二进制位的值来判断节点是否负责处理槽 i。比如下图中，该节点就负责处理 0 到 7 号这 8 个槽。
 
-![slots属性](https://img.nekolr.com/images/2019/09/23/aPB.png)
+![slots属性](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/09/23/aPB.png)
 
 节点除了会记录自己负责处理的槽，还会通过消息发送给集群中的其他节点，当其他节点通过消息接收到该节点发送的 slots 数组时，其他节点会在自己的 clusterState.nodes 字典中查找该节点对应的 clusterNode 结构，并对结构中的 slots 属性进行保存或者更新。
 

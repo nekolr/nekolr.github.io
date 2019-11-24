@@ -48,8 +48,8 @@ DOM 是与平台和编程语言无关的 W3C 的标准，基于 DOM 文档树，
 		
 DOM 解析过程及常用方法：		
 		
-![DOM_XML1](https://img.nekolr.com/images/2018/04/14/ROd.png)
-![DOM_XML2](https://img.nekolr.com/images/2018/04/14/W0W.png)
+![DOM_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/ROd.png)
+![DOM_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/W0W.png)
 		
 使用 JAXP 的 DOM 解析方式：		
 		
@@ -184,8 +184,8 @@ public class DOMResolver {
 		
 SAX 解析过程及使用：		
 		
-![SAX_XML1](https://img.nekolr.com/images/2018/04/14/LyR.png)
-![SAX_XML2](https://img.nekolr.com/images/2018/04/14/Ay3.png)		
+![SAX_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/LyR.png)
+![SAX_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/Ay3.png)		
 		
 使用 JAXP 的 SAX 解析方式（解析的 xml 同上）：
 		
@@ -284,9 +284,9 @@ public class SAXDemo {
 		
 JDOM 的使用：		
 		
-![JDOM_XML1](https://img.nekolr.com/images/2018/04/14/4KA.png)
+![JDOM_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/4KA.png)
 		
-![JDOM_XML2](https://img.nekolr.com/images/2018/04/14/drg.png)
+![JDOM_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/drg.png)
 		
 使用 JDOM 解析之前的 XML 文档，因为是第三方类库，需要引入 jar 包：		
 ```xml
