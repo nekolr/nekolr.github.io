@@ -15,9 +15,9 @@ categories: [Git]
 那么该如何统一规范呢？首先说第一种情况。  
 
 ## Git 仓库中源代码为 CRLF 风格
-此时为了统一成 LF 风格，我们需要借助一些工具来将仓库中的所有代码文本中的 ^M 替换掉。在 Linux 中有一个工具特别好用：dos2UNIX。  
+此时为了统一成 LF 风格，我们需要借助一些工具来将仓库中的所有代码文本中的 ^M 替换掉。在 Linux 中有一个工具特别好用：dos2unix。  
 ```
-dos2UNIX [options] [file ...] [-n infile outfile ...]
+dos2unix [options] [file ...] [-n infile outfile ...]
 ```
 
 ```
@@ -29,13 +29,13 @@ dos2UNIX [options] [file ...] [-n infile outfile ...]
 -n：写入到新文件
 ```
 
-由于 dos2UNIX 替换文件只能通过枚举的方式，所以再借助 `xargs` 命令来实现批量替换。比如：  
+由于 dos2unix 替换文件只能通过枚举的方式，所以再借助 `xargs` 命令来实现批量替换。比如：  
 ```
 :: 查找 demo 目录下的所有后缀为 java 的文件替换
-find demo/ -name "*.java" | xargs dos2UNIX -o
+find demo/ -name "*.java" | xargs dos2unix -o
 
 :: 查找 demo 目录下的所有的文件替换
-find demo/ -type f | xargs dos2UNIX -o
+find demo/ -type f | xargs dos2unix -o
 ```
 
 将所有文件替换好后提交到 Git 仓库中。  
