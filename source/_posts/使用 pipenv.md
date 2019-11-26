@@ -53,10 +53,29 @@ print('Your IP is {0}'.format(response.json()['origin']))
 
 ```
 
-有两种运行代码的方式，第一种就是通过 pipenv 命令来运行：
+有两种方式来运行代码，一种是通过 `pipenv run python main.py` 命令来运行，另一种是启动虚拟环境的 shell 来运行：
 
-```
-pipenv run python main.py
+```bash
+# 启动虚拟环境的 shell
+pipenv shell
+# 执行
+python3 main.py
 ```
 
-> 如果使用 PyCharm 开发环境，可以在设置中搜索 pipenv 并设置它的路径，这个路径的填写与上述路径相同
+> 如果使用 PyCharm 作为开发工具，可以在 settings 中搜索 pipenv 并设置它的安装路径，这样在新建项目时 IDE 就会直接帮我们新建并初始化虚拟环境了，非常方便。
+
+# pipenv 常用命令
+```bash
+pipenv --where                 # 列出本地工程路径
+pipenv --venv                  # 列出虚拟环境路径
+pipenv --py                    # 列出虚拟环境的 Python 可执行文件
+pipenv install                 # 创建虚拟环境
+pipenv isntall [moduel]        # 安装包
+pipenv install [moduel] --dev  # 安装包到开发环境
+pipenv uninstall[module]       # 卸载包
+pipenv uninstall --all         # 卸载所有包
+pipenv graph                   # 查看包依赖
+pipenv lock                    # 生成 lockfile
+pipenv run python [pyfile]     # 运行 python 文件
+pipenv --rm                    # 删除虚拟环境
+```
