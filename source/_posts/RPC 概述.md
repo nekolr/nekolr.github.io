@@ -16,9 +16,6 @@ RPC，也就是远程过程调用（Remote Procedure Call），通俗的解释�
 @RequestMapping("/orders")
 public class OrderController {
 
-    /**
-    * 此处的 OrderService 是通过 RPC 获取的
-    */
     @com.alibaba.dubbo.config.annotation.Reference
     private OrderService orderService;
 
