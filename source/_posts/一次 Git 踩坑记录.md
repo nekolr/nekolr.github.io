@@ -6,6 +6,8 @@ categories: [Git]
 ---
 在不同的操作系统下，文本文件使用的换行符是不一样的。UNIX/Linux 使用的是 LF，对应的十六进制编码为 0x0A，而 DOS/Windows 使用的是 CRLF，对应的十六进制编码为 0x0D0A。一般的开源项目，源代码都是使用 UNIX/Linux 风格保存的，这么做是为了统一文本风格，使源代码不论在哪个平台下，显示都是一致的。这在多人协作开发，尤其是团队成员使用的平台不同时尤为重要。  
 
+<!--more-->
+
 由于我使用的开发平台是 Windows，因此就犯了提交的代码文本风格全部为 CRLF 的错误。这些代码在 UNIX/Linux 平台使用 vim 打开时，就会是以下的样子。  
 
 ![错误的文本风格](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/09/14/Lkp.png)
