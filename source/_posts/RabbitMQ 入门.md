@@ -107,3 +107,83 @@ public class FanoutExchangeProducer {
 ```
 
 ![封包](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002102344/2020/02/10/71e.png)
+
+# 重点 API 介绍
+使用 RabbitMQ 的客户端发送和接收消息时，大体上都需要先通过连接工厂创建一个连接到 Broker 的连接，然后通过连接开启一个信道，由信道声明交换器和队列，再将交换器与队列绑定，然后就可以处理发送或者接收消息的逻辑了。
+
+使用连接工厂创建连接，由连接开启信道不需要过多说明，有一点需要注意的就是通过 Connection 可以创建多个 Channel 实例，但是 Channel 实例不能在线程间共享，也就是说 Channel 实例是非线程安全的。
+
+## exchangeDeclare
+声明交换器的 exchangeDeclare 方法有多个重载方法，这些重载方法都是由下面这个方法中缺省的某些参数构成的。
+
+```java
+Exchange.DeclareOk exchangeDeclare(String exchange,
+                                          String type,
+                                          boolean durable,
+                                          boolean autoDelete,
+                                          boolean internal,
+                                          Map<String, Object> arguments) throws IOException;
+```
+
+其中 exchange 是交换器的名称，type 是交换器的类型，有 fanout、direct、topic 和 headers 四种。durable 用于设置是否进行持久化，autoDelete 用于设置是否自动删除。自动删除的意思不是在所有与该交换器连接的客户端都断开后，RabbitMQ 会自动删除该交换器，自动删除的前提是至少有一个队列或交换器与该交换器绑定，之后所有与该交换器绑定的队列或交换器都与该交换器进行了解绑，只有在这个前提下自动删除才会生效。internal 用于设置交换器是否为内置的，客户端无法直接发送消息到内置交换器，只能通过交换器路由到内置交换器的方式发送消息。arguments 用于传递一些结构化的参数，比如 alternate-exchange。
+
+上面声明交换器的方法是有返回值的，为 Exchange.DeclareOk，表示客户端在声明了一个交换器后，需要等待服务端的 Exchange.Declare-Ok 返回命令。同时客户端 API 也提供了不需要服务端返回值的方法 exchangeDeclareNoWait，使用该方法声明的交换器不能紧接着就使用。还有一个非常有用的方法为 exchangeDeclarePassive，可以用它来检测相应的交换器是否存在，如果存在则正常返回；如果不存在则会抛出异常，同时 Channel 也会被关闭。
+
+## exchangeDelete
+有声明创建交换器的方法，那么当然会有删除的方法，相应的方法如下，其中 ifUnused 用来设置是否在交换器没有被使用的情况下删除，如果设置为 true 则表示只有该交换器没有被使用的情况下才会删除；否则一定会被删除。
+
+```java
+Exchange.DeleteOk exchangeDelete(String exchange, boolean ifUnused) throws IOException;
+```
+
+## queueDeclare
+声明队列的方法主要有两个，其中一个不带任何参数，默认会创建一个由 RabbitMQ 命名的（类似 amq.gen-j6mNQFoLARlq18lj0LTjWQ 这种，它们也被成为匿名队列）、排他的、自动删除的、非持久化的队列。另一个方法带有很多参数。
+
+```java
+Queue.DeclareOk queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete,
+                                 Map<String, Object> arguments) throws IOException;
+```
+
+其中 queue 是队列的名称，durable 是设置是否持久化。exclusive 用于设置是否为排他，如果一个队列被声明为排他队列，那么它仅对首次声明它的连接可见，并在连接断开时自动删除。这里需要注意的有三点：首先排他队列是基于连接可见的，即同一个连接的不同信道可以同时访问同一连接创建的排他队列；首次是指如果一个连接已经声明了一个排他队列，那么其他连接是不允许再声明一个同名的排他队列的；即使排他队列是持久化的，一旦连接关闭或者客户端退出，该队列都会自动删除。因此排他队列适用于一个客户端同时处理发送和接收消息的场景。autoDelete 是设置是否为自动删除，它的意思不是当所有连接到此队列的客户端都断开后，这个队列会自动删除。自动删除的前提是至少有一个消费者连接到这个队列，之后所有与该队列连接的消费者都断开，只有在这个前提下自动删除才会生效。因此生产者客户端创建这个队列，或者没有消费者客户端与这个队列连接时，都不会自动删除该队列。arguments 用于设置一些参数，比如 x-message-ttl、x-max-length、x-expires 等。
+
+> 生产者和消费者都可以使用 queueDeclare 来声明一个队列，但是如果消费者在一个信道上订阅了另一个队列，此后就无法在该信道上声明队列了，必须先取消订阅，将信道置为传输模式后才可以继续声明队列。
+
+## queueDelete 和 queuePurge
+队列删除的方法与交换器删除的方法类似，有一点不同是多了一个 ifEmpty 参数设置，为 true 时表示只有队列为空（即队列中没有任何消息堆积）时才会进行删除。
+
+```java
+Queue.DeleteOk queueDelete(String queue, boolean ifUnused, boolean ifEmpty) throws IOException;
+```
+
+还有一个比较特殊的方法，为 queuePurge，该方法用来清空队列中的内容但是不会删除队列本身。
+
+```java
+Queue.PurgeOk queuePurge(String queue) throws IOException;
+```
+
+## queueBind
+```java
+Queue.BindOk queueBind(String queue, String exchange, String routingKey, Map<String, Object> arguments) throws IOException;
+```
+
+其中 queue 是要绑定的队列名称，exchange 是要绑定的交换器名称，routingKey 为绑定队列和交换器的路由键，arguments 则定义了绑定的一些参数。
+
+## exchangeBind
+我们不仅可以将交换器与队列绑定，还可以将交换器与交换器绑定。
+
+```java
+Exchange.BindOk exchangeBind(String destination, String source, String routingKey, Map<String, Object> arguments) throws IOException;
+```
+
+其中 destination 可以理解为消息流向的目的交换器，source 可以理解为消息的源头交换器，这里可以举一个例子：
+
+```java
+channel.exchangeDeclare("source", "direct", false, true, null);
+channel.exchangeDeclare("destination", "fanout", false, true, null);
+channel.exchangeBind("destination", "source", "exKey");
+channel.queueDeclare("queue", false, false, true, null);
+channel.queueBind("queue", "destination", "");
+channel.basicPublish("source", "exKey", null, "exToExDemo".getBytes());
+```
+
+![交换器绑定交换器](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002141416/2020/02/14/bBg.png)
