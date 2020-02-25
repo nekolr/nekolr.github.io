@@ -243,3 +243,21 @@ Consumer consumer = new DefaultConsumer(channel) {
 // 指定队列的消费者，取消自动确认，改为手动确认
 channel.basicConsume(queueName, false, "consumerTag1", consumer);
 ```
+
+除了简单重写 handleDelivery 方法外，还可以重写更多的方法来实现更加复杂的需求，具体可以重写的方法有：
+
+```java
+// 当消费者调用 Channel.basicConsume 方法时都会调用，即消费者消费之前都会调用
+void handleConsumeOk(String consumerTag);
+// 使用 Channel.basicCancel 方法显式取消消费时调用
+void handleCancelOk(String consumerTag);
+// 当消费者由于其他原因（比如队列被删除）而被取消时调用
+void handleCancel(String consumerTag) throws IOException;
+// 当 Channel 或者 Connection 关闭时调用
+void handleShutdownSignal(String consumerTag, ShutdownSignalException sig);
+// 在调用 Channel.basicRecover 方法返回 Basic.recover-ok 时调用，调用之前所有收到但尚未确认的消息将会重发。
+void handleRecoverOk(String consumerTag);
+```
+
+和生产者一样，消费者客户端同样需要考虑线程安全的问题。消费者客户端的这些重写方法都会被分配到与 Channel 不同的线程上运行，这意味着消费者客户端可以安全地调用一些阻塞方法，比如 channel.queueDeclare、channel.basicCancel 等。每个 Channel 都拥有自己独立的线程，一般最常用的做法就是一个 Channel 对应一个消费者。
+
