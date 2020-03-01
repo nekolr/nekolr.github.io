@@ -108,7 +108,7 @@ public class FanoutExchangeProducer {
 
 ![封包](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002102344/2020/02/10/71e.png)
 
-# 重点 API 介绍
+# 使用介绍
 使用 RabbitMQ 的客户端发送和接收消息时，大体上都需要先通过连接工厂创建一个到 Broker 的连接，然后通过连接开启一个信道，由信道声明交换器和队列，再将交换器与队列绑定，然后就可以处理发送或者接收消息的逻辑了。
 
 使用连接工厂创建连接，由连接开启信道不需要过多说明，有一点需要注意的就是通过 Connection 可以创建多个 Channel 实例，但是 Channel 实例不能在线程间共享，也就是说 Channel 实例是非线程安全的。
@@ -261,3 +261,56 @@ void handleRecoverOk(String consumerTag);
 
 和生产者一样，消费者客户端同样需要考虑线程安全的问题。消费者客户端的这些重写方法都会被分配到与 Channel 不同的线程上运行，这意味着消费者客户端可以安全地调用一些阻塞方法，比如 channel.queueDeclare、channel.basicCancel 等。每个 Channel 都拥有自己独立的线程，一般最常用的做法就是一个 Channel 对应一个消费者。
 
+### 拉模式
+在拉模式中，消费者主动从服务端拉取消息。拉取消息对应在客户端 API 上就是 channel.basicGet 方法，使用该方法可以从服务端获取单条消息。
+
+```java
+GetResponse response = channel.basicGet(queueName, false);
+if (response == null) {
+    // No message retrieved
+} else {
+    System.out.println(new String(response.getBody()));
+    // 手动确认
+    channel.basicAck(response.getEnvelope().getDeliveryTag(), false);
+}
+```
+
+Basic.Consume 会将信道设置为接收模式，直到取消队列的订阅为止。在接收模式期间，服务端会根据 Basic.Qos 的限制不断地给消费者推送消息。如果想从队列获取单条消息而不是持续订阅，可以使用 Basic.Get，但是切记不要将 Basic.Get 放在一个循环中来实现类似 Basic.Consume 的效果，这样做会严重影响 RabbitMQ 的性能。
+
+# 高级特性
+RabbitMQ 除了具有消息队列常用的功能外，还有很多高级特性，比如备份交换器、死信队列、延迟队列等。
+
+## 备份交换器
+当生产者在发送消息时设置 mandatory 为 false，那么消息会在未被路由的情况下丢失；如果设置 mandatory 参数为 true，那么还需要编写 ReturnListener 的逻辑，生产者的代码就会变得更加复杂。如果既不想丢失消息又不想使生产者的代码复杂化，那么就可以使用备份交换器（Alternate Exchange）。备份交换器可以在声明交换器的时候添加 alternate-exchange 参数来实现，也可以通过策略（Policy）来实现，两者同时使用时前者的优先级更高。
+
+```java
+Map<String, Object> arguments = new HashMap<>();
+arguments.put("alternate-exchange", "myAlternateExchange");
+channel.exchangeDeclare("normalExchange", "direct", true, false, arguments);
+channel.exchangeDeclare("myAlternateExchange", "fanout", true, false, null);
+channel.queueDeclare("normalQueue", true, false, false, null);
+channel.queueBind("normalQueue", "normalExchange", "normalKey");
+channel.queueDeclare("noRouteQueue", true, false, false, null);
+channel.queueBind("noRouteQueue", "myAlternateExchange", "");
+```
+
+上面的例子中，我们声明了两个交换器，两个交换器各自绑定了一个队列，同时 myAlternateExchange 交换器为 normalExchange 交换器的备份交换器。当路由键为 normalKey 时，消息能够正确路由到 normalQueue 队列中；但是路由键为值时，消息因为不能路由到与 normalExchange 交换器绑定的任意队列上，此时消息就会被发送到备份交换器并最终发送到 noRouteQueue 队列中。
+
+> 需要注意的是，备份交换器与普通的交换器没有太大区别，为了方便使用，一般都会设置为 fanout 类型。如果设置为 direct 类型，那么路由键同样需要进行匹配。
+
+## 死信队列
+在 RabbitMQ 中，消息可以设置过期时间（TTL）。我们可以通过队列属性来给队列中的所有消息设置过期时间，也可以针对每条消息单独设置过期时间，两种一起使用时则以 TTL 数值较小的一方为准。一旦消息的生存时间超过设置的 TTL 值，该消息就会变成死信（Dead Message）。**一般来说，消息变成死信除了是由于消息过期以外，还可能是由于消息被拒绝（Basic.Reject 或 Basic.Nack）并设置 requeue 为 false，以及队列达到最大长度。**正常情况下消费者将无法收到变成死信的消息，但是为了避免消息变成死信后丢失，我们可以使用死信队列。
+
+死信队列也可以叫做死信交换器（Dead-Letter-Exchange，DLX），当消息在一个队列中变成死信后，它能够被重新发送到另一个交换器中，这个交换器就是死信交换器，绑定死信交换器的队列就是死信队列。实际上死信交换器与普通的交换器没有区别，它能在任何队列上被指定，实际上设置死信队列就是修改某个队列的属性，在声明队列时加入 `x-dead-letter-exchange` 参数，这样普通队列就变成了死信队列，普通的交换器也就变成了死信交换器。
+
+```java
+channel.exchangeDeclare("dlx_exchange", "direct", false, false, null);
+Map<String, Object> arguments = new HashMap<>();
+// 设置参数，指定死信交换器
+arguments.put("x-dead-letter-exchange", "dlx_exchange");
+// 也可以给 DLX 指定路由键，如果没有特殊指定则使用原队列的路由键
+arguments.put("x-dead-letter-routing-key", "dlx-routing-key");
+channel.queueDeclare("dlx_queue", false, false, false, arguments);
+```
+
+## 延迟队列
