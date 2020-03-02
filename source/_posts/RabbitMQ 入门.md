@@ -106,7 +106,7 @@ public class FanoutExchangeProducer {
 }
 ```
 
-![封包](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002102344/2020/02/10/71e.png)
+![AMQP 协议封包](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002102344/2020/02/10/71e.png)
 
 # 使用介绍
 使用 RabbitMQ 的客户端发送和接收消息时，大体上都需要先通过连接工厂创建一个到 Broker 的连接，然后通过连接开启一个信道，由信道声明交换器和队列，再将交换器与队列绑定，然后就可以处理发送或者接收消息的逻辑了。
@@ -314,3 +314,39 @@ channel.queueDeclare("dlx_queue", false, false, false, arguments);
 ```
 
 ## 延迟队列
+延迟队列中存储的是对应的延迟消息，所谓延迟消息是指当消息发送以后，并不会立刻被消费者接收，而是等待特定时间后，消费者才能拿到这个消息进行消费。RabbitMQ 本身并不直接支持延迟队列的功能，但是我们可以通过 DLX 和 TTL 模拟出延迟队列的功能，比如下面这个例子：
+
+```java
+channel.exchangeDeclare("exchange_dlx", "direct", true, false, null);
+channel.exchangeDeclare("exchange_normal", "fanout", true, false, null);
+Map<String, Object> arguments = new HashMap<>();
+arguments.put("x-message-ttl", 10000);// 消息过期时间，10000 毫秒
+arguments.put("x-dead-letter-exchange", "exchange_dlx");// 指定死信交换器
+arguments.put("x-dead-letter-routing-key", "routingKey");// 给 DLX 指定路由键
+channel.queueDeclare("queue_normal", true, false, false, arguments);
+channel.queueBind("queue_normal", "exchange_normal", "");
+channel.queueDeclare("queue_dlx", true, false, false, arguments);
+channel.queueBind("queue_dlx", "exchange_dlx", "routingKey");
+// 发送消息 dlx，路由键为 rk
+channel.basicPublish("exchange_normal", "rk", MessageProperties.PERSISTENT_TEXT_PLAIN, "dlx".getBytes());
+```
+
+这个例子中声明了两个交换器 exchange_normal 和 exchange_dlx，其中 exchange_dlx 是死信交换器，两个交换器各自绑定了一个队列，分别为 queue_normal 和 queue_dlx。队列 queue_normal 设置了 TTL 属性为 10 秒，当消息投递到 exchange_normal 交换器时，最终会被转发到 queue_normal 队列，10 秒后由于没有消费者消费，这条消息就会过期变成死信然后转发到死信交换器，最终投递到死信队列，此时消费者只要获取死信队列中的消息并消费就可以了。
+
+## 优先级队列
+在优先级队列中，优先级高的消息具有先被消费的特权。下面举一个例子来说明如何设置消息的优先级：
+
+```java
+Map<String, Object> arguments = new HashMap<>();
+// 设置队列的最大优先级为 10
+arguments.put("x-max-priority", 10);
+channel.queueDeclare("queue_priority", true, false, false, arguments);
+
+// 设置消息的优先级为 5
+channel.basicPublish("exchange_priority", "rk_priority", 
+        new AMQP.BasicProperties.Builder().priority(5).build(), "message".getBytes());
+```
+
+上面的例子中首先设置了队列的最大优先级为 10，然后有设置了一条消息的优先级为 5。默认消息的优先级最低为 0，最高为队列设置的最大优先级，优先级高的消息可以被优先消费，当然这个是有前提的：如果消费者的消费速度大于生产者的速度且 Broker 中没有消息堆积的情况下，消息设置优先级也就没有意义，因为这种情况下相当于 Broker 中至多只有一条消息，对一条消息设置优先级没有意义。
+
+## RPC 实现
