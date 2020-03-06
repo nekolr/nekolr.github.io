@@ -65,6 +65,8 @@ Exchange 可以叫做交换器。实际上，生产者并不是直接将消息�
 
 为什么 RabbitMQ 需要 Exchange 呢？因为 AMQP 中有一个思想就是生产者和消费者解耦。我们只需要定义好 Exchange 的路由策略，生产者不需要关心消息会发送给哪个 Queue 或被哪些消费者消费。这种模式下生产者只面向 Exchange，消费者只面向 Queue。Exchange 定义了消息路由到 Queue 的规则，将各个层面的消息传递隔离开来，每一层只需要关心面向的下一层，从而降低了整体的耦合度。
 
+RabbitMQ 中常用的交换器类型有 fanout、direct、topic 和 headers 这四种，其中 fanout 类型的交换器会把所有发送到该交换器的消息路由到所有与该交换器绑定的队列中，它不处理任何路由规则，直接将消息发送给所有绑定的队列，是四种交换机中速度最快的。direct 类型的交换器则会把消息路由到 BindingKey 与 RoutingKey 完全匹配的队列中，但是有时像 direct 这种严格匹配的方式在很多时候并不能满足实际的需要，因此 topic 类型的交换器则在 direct 的基础上进行了扩展，它约定 RoutingKey 和 BindingKey 都为一个点号分隔的字符串，比如 `com.rabbitmq.client`，BindingKey 中可以存在两种特殊的字符串 `*` 和 `#`，用于模糊匹配，其中 `*` 只能匹配一个单词，而 `#` 可以匹配零个或多个单词。举个例子：比如 BindingKey 为 `*.rabbitmq.*`，那么 Routingkey 必须为类似 `com.rabbitmq.client` 这种的，一个 `*` 号就代表一个单词，如果 BindingKey 为 `java.#`，那么 RoutingKey 就必须为 java 开头的任意字符串，比如 `java.util.concurrent`。至于 headers 类型的交换器则并不依赖路由键的匹配规则来路由消息，而是根据发送消息中的 headers 属性进行匹配。在绑定队列和交换器的时候指定一组键值对，当消息到达交换器时，RabbitMQ 会将该消息的 headers 与绑定时指定的键值对进行比较，完全匹配才会路由到该队列。由于 headers 类型的交换器性能很差，一般不会使用。
+
 ## Binding
 生产者将消息发送给交换器后，交换器如何知道要将消息发送到哪个队列中呢？答案就是通过绑定。绑定是指将交换器与队列进行关联，在绑定的时候一般还会指定一个绑定键（Binding Key）。生产者在将消息发送给交换器的时候，一般会指定一个 Routing Key，用于表示这个消息的路由规则。这个 Routing Key 需要与交换器类型以及绑定键配合使用。比如一个 direct 类型的交换器，那么消息会路由到 Routing Key 与 Binding Key 完全匹配的某个队列中。所以在交换器类型和绑定键固定的情况下，生产者发送消息时指定的 Routing Key 将最终决定消息的流向。
 
@@ -194,7 +196,7 @@ void basicPublish(String exchange, String routingKey, boolean mandatory, boolean
         throws IOException;
 ```
 
-其中 exchange 为交换器名称，如果设置为空字符串则消息会被转发到默认的交换器中。routingKey 为路由键。当 mandatory 设置为 true，如果交换器出现无法根据自身的类型和路由键匹配一个队列时，那么 RabbitMQ 就会调用 Basic.Return 命令将消息返回给生产者，生产者可以通过 `channel.addReturnListener` 方法添加一个监听器来获取无法匹配的消息；当 mandatory 设置为 false 时，遇到上述情况消息则会被丢弃。当 immediate 设置为 true，如果交换器在将消息路由到队列时发现队列上不存在任何消费者，那么这条消息不会被存入队列中，当与路由键匹配的所有队列中都没有消费者时，消息会通过 Basic.Return 返回至生产者。概括来说就是，mandatory 参数告诉服务端至少要将消息路由到一个队列中，否则消息将返回给生产者。immediate 参数告诉服务端，如果消息匹配的队列上由消费者，则立刻投递，如果所有匹配的队列上都没有消费者，则立即将消息返回给生产者，而不需要将消息存储至队列。
+其中 exchange 为交换器名称，如果设置为空字符串则消息会被转发到默认的交换器中，**默认的交换器为 direct 类型，隐式地绑定到了每个队列，并且路由键等于各自绑定的队列名称。不能显式绑定到默认的交换器或与之解绑。默认交换器不能删除**。routingKey 为路由键。当 mandatory 设置为 true，如果交换器出现无法根据自身的类型和路由键匹配一个队列时，那么 RabbitMQ 就会调用 Basic.Return 命令将消息返回给生产者，生产者可以通过 `channel.addReturnListener` 方法添加一个监听器来获取无法匹配的消息；当 mandatory 设置为 false 时，遇到上述情况消息则会被丢弃。当 immediate 设置为 true，如果交换器在将消息路由到队列时发现队列上不存在任何消费者，那么这条消息不会被存入队列中，当与路由键匹配的所有队列中都没有消费者时，消息会通过 Basic.Return 返回至生产者。概括来说就是，mandatory 参数告诉服务端至少要将消息路由到一个队列中，否则消息将返回给生产者。immediate 参数告诉服务端，如果消息匹配的队列上由消费者，则立刻投递，如果所有匹配的队列上都没有消费者，则立即将消息返回给生产者，而不需要将消息存储至队列。
 
 > 需要注意的是，RabbitMQ 3.0 版本开始去掉了对 immediate 参数的支持，官方解释是该参数会影响镜像队列的性能，增加代码的复杂度，建议采用 TTL（过期时间）和 DLX（死信交换器）的方法来替代。
 
@@ -277,6 +279,33 @@ if (response == null) {
 
 Basic.Consume 会将信道设置为接收模式，直到取消队列的订阅为止。在接收模式期间，服务端会根据 Basic.Qos 的限制不断地给消费者推送消息。如果想从队列获取单条消息而不是持续订阅，可以使用 Basic.Get，但是切记不要将 Basic.Get 放在一个循环中来实现类似 Basic.Consume 的效果，这样做会严重影响 RabbitMQ 的性能。
 
+## 消费端的确认与拒绝
+为了保证消息可靠地投递到消费者手中，RabbitMQ 提供了消费者确认机制，消费者在订阅队列时，可以指定 autoAck 参数。当设置 autoAck 为 true 时，RabbitMQ 会自动将发送出去的消息置为确认，然后从内存或磁盘中删除，而不管消费者是否真正消费了该条消息；当设置 autoAck 为 false 时，消费者就不必担心处理消息的过程中消费者进程挂掉后造成消息丢失，RabbitMQ 会一直等到持有消息的消费者显式调用 Basic.Ack 命令为止。
+
+在消费者收到消息后，如果想拒绝当前的消息而不是确认，那么可以使用 Basic.Reject 这个命令，对应的客户端方法为：
+
+```java
+void basicReject(long deliveryTag, boolean requeue) throws IOException;
+```
+
+其中 deliveryTag 可以看作消息的编号，它是一个 64 位的长整型。如果 requeue 为 true，那么 RabbitMQ 会将这条消息重新存入队列，以便发给下一个消费者；如果 requeue 为 false，那么该消息就会变成死信被丢弃或者发送到死信队列。
+
+Basic.Reject 命令一次只能拒绝一条消息，如果想要批量拒绝消息，可以使用 Basic.Nack 命令，对应的客户端方法为：
+
+```java
+void basicNack(long deliveryTag, boolean multiple, boolean requeue) throws IOException;
+```
+
+其中 deliveryTag 和 requeue 的含义与 basicReject 方法相同。如果 multiple 为 false，那么该方法只会拒绝编号为 deliveryTag 的这一条消息；如果 multiple 为 true，那么该方法会拒绝 deliveryTag 编号之前所有未被消费者确认的消息。
+
+针对 requeue，AMQP 中还有一个 Basic.Recover 命令具备可重入队列的特征，对应的客户端方法为：
+
+```java
+Basic.RecoverOk basicRecover(boolean requeue) throws IOException;
+```
+
+这个方法用来请求 RabbitMQ 重新发送还未被确认的消息。如果 requeue 为 true，那么未被确认的消息会被重新加入到队列中，这样对于同一条消息来说，可能会被分配给与之前不同的消费者；如果 requeue 为 false，那么同一条消息就会被分配给与之前相同的消费者。
+
 # 高级特性
 RabbitMQ 除了具有消息队列常用的功能外，还有很多高级特性，比如备份交换器、死信队列、延迟队列等。
 
@@ -350,3 +379,133 @@ channel.basicPublish("exchange_priority", "rk_priority",
 上面的例子中首先设置了队列的最大优先级为 10，然后有设置了一条消息的优先级为 5。默认消息的优先级最低为 0，最高为队列设置的最大优先级，优先级高的消息可以被优先消费，当然这个是有前提的：如果消费者的消费速度大于生产者的速度且 Broker 中没有消息堆积的情况下，消息设置优先级也就没有意义，因为这种情况下相当于 Broker 中至多只有一条消息，对一条消息设置优先级没有意义。
 
 ## RPC 实现
+在 RabbitMQ 中实现 RPC 是比较简单的，客户端发送请求消息，服务端返回响应的消息，为了接收响应的消息还需要在请求消息中指定一个回调队列，但是光有回调队列可不行，因为对于回调队列而言，在其收到一条响应的消息之后，它并不知道这条响应的消息应该和哪个请求相匹配，因此这里就需要用到 `correlationId` 属性，我们只要为每个请求设置一个唯一的 `correlationId`，在回调队列接收到响应的消息时，就可以根据这个唯一值来匹配相应的请求。下面给出 RabbitMQ 官网的一个 RPC 例子：
+
+```java
+public class RPCClient implements AutoCloseable {
+
+    private Connection connection;
+    private Channel channel;
+    private String requestQueueName = "rpc_queue";
+
+    public RPCClient() throws IOException, TimeoutException {
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost("localhost");
+        connection = connectionFactory.newConnection();
+        channel = connection.createChannel();
+    }
+
+    public static void main(String[] argv) {
+        try (RPCClient fibonacciRpc = new RPCClient()) {
+            for (int i = 0; i < 32; i++) {
+                String i_str = Integer.toString(i);
+                System.out.println(" [x] Requesting fib(" + i_str + ")");
+                String response = fibonacciRpc.call(i_str);
+                System.out.println(" [.] Got '" + response + "'");
+            }
+        } catch (IOException | TimeoutException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String call(String message) throws IOException, InterruptedException {
+        // 关联请求的唯一值
+        final String corrId = UUID.randomUUID().toString();
+        // 声明一个匿名队列作为回调队列
+        String replyQueueName = channel.queueDeclare().getQueue();
+        AMQP.BasicProperties props = new AMQP.BasicProperties
+                .Builder()
+                .correlationId(corrId)
+                .replyTo(replyQueueName)
+                .build();
+        // 向 rpc_queue 队列中发送消息
+        channel.basicPublish("", requestQueueName, props, message.getBytes("UTF-8"));
+        // 使用阻塞队列存放结果
+        final BlockingQueue<String> response = new ArrayBlockingQueue<>(1);
+        String cTag = channel.basicConsume(replyQueueName, true, (consumerTag, delivery) -> {
+            // 如果唯一值匹配则说明是对应的响应
+            if (delivery.getProperties().getCorrelationId().equals(corrId)) {
+                // 不阻塞
+                response.offer(new String(delivery.getBody(), "UTF-8"));
+            }
+        }, consumerTag -> {
+        });
+        // 获取结果
+        String result = response.take();
+        // 取消该消费者，这样队列中就不存在该消费者了
+        channel.basicCancel(cTag);
+        return result;
+    }
+
+    public void close() throws IOException {
+        connection.close();
+    }
+}
+```
+
+```java
+public class RPCServer {
+
+    private static final String RPC_QUEUE_NAME = "rpc_queue";
+
+    private static int fib(int n) {
+        if (n == 0) return 0;
+        if (n == 1) return 1;
+        return fib(n - 1) + fib(n - 2);
+    }
+
+    public static void main(String[] argv) throws Exception {
+        ConnectionFactory connectionFactory = new ConnectionFactory();
+        connectionFactory.setHost("localhost");
+
+        try (Connection connection = connectionFactory.newConnection();
+             Channel channel = connection.createChannel()) {
+            // 声明 rpc_queue 队列
+            channel.queueDeclare(RPC_QUEUE_NAME, false, false, false, null);
+            // 清空队列
+            channel.queuePurge(RPC_QUEUE_NAME);
+            // 一次只能有一个消费者获取到消息
+            channel.basicQos(1);
+            System.out.println(" [x] Awaiting RPC requests");
+            // 锁
+            Object monitor = new Object();
+            DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+                AMQP.BasicProperties replyProps = new AMQP.BasicProperties
+                        .Builder()
+                        .correlationId(delivery.getProperties().getCorrelationId())
+                        .build();
+                String response = "";
+                try {
+                    // 获取 client 发送过来的消息
+                    String message = new String(delivery.getBody(), "UTF-8");
+                    int n = Integer.parseInt(message);
+                    System.out.println(" [.] fib(" + message + ")");
+                    response += fib(n);
+                } catch (RuntimeException e) {
+                    System.out.println(" [.] " + e.toString());
+                } finally {
+                    // 将计算结果发送给回调队列
+                    channel.basicPublish("", delivery.getProperties().getReplyTo(), replyProps, response.getBytes("UTF-8"));
+                    channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+                    // RabbitMq consumer worker thread notifies the RPC server owner thread
+                    synchronized (monitor) {
+                        monitor.notify();
+                    }
+                }
+            };
+            //
+            channel.basicConsume(RPC_QUEUE_NAME, false, deliverCallback, (consumerTag -> { }));
+            // Wait and be prepared to consume the message from RPC client.
+            while (true) {
+                synchronized (monitor) {
+                    try {
+                        monitor.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+}
+```
