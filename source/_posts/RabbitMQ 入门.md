@@ -306,8 +306,120 @@ Basic.RecoverOk basicRecover(boolean requeue) throws IOException;
 
 这个方法用来请求 RabbitMQ 重新发送还未被确认的消息。如果 requeue 为 true，那么未被确认的消息会被重新加入到队列中，这样对于同一条消息来说，可能会被分配给与之前不同的消费者；如果 requeue 为 false，那么同一条消息就会被分配给与之前相同的消费者。
 
-# 高级特性
+# RabbitMQ 进阶
 RabbitMQ 除了具有消息队列常用的功能外，还有很多高级特性，比如备份交换器、死信队列、延迟队列等。
+
+## 持久化
+在 RabbitMQ 中，持久化包括交换器的持久化、队列的持久化以及消息的持久化。交换器的持久化可以在声明交换器时设置，如果交换器不设置持久化，那么在 RabbitMQ 服务重启后，相关交换器的元信息就会丢失。队列的持久化同样也在声明时设置，如果不设置队列持久化，那么在 RabbitMQ 服务重启后，相关队列的元信息也会丢失，同时数据（消息）也会丢失。队列的持久化只能保证队列本身的元信息不会丢失，无法保证队列内部存储的消息不会丢失。要确保消息不会丢失，需要在发送消息时将消息的投递模式，即 deliveryMode 属性设置为 2。只有同时设置了队列和消息的持久化，RabbitMQ 服务重启后消息才不会丢失。
+
+我们可以将所有的消息都设置为持久化，但是这样会严重影响 RabbitMQ 的性能，如果对可靠性要求不高可以选择不持久化消息。即使交换器、队列和消息都设置了持久化，也不能保证消息百分百不丢失。消息从生产到消费经历了生产、转储和消费三个阶段，每个阶段都有可能出现消息丢失的情况。消费阶段出现消息丢失一般是因为消费者订阅队列时设置了 autoAck 为 true，如果此时消费者接收到消息还没来得及处理就宕机了，消息就会丢失，解决方法就是将 autoAck 设置为 false 并进行手工确认。在转储阶段，持久化的消息正确存入 RabbitMQ 后，还需要一段时间（很短，但不能忽视）才能存入磁盘。RabbitMQ 并不会为每条消息都进行同步存盘（调用内核的 fsync 方法），可能仅仅保存到操作系统缓存中，如果这段时间内 RabbitMQ 服务宕机，消息还没来得及落盘就会丢失。解决这种问题的方法就是使用 RabbitMQ 的镜像队列机制，虽然这样不能完全保证消息不会丢失，但是可靠性要比普通的单机模式要高。至于生产阶段，可以在生产者中引入事务机制或者使用发送方确认机制来保证消息已经正确发送并存储到 RabbitMQ 中。
+
+## 生产者确认
+默认情况下，生产者发送消息是不会有任何响应信息返回的，也就是默认情况下生产者并不知道消息到底有没有正确到达服务器，如果消息在到达服务器之前就已经丢失，那么持久化操作也就无从谈起。针对这个问题，RabbitMQ 提供了两种解决方式，其一就是事务机制，其二就是发送方确认机制。
+
+### 事务机制
+RabbitMQ 客户端中与事务相关的方法有三个，channel.txSelect、channel.txCommit 和 channel.txRollback，其中 channel.txSelect 方法用于将当前信道设置为事务模式，channel.txCommit 方法用于提交事务，channel.txRollback 则用于事务回滚。当信道开启了事务模式后，我们就可以发送消息了，如果事务提交成功，则表示消息一定到达了 RabbitMQ 服务中；如果在事务提交之前由于异常崩溃或其他原因抛出异常，此时就可以将其捕获并进行事务回滚。
+
+```java
+try {
+    channel.txSelect();
+    channel.basicPublish(exchange, routingKey, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
+    channel.txCommit();
+} catch (Exception e) {
+    e.printStackTrace();
+    channel.txRollback();
+}
+```
+
+### 发送方确认
+事务确实能够解决发送方和 RabbitMQ 之间消息确认的问题，但是使用事务会严重影响 RabbitMQ 的性能，因此 RabbitMQ 还提供了一种更轻量的改进方案，它就是发送方确认机制。在该机制中，生产者将信道设置为 confirm（确认）模式，一旦信道进入确认模式，所有在该信道上发布的消息都会被指派一个唯一的 ID（即 deliveryTag，从 1 开始）。在消息被投递到所有匹配的队列之后，RabbitMQ 就会发送一个确认（Basic.Ack）给生产者，确认中包含之前指派的唯一 ID。**如果消息和队列是持久化的，那么确认会在消息写入磁盘之后发出。**此外 RabbitMQ 也可以设置 channel.basicAck 方法中的 multiple 参数，表示这个 ID 序号之前的所有消息都已经得到了处理。
+
+事务机制在发送一条消息后会使发送端阻塞，以等待 RabbitMQ 的响应，之后才能继续发送下一条消息。与之相比，发送方确认机制最大的好处在于它是异步的，生产者发送消息后可以在等信道返回确认的同时继续发送下一条消息。下面使用一段代码简单介绍确认机制的使用：
+
+```java
+try {
+    // 开启信道的确认模式
+    channel.confirmSelect();
+    channel.basicPublish("exchange", "routingKey", null, "publisher confirm".getBytes());
+    // 等待消息确认响应，可能是 Basic.Ack 也可能是 Basic.Nack
+    if (!channel.waitForConfirms()) {
+        System.out.println("Send message failed.");
+        // 此处编写消息发送失败时需要执行的代码
+    }
+} catch (InterruptedException e) {
+    e.printStackTrace();
+}
+```
+
+类似 channel.waitForConfirms 的方法共有四种，默认的无参方法返回的条件是客户端收到了相应的回复（Basic.Ack 或 Basic.Nack）或被中断，带有参数 timeout 的方法会在超时时间结束后抛出 `java.util.concurrent.TimeoutException` 异常。剩下两个 waitForConfirmsOrDie 方法在收到 Basic.Nack 回复后会抛出 `java.io.IOException` 异常。
+
+在生产者确认模式中，如果每发送一条消息后就调用 channel.waitForConfirms 方法等待服务端确认，这实际上与事务机制一样还是一种串行同步等待的方式，同时它们的存储确认原理相同，尤其对于持久化的消息来说，两者都需要等待消息落盘（调用 fsync 内核方法）后才会返回。在同步等待的方式下，消息确认机制发送一条消息需要通信交互的命令是 2 条：Basic.Publish 和 Basic.Ack；事务机制是 3 条：Basic.Publish、Tx.Commit 和 Tx.Commit-Ok（或者 Tx.Rollback 和 Tx.Rollback-Ok）。而我们知道，消息确认机制的优势在于并不一定需要同步确认，我们可以采用批量确认或者异步确认的方式。下面针对这两种改进方式分别举例。
+
+在批量确认的方式中，客户端程序需要定期或者定量，亦或者两者结合发送消息后调用 channel.waitForConfirms 方法等待服务端的确认返回。相比之前的一条一确认，批量确认极大地提高了确认的效率，但是当出现返回 Basic.Nack 或者超时的情况时，客户端需要将之前批量发送的消息全部重发，这在网络情况不佳消息经常丢失时性能不升反降。
+
+```java
+try {
+    channel.confirmSelect();
+    // 等待确认的消息总数
+    int msgCount = 0;
+    while (true) {
+        channel.basicPublish("exchange", "routingKey", null, "batch confirm".getBytes());
+        // 将发送出去的消息存入缓存中，缓存可以是一个 ArrayList 或者 BlockingQueue 之类的
+        if (++msgCount >= BATCH COUNT) {
+            msgCount = 0;
+            try {
+                // 等待响应
+                if (channel.waitForConfirms()) {
+                    // 将缓存中的消息清空
+                } else {
+                    // 将缓存中的消息重新发送
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                // 将缓存中的消息重新发送
+            }
+        }
+    }
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+异步确认的方式实现较为复杂，我们需要调用 channel.addConfirmListener 方法为消息确认添加 ConfirmListener 回调接口，该接口中有 handleAck 和 handleNack 两个方法，方法中的 deliveryTag 用来标记消息的唯一有序序号，我们需要为每个信道维护一个意为“unconfirm”的消息序号集合，每发送一条消息，集合元素加一，每当调用 ConfirmListener 接口的 handleAck 方法时，集合删掉一个（multiple 为 false）或多个（multiple 为 true）元素。该集合最好采用有序集合 SortedSet 来维护消息序号。
+
+```java
+channel.confirmSelect();
+channel.addConfirmListener(new ConfirmListener() {
+    @Override
+    public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+        if (multiple) {
+            // 如果设置的是 true，则表示这个序号之前的所有消息都得到了处理，因此删除序号之前所有的元素
+            unConfirmSet.headSet(deliveryTag - 1).clear();
+        } else {
+            // 删掉对应的消息序号
+            unConfirmSet.remove(deliveryTag);
+        }
+    }
+
+    @Override
+    public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+        if (multiple) {
+            unConfirmSet.headSet(deliveryTag - 1).clear();
+        } else {
+            unConfirmSet.remove(deliveryTag);
+        }
+        // 这里需要添加处理消息重发的代码
+    }
+});
+
+// 模拟一直发送消息的场景
+while (true) {
+    long nextSeqNo = channel.getNextPublishSeqNo();
+    channel.basicPublish("exchange", "routingKey", MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());
+    // 将序号添加到未处理的集合中
+    unConfirmSet.add(nextSeqNo);
+}
+```
 
 ## 备份交换器
 当生产者在发送消息时设置 mandatory 为 false，那么消息会在未被路由的情况下丢失；如果设置 mandatory 参数为 true，那么还需要编写 ReturnListener 的逻辑，生产者的代码就会变得更加复杂。如果既不想丢失消息又不想使生产者的代码复杂化，那么就可以使用备份交换器（Alternate Exchange）。备份交换器可以在声明交换器的时候添加 alternate-exchange 参数来实现，也可以通过策略（Policy）来实现，两者同时使用时前者的优先级更高。
@@ -509,3 +621,6 @@ public class RPCServer {
     }
 }
 ```
+
+# 参考
+> 《RabbitMQ 实战指南》
