@@ -421,6 +421,44 @@ while (true) {
 }
 ```
 
+## 消息分发
+当队列有多个消费者的时候，队列会将消息以轮询的方式分发，每条消息只会发送给订阅列表中的一个消费者。这种方式非常适合扩展，但是也会有它的缺陷。假如有 n 个消费者，那么 RabbitMQ 会把第 m 条消息分发给第 m % n 个消费者，RabbitMQ 不会理会消费者是否消费并已经确认了消息。如果某些消费者任务繁重，来不及处理这么多的消息，而某些消费者却由于某些原因很快就处理完了分配到的消息，这就会导致应用整体的吞吐量下降。
+
+应对这种情况需要用到 `channel.basicQos(int prefetchCount)` 方法，使用该方法可以限制信道上消费者所能保持的最大未确认消息的数量。举个例子，在订阅队列之前，消费者程序调用了 `channel.basicQos(5)`，之后订阅队列进行消费。RabbitMQ 会保存一份消费者的列表，每发送一条消息都会为对应的消费者计数，如果达到了设定的上限 5，那么 RabbitMQ 就不会向这个消费者再发送任何消息，直到消费者确认了某条消息后，RabbitMQ 将对应的消费者的计数减一，之后该消费者才可以继续接收消息，直到再次达到上限。
+
+basicQos 有三个重载方法，带有 prefetchCount 参数的方法设置为 0 则表示没有上限，还有带有 prefetchSize 参数的方法，该参数表示消费者所能接收未确认消息总体大小的上限，单位为 B，设置为 0 也表示没有上限。对于一个信道来说，它可以同时支持多个队列的消费，当设置了 prefetchCount 大于 0 时，这个信道需要协调各个队列以确保发送的消息都没有超过限定值，这样会使 RabbitMQ 的性能降低，尤其是这些队列分布在集群的多个 Broker 节点上时，因此 RabbitMQ 在 AMQP 0-9-1 协议之上又给 basicQos 方法重新定义了 global 这个参数。
+
+global | AMQP 0-9-1 | RabbitMQ
+---|---|---
+false | 信道上所有的消费者都需要遵从 prefetchCount 的限制 | 信道上新的消费者需要遵从 prefetchCount 的限制
+true | 当前 Connection 上所有的消费者都需要遵从 prefetchCount 的限制 | 信道上所有的消费者都需要遵从 prefetchCount 的限制
+
+对于同一个信道上的多个消费者而言，如果设置了 prefetchCount 的值，那么该设置会对每个消费者都生效，比如下面的例子中，每个消费者各自能接收的未确认消息的上限都是 10。
+
+```java
+Consumer consumer1 = ...;
+Consumer consumer2 = ...;
+// 每个消费者都会限制 10 条
+channel.basicQos(10);
+channel.basicConsume("queue1", false, consumer1);
+channel.basicConsume("queue2", false, consumer2);
+```
+
+如果在订阅消息之前，即设置了 global 为 true，又设置了 global 为 false，那么这两个限制都会生效，比如下面的例子：
+
+```java
+Consumer consumer1 = ...;
+Consumer consumer2 = ...;
+// 每个消费者都会限制 3 条
+channel.basicQos(3, false);
+// 该信道上会限制为 5 条
+channel.basicQos(5, true);
+channel.basicConsume("queue1", false, consumer1);
+channel.basicConsume("queue2", false, consumer2);
+```
+
+这个例子中，每个消费者最多只能收到 3 个未确认的消息，并且两个消费者能收到的未确认消息的总和上限为 5，也就是说假如 consumer1 接收到了三条未确认的消息，那么 consumer2 至多只能接收到 2 条未确认的消息，这样设置会额外增加 RabbitMQ 的负担，因为 RabbitMQ 需要更多的资源来协调完成这种限制，因此一般使用默认的 global 设置即可。
+
 ## 备份交换器
 当生产者在发送消息时设置 mandatory 为 false，那么消息会在未被路由的情况下丢失；如果设置 mandatory 参数为 true，那么还需要编写 ReturnListener 的逻辑，生产者的代码就会变得更加复杂。如果既不想丢失消息又不想使生产者的代码复杂化，那么就可以使用备份交换器（Alternate Exchange）。备份交换器可以在声明交换器的时候添加 alternate-exchange 参数来实现，也可以通过策略（Policy）来实现，两者同时使用时前者的优先级更高。
 
