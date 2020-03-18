@@ -4,7 +4,7 @@ date: 2020/3/10 15:57:0
 tags: [Spring Cloud,Spring]
 categories: [Spring Cloud]
 ---
-SpringCloud 其实就是一个全家桶，建立在 Spring Boot 之上，是微服务系统架构的一站式解决方案，覆盖了微服务的各个核心组件，其中很多组件都是 Netflix 家的。Spring Cloud 的版本号是以英国伦敦地铁站的名字命名的，同时按照字典顺序对应版本的时间顺序，最早的 Release 版本为 Angel，最新的 Release 版本为 Hoxton。
+Spring Cloud 其实就是一个全家桶，建立在 Spring Boot 之上，是微服务系统架构的一站式解决方案，覆盖了微服务的各个核心组件，其中很多组件都是 Netflix 家的。Spring Cloud 的版本号是以英国伦敦地铁站的名字命名的，同时按照字典顺序对应版本的时间顺序，最早的 Release 版本为 Angel，最新的 Release 版本为 Hoxton。
 
 <!--more-->
 
