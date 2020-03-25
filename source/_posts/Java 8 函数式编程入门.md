@@ -269,3 +269,107 @@ map(Arrays.asList("Hello", "World"), (String s) -> s.length());
 从一个对象中选择或提取 | (String s) -> s.length() | Function&lt;String, Integer&gt; 或 ToIntFunction&lt;String&gt;
 合并两个值 | (int a, int b) -> a * b | IntBinaryOperrator
 比较两个对象 | (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()) | Comparator&lt;Apple&gt; 或 BiFunction&lt;Apple, Apple, Integer&gt; 或 ToIntBiFunction&lt;Apple, Apple&gt;
+
+## 方法引用
+方法引用使得我们可以重复使用现有的方法定义，并像 Lambda 一样传递它们。当我们使用方法引用时，我们需要将目标引用放在分隔符 `::` 前面，方法名称放在后面，比如 `Apple::getWeight` 就是一个方法引用。它的基本思想是，如果一个 Lambda 表达式代表的只是“直接调用这个方法”，那最好还是用名称来调用它，而不是去描述如何调用它。下面列举一些例子来说明：
+
+Lambda | 等效的方法引用
+---|---
+(Apple a) -> a.getWeight() | Apple::getWeight
+() -> Thread.currentThread().dumpStack() |  Thread.currentThread::dumpStack
+(str, i) -> str.substring(i) | String::substring
+(String s) -> System.out.println(s) | System.out::println
+
+方法引用主要有三种，一种是指向静态方法的方法引用，比如 Integer 的 parseInt 方法，对应的方法引用为 Integer::parseInt。一种是指向任意类型实例方法的方法引用，这一类方法引用的特点就是当我们在引用一个对象的方法时，这个对象本身又是 Lambda 中的一个参数，比如 (String s) -> s.toUpperCase() 对应的方法引用为 String::toUpperCase。还有一种是指向现有对象的实例方法的方法引用，这一类方法引用的特点是在 Lambda 中调用一个在外部环境已经存在的对象中的方法。
+
+![方法引用](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202003231726/2020/03/23/2jR.png)
+
+## 构造函数引用
+对于一个现有的构造函数，我们可以利用它的名称和关键字 new 来创建一个它的引用：ClassName::new。假如有一个构造函数没有参数，那么它就与 `Supplier<T>` 接口的方法签名 `() -> T` 一致，所以我们可以这样做：
+
+```java
+Supplier<Apple> c1 = Apple::new; // 构造函数引用指向默认的 Apple() 构造函数
+Apple a1 = c1.get(); // 调用 Supplier 的 get 方法才会真正创建一个 Apple 对象
+
+// 这就等价于
+
+Supplier<Apple> c2 = () -> new Apple();
+Apple a2 = c2.get();
+```
+
+如果构造函数的签名是 Apple(Integer weight)，那么它就与 Function 接口的签名 `(T, R) -> R` 一致，所以可以这样做：
+
+```java
+Function<Integer, Apple> f1 = Apple::new; // 指向 Apple(Integer weight) 的构造函数引用
+Apple a1 = f1.apply(120); // 调用该 Function 接口的 apply 方法，并给出要求的重量，产生一个新的对象
+
+// 等价于
+
+Function<Integer, Apple> f2 = (Integer weight) -> new Apple(weight);
+Apple a2 = f2.apply(120);
+```
+
+如果构造函数的签名为 Apple(String color, Integer weight)，那么就与 BiFunction 接口的签名 `(T, U, R) -> R` 一致。
+
+```java
+BiFunction<String, Integer, Apple> f1 = Apple::new;
+Apple a1 = f1.apply("red", 120);
+
+// 等价于
+BiFunction<String, Integer, Apple> f2 = (String color, Integer weight) -> new Apple(color, weight);
+Apple a2 = f2.apply("red", 120);
+```
+
+## 复合方法
+很多函数式接口都提供了进行复合的方法（以默认方法的方式提供），比如用于传递 Lambda 表达式的 Comparator、Function 和 Predicate 接口。允许使用复合的方法意味着我们可以将多个简单的 Lambda 表达式复合成较为复杂的表达式，从而实现更加复杂的需求，比如我们可以让两个谓词进行 or 操作，从而组合成一个更大的谓词。
+
+### 比较器复合
+```java
+// 使用 Comparator 的静态方法 comparing，根据提取用于比较的键值的 Function 来返回一个 Comparator
+Comparator<Apple> c = Comparator.comparing(Apple::getWeight);
+
+// 逆序
+Comparator<Apple> c1 = Comparator.comparing(Apple::getWeight).reversed();
+
+// 比较器链：如果两个苹果重量相同，使用重量无法比较出区别，那么可以继续使用其他的比较器进行比较
+Comparator<Apple> c2 = Comparator.comparing(Apple::getWeight)
+                .reversed()
+                .thenComparing(Apple::getColor);
+
+```
+
+### 谓词复合
+and 和 or 方法是按照在表达式链中的位置从左到右确定优先级的，比如 `a.or(b).and(c)` 可以看作 `(a || b) && c`。
+
+```java
+// 谓语：苹果是红色的
+Predicate<Apple> p1 = (Apple a) -> "red".equals(a.getColor());
+
+// 非：苹果不是红色的
+Predicate<Apple> p2 = p1.negate();
+
+// 与：苹果既是红色的又大于 110 克
+Predicate<Apple> p3 = p1.and((Apple a) -> a.getWeight() > 110);
+
+// 或：苹果可能是大于 110 克的红苹果，也可能是绿苹果
+Predicate<Apple> p4 = p3.or((Apple a) -> "green".equals(a.getColor()));
+```
+
+### 函数复合
+andThen 方法会返回一个 Function，它先对输入应用一个函数，再对输出应用另一个函数。比如，有个函数 f 是给数字加 1，另一个函数是给数字乘 2，我们可以将这两个函数组合起来，先加 1 再乘 2。
+
+```java
+Function<Integer, Integer> f = x -> x + 1;
+Function<Integer, Integer> g = x -> x * 2;
+Function<Integer, Integer> h = f.andThen(g); // 数学上会写作 g(f(x))
+int result = h.apply(1); // 结果为 4
+```
+
+如果在上面的例子中使用 compose 方法，那就意味着结果为 `f(g(x))`。
+
+```java
+Function<Integer, Integer> f = x -> x + 1;
+Function<Integer, Integer> g = x -> x * 2;
+Function<Integer, Integer> h = f.compose(g); // 数学上会写作 f(g(x))
+int result = h.apply(1); // 结果为 3
+```
