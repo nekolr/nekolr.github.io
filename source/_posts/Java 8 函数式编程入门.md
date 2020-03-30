@@ -383,14 +383,64 @@ int result = h.apply(1); // 结果为 3
 ```
 
 # 流
-Stream 不是集合元素，它不是数据结构并不保存数据，它是有关算法和计算的，它更像一个高级版本的 Iterator。用户在使用普通的 Iterator 时，只能一个一个显式地遍历元素并对其执行某些操作（外部迭代）；而在使用 Stream 时，用户只需给出对其包含的元素执行什么样的操作即可，比如“过滤掉长度大于 10 的字符串”、“获取每个字符串的首字母”等，流会隐式地在内部进行遍历（内部迭代），并做出相应的数据转换。
+Stream 不是集合元素，它不是数据结构并不保存数据，它是有关算法和计算的，它更像一个高级版本的 Iterator。用户在使用普通的 Iterator 时，只能一个一个显式地遍历元素并对其执行某些操作（外部迭代）；而在使用 Stream 时，用户只需给出对其包含的元素执行什么样的操作即可，比如“过滤出长度大于 10 的字符串”、“获取每个字符串的首字母”等，流会隐式地在内部进行遍历（内部迭代），并做出相应的数据转换。
 
-与迭代器类似，Stream 是单向的，不可往复，即数据只能遍历一次，遍历过一次后即用尽了，就像流水从面前流过，一去不复返。而与迭代器不同的是，Stream 可以并行化操作。迭代器只能命令式地、串行化操作。当使用串行方式去遍历时，每个 item 读完后再读下一个 item。而使用并行去遍历时，数据会被分成多个段，其中每一段都在不同的线程中处理，然后将结果一起输出。Stream 的并行操作依赖于 Java 7 中引入的 `Fork/Join` 框架（[JSR 166y](http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166y/)）来拆分任务和加速处理过程。
+与迭代器类似，Stream 是单向的，不可往复，即数据只能遍历一次，遍历过一次后就用尽了，就像流水从面前流过，一去不复返。与迭代器不同的是，Stream 可以并行化操作，而迭代器只能命令式地、串行化地操作。当使用串行方式去遍历时，每个 item 读完后再读下一个 item。而使用并行去遍历时，数据会被分成多个段，其中每一段都在不同的线程中处理，最终将结果合并。Stream 的并行操作依赖于 Java 7 中引入的 `Fork/Join` 框架（[JSR 166y](http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jsr166y/)）来拆分任务和加速处理过程。
 
 ## 为什么要使用流
-Stream 作为 Java 8 的一大亮点，它与 java.io 包里的 InputStream 和 OutputStream 是完全不同的概念。它也不同于 StAX 对 XML 解析的 Stream，也不是 Amazon Kinesis 对大数据实时处理的 Stream。Java 8 中的 Stream 是对集合（Collection）对象功能的增强，它专注于对集合对象进行各种非常便利、高效的聚合操作（aggregate operation），或者大批量数据操作 (bulk data operation)。Stream API 借助于 Lambda 表达式，极大的提高编程效率和程序可读性。同时它提供串行和并行两种模式进行汇聚操作，使用并发模式能够充分利用多核处理器的优势。通常编写并行代码很难而且容易出错, 但使用 Stream API 无需编写一行多线程的代码，就可以很方便地写出高性能的并发程序。所以说，Java 8 中首次出现的 java.util.stream 是一个函数式语言 + 多核时代综合影响的产物。
+Stream 作为 Java 8 的一大亮点，它与 java.io 包里的 InputStream 和 OutputStream 是完全不同的概念。它也不同于 StAX 对 XML 解析的 Stream，也不是 Amazon Kinesis 对大数据实时处理的 Stream。Java 8 中的 Stream 是对集合对象功能的增强，它专注于对集合对象进行各种非常便利、高效的聚合操作（aggregate operation），或者大批量数据操作 (bulk data operation)。Stream API 借助于 Lambda 表达式，极大的提高编程效率和程序可读性。同时它提供串行和并行两种模式进行汇聚操作，使用并发模式能够充分利用多核处理器的优势。通常编写并行代码很难而且容易出错, 但使用 Stream API 无需编写一行多线程的代码就可以很方便地写出高性能的并发程序。所以说，Java 8 中首次出现的 Stream 是一个函数式语言 + 多核时代综合影响的产物。
 
-在传统的 J2EE 应用中，Java 代码经常不得不依赖于关系型数据库的聚合操作来完成诸如：客户每月平均消费金额、最昂贵的在售商品、本周完成的有效订单（排除了无效的）、取十个数据样本作为首页推荐等等这类的操作，但在当今这个数据大爆炸的时代，数据的来源更加多样化，很多时候不得不脱离 RDBMS，或者以底层返回的数据为基础进行更上层的数据统计。而 Java 的集合 API 中，仅仅有极少量的辅助型方法，很多时候程序员需要用 Iterator 遍历集合并完成相关的聚合应用逻辑。
+在传统的 J2EE 应用中，Java 代码经常不得不依赖于关系型数据库的聚合操作来完成诸如：客户每月平均消费金额、最贵的在售商品、本周完成的有效订单、取十个数据样本作为首页推荐等等这类的操作，但在当今这个数据大爆炸的时代，数据的来源更加多样化，很多时候不得不脱离 RDBMS，或者以底层返回的数据为基础进行更上层的数据统计。而 Java 的集合 API 中，仅仅有极少量的辅助型方法，很多时候程序员需要用 Iterator 遍历集合并完成相关的聚合应用逻辑。
+
+## 构建流
+可以通过集合、值序列、数组、文件或者函数（类似于 Python 中的生成器）等来创建流。在 Java 8 中，Collection 接口被扩展，增加了两个默认方法来获取 stream。
+
+```java
+// 由集合创建
+List<Apple> apples = new ArrayList<>();
+Stream<Apple> stream = apples.stream();
+```
+
+```java
+// 由值序列创建流
+Stream<String> stream = Stream.of("Hello", "World");
+```
+
+```java
+// 由数组创建流
+int[] numbers = {2, 3, 5, 7, 9, 11};
+IntStream stream = Arrays.stream(numbers);
+```
+
+java.nio.file.Files 中有很多静态方法都会返回一个流。比如 Files.lines 方法会返回一个指定文件中的各行构成的字符串流。
+
+```java
+// 由文件创建流
+long uniqueWords = 0;
+try (Stream<String> lines = Files.lines(Paths.get("data.txt"), Charset.defaultCharset())) {
+    uniqueWords = lines.flatMap(line -> Arrays.stream(line.split(" "))) // 生成单词流
+            .distinct() // 删除重复项
+            .count();
+}
+```
+
+Stream API 提供了两个静态方法来从函数生成流，包括 Stream.iterate() 和 Stream.generate()，由于这两个操作产生的流都会用给定的函数按需创建值，因此都可以创造出所谓的无限流。
+
+```java
+// 接受一个初始值 0，流的第一个元素为 0，然后为生成的新值 2，以此类推
+Stream.iterate(0, n -> n + 2).limit(10).forEach(System.out::println);
+
+// 斐波那契元组序列
+Stream.iterate(new int[]{0, 1}, t -> new int[]{t[1], t[0] + t[1]})
+        .limit(20)
+        .forEach(t -> System.out.println("(" + t[0] + "," + t[1] + ")"));
+```
+
+与 iterate 不同，generate 不是依次对每个新生成的值应用函数的，它接受一个 `Supplier<T>` 类型的参数来提供新的值。
+
+```java
+Stream.generate(Math::random).limit(5).forEach(System.out::println);
+```
 
 ## 流操作
 流操作分为两种：中间操作和终端操作。中间操作包括 filter、map、sorted、limit、distinct 等，这类操作可以连接起来形成一个查询的操作链，并且因为中间操作一般都可以合并起来，所以它们都是惰性化的，只有在遇到终端操作时才会一次性全部处理。终端操作包括 forEach、collect、reduce、count 等，这类操作会执行中间操作链并产生结果。一个流只能有一个终端操作，当这个操作执行后，流就被用“光”了。
@@ -409,3 +459,86 @@ numbers.stream()
 Stream 的切片主要通过 limit 方法和 skip 方法来实现。limit(n) 方法会返回一个不超过给定长度的流，而 skip(n) 方法会返回一个扔掉了前 n 个元素的流，如果流中元素不足 n 个，则会返回一个空流。
 
 ### 映射
+流的 map 方法接受一个函数（`Function<? super T, ? extends R> mapper`）作为参数，这个函数会被应用到每个元素上，并将其映射成一个新的元素。
+
+```java
+List<Integer> list = apples.stream()
+        .map(Apple::getWeight)
+        .collect(Collectors.toList());
+```
+
+除了 map 方法，Stream 还有一个将流扁平化的 flatMap 方法，该方法同样接受一个函数，但是这个函数与 map 方法接受的函数不同，它的声明为 `Function<? super T, ? extends Stream<? extends R>> mapper`，该函数会将流中的每个元素转换为另一个流。flatMap 方法会将流中每个元素都转换为另一个流，然后把所有的流连接起来成为一个新的流。比较 map 方法和 flatMap 方法我们会发现，map 适合一对一映射的场景，而 flatMap 适合一对多映射的场景。flatMap 方法的入参为多个列表，结果可以返回一个列表；而 map 方法如果接受多个列表，那么返回的结果也是多个列表。
+
+### 查找和匹配
+很多时候我们需要查看数据集中的某些元素是否匹配一个给定的属性，Stream API 就提供了类似的工具，包括 allMatch、anyMatch、noneMatch、findFirst 和 findAny，这些操作都用到了短路，类似于 Java 中 `&&` 和 `||` 运算符的短路。
+
+> 有些操作不需要处理整个流就能得到结果。例如，假设你需要对一个用 and 连起来的大布尔表达式求值。不管表达式有多长，你只需找到一个表达式为 false，就可以推断整个表达式将返回 false，所以用不着计算整个表达式。这就是短路。对于流而言，某些操作不用处理整个流就能得到结果。只要找到一个元素，就可以有结果了。limit 就是一个短路操作：它只需创建一个给定大小的流。在碰到无限大小的流的时候，这种操作就有用了：它们可以把无限流变成有限流。
+
+### 规约
+规约可以将流中所有的元素反复结合最终得到一个值，比如“计算所有苹果的重量”、“所有苹果中最重的是哪个”等。
+
+```java
+// 正常外部迭代求和
+int sum = 0;
+for (int x : numbers) {
+    sum += x;
+}
+
+// 使用规约求和
+int sum1 = numbers.stream().reduce(0, (a, b) -> a + b);
+// 利用 Integer 类的静态方法 sum
+int sum2 = numbers.stream().reduce(0, Integer::sum);
+
+// 没有初始值的求和，在没有初始值时，需要考虑流中没有任何元素的情况，因此返回值为 Optional 类型
+Optional<Integer> sum3 = numbers.stream().reduce((a, b) -> (a + b));
+
+// 求乘积
+int product = numbers.stream().reduce(1, (a, b) -> a * b);
+
+// 求最小值
+Optional<Integer> min = numbers.stream().reduce(Integer::min);
+
+// 求最大值
+Optional<Integer> max = numbers.stream().reduce(Integer::max);
+
+// 利用 map 和 reduce 求总数
+int count = apples.stream()
+        .map(a -> 1)
+        .reduce(Integer::sum);
+
+// 直接使用 count 方法求总数
+long count1 = apples.stream().count();
+```
+
+对于 reduce 方法，如果未定义初始值，那么第一次执行时第一个参数的值就是流的第一个元素，第二个参数就是流的第二个元素；如果定义了初始值，则第一次执行时第一个参数的值就是初始值，第二个参数就是流的第一个元素。下面需要说明一个特殊的 reduce 方法。
+
+```java
+<U> U reduce(U identity,
+                 BiFunction<U, ? super T, U> accumulator,
+                 BinaryOperator<U> combiner);
+```
+
+第一个参数为实例 identity，表示要返回的 U 类型对象的初始化实例，第二个参数为累加器 accumulator，可以使用二元表达式（即二元 Lambda 表达式），声明在 identity 的基础上连续使用的逻辑，第三个参数为组合器 combiner，由于流是支持并发操作的，为了避免竞争，reduce 线程都会有独立的 result，combiner 的作用就是合并每个线程的 result 得到最终结果。这也说明了了第三个函数参数的数据类型必须为方法返回值的类型。
+
+### 小结
+方法 | 类型 | 函数描述符 | 描述
+---|---|---|---
+filter(Predicate&lt;T&gt; p) | 中间 | T -> boolean | 根据谓词筛选
+distinct() | 中间（有状态-无界） | | 返回一个元素各异的流，即去重
+limit(long n) | 中间（有状态-有界） | | 返回一个不超过给定长度的流
+skip(long n) | 中间（有状态-有界） | | 返回一个扔掉了前 n 个元素的流
+map(Function&lt;T, R&gt; f) | 中间 | T -> R | 根据函数将流中的每个元素映射为新的元素
+flatMap(Function&lt;T, Stream&lt;R&gt;&gt; f) | 中间 | T -> Stream&lt;R&gt; | 将流中元素都转成新流并最终合并为一个流
+sorted() | 中间（有状态-无界） | | 产生一个新流，其中按字典顺序排序
+sorted(Comparator&lt;T&gt; c) | 中间（有状态-无界） | (T, T) -> int | 产生一个新流，其中按比较器排序
+allMatch(Predicate&lt;T&gt; p) | 终端 | T -> boolean | 检查是否匹配所有元素
+anyMatch(Predicate&lt;T&gt; p) | 终端 | T -> boolean | 检查是否至少匹配一个元素
+noneMatch(Predicate&lt;T&gt; p) | 终端 | T -> boolean | 检查是否没有匹配所有元素
+findFirst() | 终端 | | 返回第一个元素
+findAny() | 终端 | | 返回当前流中的任意元素
+forEach(Consumer&lt;T&gt; c) | 终端 | T -> void | 内部迭代
+reduce(BinaryOperator&lt;T&gt; b) | 终端（有状态-有界） | (T, T) -> T | 将流中所有的元素反复结合最终得到一个值
+count() | 终端（有状态-有界） | | 计算流中元素的个数（**规约操作**）
+min(Comparator&lt;T&gt; c) | 终端（有状态-有界） | (T, T) -> int | 获取流中最小的元素（**规约操作**）
+max(Comparator&lt;T&gt; c) | 终端（有状态-有界） | (T, T) -> int | 获取流中最大的元素（**规约操作**）
+
