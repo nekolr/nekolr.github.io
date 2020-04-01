@@ -40,11 +40,10 @@ custom_file_path:
 # ---------------------------------------------------------------
 
 favicon:
-  # TODO: 添加对应的 icon
-  small: /images/favicon.png
-  medium: /images/favicon.png
-  apple_touch_icon: /images/favicon.png
-  safari_pinned_tab: /images/favicon.png
+  small: /images/cat48.png
+  medium: /images/cat72.png
+  apple_touch_icon: /images/cat192.png
+  # safari_pinned_tab: /images/favicon.png
   #android_manifest: /images/manifest.json
   #ms_browserconfig: /images/browserconfig.xml
 
@@ -109,6 +108,9 @@ creative_commons:
 scheme: Mist
 #scheme: Pisces
 #scheme: Gemini
+
+# Dark Mode
+darkmode: true
 
 
 # ---------------------------------------------------------------
