@@ -541,4 +541,86 @@ reduce(BinaryOperator&lt;T&gt; b) | 终端（有状态-有界） | (T, T) -> T |
 count() | 终端（有状态-有界） | | 计算流中元素的个数（**规约操作**）
 min(Comparator&lt;T&gt; c) | 终端（有状态-有界） | (T, T) -> int | 获取流中最小的元素（**规约操作**）
 max(Comparator&lt;T&gt; c) | 终端（有状态-有界） | (T, T) -> int | 获取流中最大的元素（**规约操作**）
+collect(Collector&lt;T, A, R&gt; c) | 终端 | | 接受各种做法将流中元素汇总成一个（**规约操作**）
 
+## 收集器
+流的 collect 方法其实也是一个归约操作，就像 reduce 一样可以接受各种做法作为参数，将流中的元素累积成一个汇总结果，具体的做法可以使用预定义的 Collector 接口的实现，也就是 Collectors 类提供的一系列的静态方法（工厂方法），这些方法主要提供了三类功能：将流中元素规约汇总为一个值，元素分组以及元素分区。
+
+### 规约与汇总
+
+```java
+// 查找最大值和最小值
+Comparator<Apple> comparator = Comparator.comparingInt(Apple::getWeight);
+Optional<Apple> max = apples.stream().collect(Collectors.maxBy(comparator));
+
+// 求总数
+long count = apples.stream().collect(Collectors.counting());
+
+// 求和
+int sum = apples.stream().collect(Collectors.summingInt(Apple::getWeight));
+
+// 求平均值
+double avg = apples.stream().collect(Collectors.averagingInt(Apple::getWeight));
+
+// 连接字符串
+// joining 方法返回的收集器会把流中每个元素应用 toString 方法得到的所有字符串连成一个
+String colors = apples.stream().collect(Collectors.joining());
+
+String colors1 = apples.stream().map(Apple::getColor).collect(Collectors.joining(", "));
+```
+
+事实上，很多收集器都是可以用 reducing 工厂方法定义的规约过程的特殊情况而已，特化的目的是为了方便编程人员。reducing 方法有两种，一种是单参数方法，另一种是三参数方法。从逻辑上说，reducing 的原理是利用累积函数，把一个初始化为起始值的累加器，和把转换函数应用到流中每个元素上得到的结果不断迭代合并。
+
+```java
+int total = apples.stream()
+        .collect(Collectors.reducing(0, // 初始值
+                Apple::getWeight, // 转换函数
+                Integer::sum)); // 累积函数
+```
+
+我们可以将单参数的 reducing 方法看作三参数方法的特殊情况，它把流中第一个元素作为起点，把恒等函数（即一个函数仅仅是返回其输入参数）作为一个转换函数。
+
+```java
+// 求最大值
+Optional<Apple> max = apples.stream()
+        .collect(Collectors.reducing((a1, a2) -> a1.getWeight() > a2.getWeight() ? a1 : a2));
+```
+
+### 分组
+使用 groupingBy 时需要提供一个分类函数，通过它将流中的元素划分到不同的组中。
+
+```java
+// 按照颜色分组
+Map<String, List<Apple>> groups = apples.stream().collect(Collectors.groupingBy(Apple::getColor));
+
+// 编写分组函数
+Map<String, List<Apple>> groups = apples.stream().collect(Collectors.groupingBy(apple -> {
+    if (apple.getWeight() < 120) {
+        return "LIGHT"; // 轻的
+    } else {
+        return "HEAVY"; // 重的
+    }
+}));
+```
+
+多级分组可以使用双参数版本的 groupingBy 方法，它除了接受一个分类函数外，还可以接受一个 Collector 类型的参数。
+
+```java
+Map<String, Map<String, List<Apple>>> groups = apples.stream()
+        .collect(Collectors.groupingBy(Apple::getColor, // 一级分组
+                Collectors.groupingBy(apple -> { // 二级分组
+                    if (apple.getWeight() < 120) {
+                        return "LIGHT";
+                    } else {
+                        return "HEAVY";
+                    }
+                })));
+```
+
+多级分组可以由两级扩展到任意层级。一般把 groupingBy 看作“桶”比较容易理解，第一个 groupingBy 给每个键建立了一个桶，然后再用下游的收集器去收集每个桶中的元素，以此得到 n 级分组。进一步的，传递给第一个 groupingBy 的第二个收集器可以是任何类型。实际上单参数的 groupingBy(f) 只是 groupingBy(f, Collectors.toList()) 的简便写法。
+
+```java
+// 返回的 Map 类似：{"green": 3, "red": 5}
+Map<String, Long> groups = apples.stream()
+                .collect(Collectors.groupingBy(Apple::getColor, Collectors.counting()));
+```
