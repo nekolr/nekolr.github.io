@@ -624,3 +624,10 @@ Map<String, Map<String, List<Apple>>> groups = apples.stream()
 Map<String, Long> groups = apples.stream()
                 .collect(Collectors.groupingBy(Apple::getColor, Collectors.counting()));
 ```
+
+### 分区
+分区是分组的特殊情况，因为在分区中分类函数是一个谓词，这意味着分组 Map 的键是 boolean 类型的，它最多可以分为两组：true 是一组，false 是另一组。
+
+```java
+Map<Boolean, List<User>> partition = users.stream().collect(Collectors.partitioningBy(User::isVip);
+```
