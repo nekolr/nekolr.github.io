@@ -22,7 +22,7 @@ script:
 deploy:
   provider: pages
   skip_cleanup: true
-  github_token: $BLOG_DEPLOY_KEY
+  github_token: $BLOG_DEPLOY_TOKEN
   target_branch: master
   local_dir: ./public/
   verbose: true
