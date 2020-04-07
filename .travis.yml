@@ -21,7 +21,10 @@ script:
   - hexo generate
 deploy:
   provider: pages
+  skip_cleanup: true
+  github_token: $BLOG_DEPLOY_KEY
   target_branch: master
   local_dir: ./public/
   verbose: true
   name: travis_bot
+  email: excalibll@163.com
