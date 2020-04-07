@@ -1,0 +1,27 @@
+language: node_js
+node_js:
+  - "v12.16.1"
+notifications:
+  email:
+    recipients:
+      - excalibll@163.com
+    on_success: never
+    on_failure: always
+branches:
+  only:
+    - hexo
+cache:
+  directories:
+    - node_modules
+before_install:
+  - npm install -g hexo-cli
+install:
+  - npm install
+script:
+  - hexo generate
+deploy:
+  provider: pages
+  target_branch: master
+  local_dir: ./public/
+  verbose: true
+  name: travis_bot
