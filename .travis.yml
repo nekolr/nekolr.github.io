@@ -28,3 +28,5 @@ deploy:
   verbose: true
   name: travis_bot
   email: excalibll@163.com
+  on:
+    branch: hexo
