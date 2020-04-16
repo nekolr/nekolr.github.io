@@ -8,7 +8,7 @@ categories: [JVM]
 JVM 在执行 Java 程序时会将它所管理的内存划分为几个数据区域，《Java 虚拟机规范 (Java SE 7 版)》中规定了以下运行时的数据区域。		
 <!--more-->		
 		
-![运行时数据区域 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/o8.png)
+![运行时数据区域](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004162216/2020/04/16/aNB.png)
 		
 ### 程序计数器
 一块较小的内存空间，可以看作是当前线程执行字节码的行号指示器。在虚拟机的概念模型中，字节码解析器就是通过修改这个计数器的值来选取下一条需要执行的字节码指令。		
@@ -28,7 +28,7 @@ Java 虚拟机规范中对该区域规定了两种异常情况：如果线程请
 		
 一个线程的方法调用链可能很长，对于执行引擎来说，在活动线程中，位于栈顶的栈帧才是有效的，称为**当前栈帧（Current Stack Frame）**，相关联的方法称为**当前方法（Current Method）**。执行引擎执行的字节码指令都只针对当前栈帧操作。
 		
-![栈帧 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/WO3.png)
+![栈帧](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/WO3.png)
 		
 #### 局部变量表
 局部变量表是一组变量值存储空间，存放**方法参数和方法内定义的局部变量**，大小在编译时就确定并存放在方法的 Code 属性的 max_locals 数据项中。
@@ -47,7 +47,7 @@ Java 虚拟机的数据类型有 boolean、byte、char、short、int、float、r
 
 在概念模型中，虚拟机栈中的两个栈帧是完全独立的，但是在大多虚拟机实现中都会做一些优化处理，让上下两个栈帧共享一部分数据。  
 
-![共享区域 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/16/AWV.png)  
+![共享区域](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/16/AWV.png)  
 
 #### 动态连接
 
@@ -63,7 +63,7 @@ Java 虚拟机的数据类型有 boolean、byte、char、short、int、float、r
 
 Java 堆是被所有线程共享的一块内存区域，在虚拟机启动时创建，几乎所有的对象实例在这里分配内存，根据 JSR133，即 Java 内存模型与线程规范的规定，所有的**成员变量**、**类变量**以及**数组元素**都存储在堆中。  
 
-[The Java® Virtual Machine Specification 原文 ](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.5.3)
+[The Java® Virtual Machine Specification 原文](https://docs.oracle.com/javase/specs/jvms/se7/html/jvms-2.html#jvms-2.5.3)
 > The Java Virtual Machine has a heap that is shared among all Java Virtual Machine threads. The heap is the run-time data area from which memory for all class instances and arrays is allocated.  
 
 大意是所有的对象实例以及数组都要在堆上分配内存。但是随着 JIT 编译器的发展和逃逸分析技术的成熟，栈上分配、标量替换优化技术会导致一些微妙的变化，所有对象都在堆上分配内存也不那么绝对了。  
