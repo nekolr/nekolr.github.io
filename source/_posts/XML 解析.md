@@ -4,12 +4,13 @@ date: 2017/7/2 12:2:0
 tags: [XML]
 categories: [XML]
 ---
-在 Java 中解析 XML，主流常用的方法有四种：**DOM、SAX、JDOM** 和 **DOM4J**。		
-		
-其中，DOM 和 SAX 是两种不同的 XML 解析方式，JDK 已经提供了支持 DOM 方式和 SAX 方式的具体实现，因此可以不引入第三方 jar 包来使用这两种解析方式。		
-<!--more-->		
-		
-JAXP（`Java API for XML Processing`）：JAXP 类库是 JDK 的一部分，它由以下几个包及其子包组成：  
+在 Java 中解析 XML，主流常用的方法有四种：**DOM、SAX、JDOM** 和 **DOM4J**。
+
+其中，DOM 和 SAX 是两种不同的 XML 解析方式，JDK 已经提供了支持 DOM 方式和 SAX 方式的具体实现，因此可以不引入第三方 jar 包来使用这两种解析方式。
+
+<!--more-->
+
+JAXP（`Java API for XML Processing`）：JAXP 类库是 JDK 的一部分，它由以下几个包及其子包组成：
 
 - `org.w3c.dom`  
 提供 DOM 方式解析 XML 的标准接口。		
@@ -18,12 +19,13 @@ JAXP（`Java API for XML Processing`）：JAXP 类库是 JDK 的一部分，它�
 - `javax.xml`  
 提供 StAX 方式解析 XML 的标准接口和解析 XML 的类。		
 		
-JDOM 和 DOM4J 是在这两种方式的基础上发展出的 XML 解析类库，看名字就知道这是只能在 Java 平台使用的类库。		
-		
-**需要注意的是：DOM 和 SAX 是两种解析 XML 的方式，这两种方式与编程语言无关，针对不同的编程语言都有具体的实现。而在 Java 中，针对这两种方式及衍生方式实现的类库有很多，有 JDK 自带的 DOM 解析类库、SAX 解析类库和 StAX 解析类库（和 SAX 类似但有区别），还有第三方的 DOM4J 解析类库和 JDOM 解析类库等。**		
-		
-## DOM（Document Object Model）		
-DOM 是与平台和编程语言无关的 W3C 的标准，基于 DOM 文档树，在使用时需要加载和构建整个文档形成一棵 DOM 树放在内存当中。		
+JDOM 和 DOM4J 是在这两种方式的基础上发展出的 XML 解析类库，看名字就知道这是只能在 Java 平台使用的类库。
+
+**需要注意的是：DOM 和 SAX 是两种解析 XML 的方式，这两种方式与编程语言无关，针对不同的编程语言都有具体的实现。而在 Java 中，针对这两种方式及衍生方式实现的类库有很多，有 JDK 自带的 DOM 解析类库、SAX 解析类库和 StAX 解析类库（和 SAX 类似但有区别），还有第三方的 DOM4J 解析类库和 JDOM 解析类库等。**
+
+# DOM（Document Object Model）		
+DOM 是与平台和编程语言无关的 W3C 的标准，基于 DOM 文档树，在使用时需要加载和构建整个文档形成一棵 DOM 树放在内存当中。
+
 - **优点**  
 > 允许应用程序对数据和结构做出更改，即 CRUD 操作。  
 > 访问是双向的，可以在任何时候在树中上下导航，获取和操作任意部分的数据。		
@@ -31,11 +33,11 @@ DOM 是与平台和编程语言无关的 W3C 的标准，基于 DOM 文档树，
 - **缺点**  
 > 需要加载整个 XML 文档来构造层次结构，文档越大，消耗资源越多。		
 		
-在使用 DOM 的方式解析 XML 之前，需要了解 DOM 中的节点类型：		
+在使用 DOM 的方式解析 XML 之前，需要了解 DOM 中的节点类型：
+
+> W3C XML DOM 节点类型：[http://www.w3school.com.cn/xmldom/dom_nodetype.asp](http://www.w3school.com.cn/xmldom/dom_nodetype.asp)
 		
-> W3C XML DOM 节点类型：[http://www.w3school.com.cn/xmldom/dom_nodetype.asp](http://www.w3school.com.cn/xmldom/dom_nodetype.asp)		
-		
-常用的节点：		
+常用的节点：
 
 | 节点类型 | 描述 | NodeType | nodeName | nodeValue |
 | ------------ | ------------ |	------------ | ------------ | ------------ |
@@ -45,14 +47,14 @@ DOM 是与平台和编程语言无关的 W3C 的标准，基于 DOM 文档树，
 | Text | 表示元素或属性中的文本内容 | 3 | #text | 节点内容 |
 | Comment | 表示注释 | 8 | #comment | 注释文本 |
 
-		
-DOM 解析过程及常用方法：		
-		
+DOM 解析过程及常用方法：
+
 ![DOM_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/ROd.png)
+
 ![DOM_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/W0W.png)
-		
-使用 JAXP 的 DOM 解析方式：		
-		
+
+使用 JAXP 的 DOM 解析方式：
+
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!-- this is comment -->
@@ -169,8 +171,9 @@ public class DOMResolver {
 }
 ```
 
-## SAX（Simple API for XML）
-与 DOM 的方式不同，SAX 方式不需要构建整个文档，基于流模型中的推（PUSH）模型，由事件驱动，从文档开始顺序扫描，每发现一个节点就引发一个事件，事件推给事件处理器，通过回调方法完成解析，因此读取文档的过程就是解析文档的过程。使用 SAX 需要两部分：SAX 解析器和事件处理器，其中事件处理器需要开发者提供，一般通过继承默认的事件处理器 DefaultHandler，重写需要的方法即可。		
+# SAX（Simple API for XML）
+与 DOM 的方式不同，SAX 方式不需要构建整个文档，基于流模型中的推（PUSH）模型，由事件驱动，从文档开始顺序扫描，每发现一个节点就引发一个事件，事件推给事件处理器，通过回调方法完成解析，因此读取文档的过程就是解析文档的过程。使用 SAX 需要两部分：SAX 解析器和事件处理器，其中事件处理器需要开发者提供，一般通过继承默认的事件处理器 DefaultHandler，重写需要的方法即可。
+
 - **优点**		
 > 不需要等待所有数据都被处理，分析就能立即开始。		
 > 只在读取数据时检查数据，不需要保存在内存中。		
@@ -185,10 +188,11 @@ public class DOMResolver {
 SAX 解析过程及使用：		
 		
 ![SAX_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/LyR.png)
-![SAX_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/Ay3.png)		
-		
+
+![SAX_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/Ay3.png)
+
 使用 JAXP 的 SAX 解析方式（解析的 xml 同上）：
-		
+
 ```java
 package com.nekolr;
 
@@ -272,8 +276,9 @@ public class SAXDemo {
 }
 ```
 
-## JDOM（Java-based Document Object Model）
-为了减少 DOM 和 SAX 的编码量出现了 JDOM，JDOM 致力于成为 Java 特定文档模型，它遵循二八定律，底层仍然使用 DOM 和 SAX（使用 SAX 解析文档），并大量使用了 JDK 的 Collections。与 DOM 类似，JDOM 也将解析的 XML 以 DOM 树的方式放入内存中。		
+# JDOM（Java-based Document Object Model）
+为了减少 DOM 和 SAX 的编码量出现了 JDOM，JDOM 致力于成为 Java 特定文档模型，它遵循二八定律，底层仍然使用 DOM 和 SAX（使用 SAX 解析文档），并大量使用了 JDK 的 Collections。与 DOM 类似，JDOM 也将解析的 XML 以 DOM 树的方式放入内存中。
+
 - **优点**
 > 不使用接口，使用具体实现类，简化了 DOM 的 API。		
 > 大量使用 Collections，对 Java 开发友好。		
@@ -282,13 +287,14 @@ public class SAXDemo {
 > 由于与 DOM 类似的生成 DOM 树结构，使得 JDOM 在处理大型 XML 文档时性能较差。		
 > 灵活性差，不支持 DOM 中某些遍历。
 		
-JDOM 的使用：		
-		
+JDOM 的使用：
+
 ![JDOM_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/4KA.png)
 		
 ![JDOM_XML2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/drg.png)
-		
-使用 JDOM 解析之前的 XML 文档，因为是第三方类库，需要引入 jar 包：		
+
+使用 JDOM 解析之前的 XML 文档，因为是第三方类库，需要引入 jar 包：
+
 ```xml
   <dependencies>
     
@@ -346,11 +352,11 @@ public class JDOMDemo {
 }
 ```
 
-## DOM4J（Document Object Model for Java）
-DOM4J 大量使用 JDK 的 Collections，同时也提供了一些高性能的替代方法。支持 DOM、SAX 和 JAXP，支持 XPath。使用接口和抽象类，牺牲了部分 API 的简易性来获得更高的灵活性，同时在解析大型文档时内存占用较低。具有性能优异、功能强大、灵活性高、易用性强等优点，被现在很多开源项目使用。		
-		
+# DOM4J（Document Object Model for Java）
+DOM4J 大量使用 JDK 的 Collections，同时也提供了一些高性能的替代方法。支持 DOM、SAX 和 JAXP，支持 XPath。使用接口和抽象类，牺牲了部分 API 的简易性来获得更高的灵活性，同时在解析大型文档时内存占用较低。具有性能优异、功能强大、灵活性高、易用性强等优点，被现在很多开源项目使用。
+
 使用 DOM4J 解析之前的 XML 文档，引入第三方 jar：
-		
+
 ```xml
 <dependencies>
 
@@ -401,5 +407,6 @@ public class DOM4JDemo {
     }
 }
 ```
-		
+
+# 参考
 > 本文部分图片引用自：<http://www.cnblogs.com/Qian123/p/5231303.html>
