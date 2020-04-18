@@ -10,12 +10,7 @@ categories: [Servlet]
 <!--more-->
 
 # 编程注册组件
-
-除了使用 web.xml 以及注解来配置组件外，新的规范还支持以编程的方式动态注册组件（Servlet、Listener 以及 Filter），具体来说是在 Web 容器启动时来动态注册。  
-
-我们可以使用 Servlet API 提供的 `addServlet()`、`addFilter()` 以及 `addListener()` 等方法来动态注册这些组件。至于注册的切入点，可以有两种选择。  
-
-其中一种是实现 `javax.servlet.ServletContextListener` 接口。  
+除了使用 web.xml 以及注解来配置组件外，新的规范还支持以编程的方式动态注册组件（Servlet、Listener 以及 Filter），具体来说是在 Web 容器启动时来动态注册。我们可以使用 Servlet API 提供的 addServlet()、addFilter() 以及 addListener() 等方法来动态注册这些组件。注册的切入点有两种选择，其中一种是实现 `javax.servlet.ServletContextListener` 接口。
 
 ```java
 @WebListener
@@ -37,19 +32,19 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 }
 ```
 
-另外一种是实现 `javax.servlet.ServletContainerInitializer` 接口，采用这种方式能够实现可插拔，所以在后边说。  
-
+另外一种是实现 `javax.servlet.ServletContainerInitializer` 接口，采用这种方式能够实现可插拔，所以在后边说。
 
 # 注解和可插拔性
 
 ## Web 模块部署描述片段
+从 Servlet 3.0 规范就开始提供一些注解来简化 web.xml 的配置，如：`@WebServlet`、`@WebListener`、`@WebFilter` 等等，这些注解的使用暂且不提。Servlet 3.0 新增可插拔性来增加 Servlet 配置的灵活性，引入了意为 **Web 模块部署描述片段** 的 web-fragment.xml 部署文件。该文件必须存放在 jar 文件的 META-INF 目录下，该部署描述文件可以包含一切可以在 web.xml 文件中定义的内容。通过这种方式，能够将某些 Servlet 组件打包成 jar 文件，在需要时引入，不需要时卸载。
 
-从 Servlet 3.0 规范就开始提供一些注解来简化 web.xml 的配置，如：`@WebServlet`、`@WebListener`、`@WebFilter` 等等，这些注解的使用暂且不提。Servlet 3.0 新增可插拔性来增加 Servlet 配置的灵活性，引入了意为 **Web 模块部署描述片段** 的 web-fragment.xml 部署文件。该文件必须存放在 jar 文件的 META-INF 目录下，该部署描述文件可以包含一切可以在 web.xml 文件中定义的内容。通过这种方式，能够将某些 Servlet 组件打包成 jar 文件，在需要时引入，不需要时卸载。  
+在新的规范下，我们为 Web 应用增加一个 Servlet（或 Filter、Listener 同理）有三种方式：
 
-在新的规范下，我们为 Web 应用增加一个 Servlet（或 Filter、Listener 同理）有三种方式：  
-- 编写一个类继承自 `javax.servlet.http.HttpServlet`，修改 web.xml 文件，增加一个 Servlet 配置项。  
-- 编写一个类继承自 `javax.servlet.http.HttpServlet`，并为该类加上 `@WebServlet` 注解。  
-- 编写一个类继承自 `javax.servlet.http.HttpServlet`，将该类打成 jar 包，并在 jar 包的 META-INF 目录下添加 web-fragment.xml 文件，该文件来配置相应的 Servlet。  
+- 继承 `javax.servlet.http.HttpServlet`，修改 web.xml 文件，增加一个 Servlet 配置项。  
+- 继承 `javax.servlet.http.HttpServlet`，并为该类加上 `@WebServlet` 注解。  
+- 继承 `javax.servlet.http.HttpServlet`，将该类打成 jar 包，并在 jar 包的 META-INF 目录下添加 web-fragment.xml 文件来配置相应的 Servlet。
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <web-fragment xmlns="http://xmlns.jcp.org/xml/ns/javaee"
@@ -76,7 +71,6 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 由于规范允许应用配置多个文件（一个 web.xml 以及多个 web-fragement.xml），从应用中的多个不同的位置发现和加载配置，因此加载的顺序必须处理。具体细节参考规范中的说明。  
 
 ## 运行时可插拔性
-
 为了实现运行时可插拔，需要实现 `javax.servlet.ServletContainerInitializer` 接口，同时，我们的实现必须在 jar 包的 META-INF/services 目录中一个名为 `javax.servlet.ServletContainerInitializer` 的文件中指定。  
 
 ![javax.servlet.ServletContainerInitializer](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/27/O7n.png)
@@ -93,16 +87,12 @@ public class WebInitializer implements ServletContainerInitializer {
 }
 ```
 
-典型的例子是 spring 的实现。查看 spring-web-4.3.13.RELEASE.jar，在 META-INF/services 下果然有一个名为 javax.servlet.ServletContainerInitializer 的文件。  
+典型的例子是 spring，查看 spring-web 的 META-INF/services，果然有名为 javax.servlet.ServletContainerInitializer 的文件。
 
 ![spring-web](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/27/a9N.png)
 
-内容为：  
-
 ```
-
 org.springframework.web.SpringServletContainerInitializer
-
 ```
 
 ```java
@@ -145,7 +135,7 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 }
 ```
 
-其中有一个 `@HandlesTypes` 注解，按照规范中的意思，这个注解用在我们感兴趣的一些 `javax.servlet.ServletContainerInitializer` 的实现类上，`@HandlesTypes` 注解的 value 值指定**类型、方法或自动级别的注解**，使用 `onStartup()` 方法中的 `Set<Class<?>> webAppInitializerClasses` 参数来获取这些类型。如 spring 的实现中，`SpringServletContainerInitializer` 作为实现类，使用 `@HandlesTypes` 注解的 value 值为 `WebApplicationInitializer` 接口，并且通过它的 `onStartup()` 方法也能够发现，实际调用的是 `WebApplicationInitializer` 的 `onStartup()` 方法。我们可以模仿 spring 的这种实现。  
+其中有一个 @HandlesTypes 注解，按照规范中的意思，这个注解用在我们感兴趣的一些 javax.servlet.ServletContainerInitializer 的实现类上，@HandlesTypes 注解的 value 值指定**类型、方法或自动级别的注解**，使用 onStartup() 方法中的 Set&lt;Class&lt;?&gt;&gt; webAppInitializerClasses 参数来获取这些类型。如 spring 的实现中，SpringServletContainerInitializer 作为实现类，使用 @HandlesTypes 注解的 value 值为 WebApplicationInitializer 接口，并且通过它的 onStartup() 方法也能够发现，实际调用的是 WebApplicationInitializer 的 onStartup() 方法。我们可以模仿 spring 的这种实现。
 
 ```java
 @HandlesTypes(value = AppInitializer.class)

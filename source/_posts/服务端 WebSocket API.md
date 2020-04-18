@@ -4,16 +4,17 @@ date: 2018/1/6 15:52:0
 tags: [WebSocket]
 categories: [WebSocket]
 ---
-抛开别的语言不谈，使用 Java 实现的 WebSocket API 由 Oracle 制定，并已经成为 Java EE 7 的一部分，我们先使用该 API 简单实现一个 WebSocket 通信 demo。		
+抛开别的语言不谈，使用 Java 实现的 WebSocket API 由 Oracle 制定，并已经成为 Java EE 7 的一部分，我们先使用该 API 简单实现一个 WebSocket 通信的 demo。
+
 <!--more-->
-		
-## 前置条件
+
+# 前置条件
 JDK 需要大于等于 7、servlet-api 3.1、websocket-api 1.1 以及实现了 [JSR356](https://github.com/javaee/websocket-spec) 规范的 Web 容器。  
 
 > Tomcat 7 及以上版本都可以，Tomcat 7 以前的版本提供了 Tomcat 自己的 WebSocketServlet，在 Tomcat 7 中 `deprecated`，在 Tomcat 8 中移除。  
 
-## 基于 JSR356 WebSocket API 的 demo
-页面的代码如下：  
+# 基于 JSR356 WebSocket API 的 demo
+页面的代码如下：
 
 ```html
 <!DOCTYPE html>
@@ -79,7 +80,7 @@ close.addEventListener("click", function () {
 });
 ```
 
-后端 Java 代码如下：  
+后端 Java 代码如下：
 
 ```java
 package com.nekolr;
@@ -119,8 +120,8 @@ public class AnnotationEndpoint {
     }
 }
 ```
-		
-除了使用注解的方式，也可以通过继承 Endpoint 来实现，在这之前，需要先写一个配置类。		
+
+除了使用注解的方式，也可以通过继承 Endpoint 来实现，在这之前，需要先写一个配置类。
 
 ```java
 package com.nekolr;
@@ -160,10 +161,9 @@ public class WebSocketConfig implements ServerApplicationConfig {
     }
 }
 ```
-		
+
 ```java
 package com.nekolr;
-
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -204,11 +204,11 @@ public class CommonEndpoint extends Endpoint {
 }
 ```
 
-## Spring 实现
-Spring 从 4.0 版本后开始支持 JSR356 WebSocket API，同时也提供了一套 Spring 的 WebSocket API。		
-		
-我们在使用 JSR356 WebSocket API 时，是通过 Servlet 容器扫描来部署 Endpoint 处理类的，现在我们使用 Spring 来处理这个过程。		
-		
+# Spring 的实现
+Spring 从 4.0 版本后开始支持 JSR356 WebSocket API，同时也提供了一套 Spring 的 WebSocket API。
+
+我们在使用 JSR356 WebSocket API 时，是通过 Servlet 容器扫描来部署 Endpoint 处理类的，现在我们使用 Spring 来处理这个过程。
+
 ```java
 package com.nekolr;
 
@@ -235,7 +235,7 @@ public class WebInitializer implements WebApplicationInitializer {
     }
 }
 ```
-		
+
 ```java
 package com.nekolr;
 
@@ -334,8 +334,8 @@ public class NekoEndpoint extends Endpoint {
     }
 }
 ```
-		
-下面我们再使用 Spring 提供的一套 API 来实现，同时，我们在页面使用 SockJS，Spring 对 SockJS 有很好的支持。与 JSR356 WebSocket API 的 Endpoint 不同，使用 Spring WebSocket API，Endpoint 变成了 WebSocketHandler，同时也更容易理解了。  
+
+下面我们再使用 Spring 提供的一套 API 来实现，同时，我们在页面使用 SockJS，Spring 对 SockJS 有很好的支持。与 JSR356 WebSocket API 的 Endpoint 不同，使用 Spring WebSocket API，Endpoint 变成了 WebSocketHandler，同时也更容易理解了。
 
 ```xml
 <dependencies>
@@ -420,8 +420,8 @@ public class NekoWebSocketHandler implements WebSocketHandler {
 }
 ```
 		
-同时还可以写拦截器来过滤握手请求。		
-		
+同时还可以写拦截器来过滤握手请求。
+
 ```java
 package com.nekolr;
 
@@ -455,8 +455,8 @@ public class NekoHandshakeInterceptor extends HttpSessionHandshakeInterceptor {
 }
 ```
 
-同时还需要写一个配置类来部署这些处理器类。		
-		
+同时还需要写一个配置类来部署这些处理器类。
+
 ```java
 package com.nekolr;
 
@@ -494,7 +494,7 @@ public class NekoWebSocketConfig implements WebSocketConfigurer {
 }
 ```
 	
-由于没有使用 Spring 的 xml 配置文件（同时也没有使用 web.xml），所以要写配置类。如果 Spring 是通过 xml 文件来配置的话，可以参考下面的写法：  
+由于没有使用 Spring 的 xml 配置文件（同时也没有使用 web.xml），所以要写配置类。如果 Spring 是通过 xml 文件来配置的话，可以参考下面的写法：
 
 ```xml
 <websocket:handlers allowed-origins="*">
@@ -508,11 +508,11 @@ public class NekoWebSocketConfig implements WebSocketConfigurer {
 <bean id="nekoWebSocketHandler" class="com.nekolr.NekoWebSocketHandler"/>
 ```
 
-MvcConfig 与之前的写法一样，WebInitializer 需要将 NekoWebSocketConfig 加入并注册。与此同时，页面需要引入 sockjs.js 并将 `new WebSocket` 修改为 `new SockJS`。  
+MvcConfig 与之前的写法一样，WebInitializer 需要将 NekoWebSocketConfig 加入并注册。与此同时，页面需要引入 sockjs.js 并将 `new WebSocket` 修改为 `new SockJS`。
 
 ![演示](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/07/12/7vn.gif)
 
-## 参考
+# 参考
 > [JSR 356, Java API for WebSocket](http://www.oracle.com/technetwork/articles/java/jsr356-1937161.html)
 
 > [websocket-spec](https://github.com/javaee/websocket-spec)

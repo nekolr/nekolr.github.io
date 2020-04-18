@@ -1,29 +1,28 @@
 ---
 title: HTML5 WebSocket API
 date: 2018/1/6 10:49:0
-tags: [WebSocket,HTML5]
+tags: [WebSocket,HTML]
 categories: [WebSocket]
 ---
-HTML5 规范提供了 WebSocket API，使 Web 页面能够使用 WebSocket 协议与远程主机进行双向通信。		
-		
+HTML5 规范提供了 WebSocket API，使 Web 页面能够使用 WebSocket 协议与远程主机进行双向通信。
+
 <!--more-->
-		
+
 # 构造函数
 ```js
 WebSocket WebSocket(in DOMString url, in optional DOMString protocols);
 WebSocket WebSocket(in DOMString url,in optional DOMString[] protocols);
 ```
+
 - url
 表示要连接的响应 WebSocket 的地址。
 - protocols
 [可选 ] 这些字符串用来表示子协议，这样做可以让一个服务器实现多种 WebSocket 子协议。默认为空。  
 
-示例：  
-
 ```js
 var ws = new WebSocket("ws://example.com:80/test")
 ```
-		
+
 # 常用属性
 | 属性名 | 类型 | 描述 |
 | ------------ | ------------ | ------------ |
@@ -55,23 +54,24 @@ ws.addEventListener("open", function(event){
 | OPEN | 1 | 连接已经建立并准备好数据传输 |
 | CLOSING | 2 | 连接正在关闭，或已调用 close() 方法 |
 | CLOSED | 3 | 连接已经关闭 |
-		
+
 # 方法
+
 ## send(data)
 - data
 要发送的数据。参数类型可能是 DOMString、ArrayBuffer、Blob 或 ArrayBufferView。
 
 ## close([code],[reason])
 - code
-[可选 ] 一个 unsigned short 数字值表示关闭连接的状态号，表示连接被关闭的原因。如果这个参数没有被指定，默认的取值是 1000 （表示正常连接关闭）。具体取值请看 CloseEvent 的 [code 属性取值 ](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes)。
-		
+[可选 ] 一个 unsigned short 数字值表示关闭连接的状态号，表示连接被关闭的原因。如果这个参数没有被指定，默认的取值是 1000 （表示正常连接关闭）。具体取值请看 CloseEvent 的 [code 属性取值](https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Status_codes)。
+
 - reason
-[可选 ] 一个可读的字符串，表示连接被关闭的原因。这个字符串必须是不长于 123 字节的 UTF-8 文本（不是字符）。	
+[可选 ] 一个可读的字符串，表示连接被关闭的原因。这个字符串必须是不长于 123 字节的 UTF-8 文本（不是字符）。
 
 # 扩展实现
 - [reconnecting-websocket](https://github.com/joewalnes/reconnecting-websocket)
 基于 WebSocket API 封装，支持自动重连。
-		
+
 - [SockJS-client](https://github.com/sockjs/sockjs-client)
 由于 WebSocket API 有浏览器版本限制（IE 10+），SockJS 为了解决这个问题，底层首先使用 WebSocket API 尝试建立连接，如果失败，会根据不同浏览器的特点选择流传输或者轮询的方式。		
 

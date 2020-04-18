@@ -1,15 +1,13 @@
 ---
 title: 使用 underscore.template 扩展 jQuery
 date: 2017/12/2 18:2:0
-tags: [jQuery,Underscore.js]
+tags: [jQuery,underscore.js]
 categories: [jQuery]
 ---
-最近在接触了一些前端模板框架后，突然觉得以前在 AJAX 操作中拼接组装大量 DOM 对象是多么笨。在了解了 underscore 库的 template 方法后，准备在公司项目中来使用它，但是公司还在用 jQuery，因此准备拿它扩展 jQuery。		
-		
+最近在接触了一些前端模板框架后，突然觉得以前在 AJAX 操作中拼接组装大量 DOM 对象是多么笨。在了解了 underscore 库的 template 方法后，准备在公司项目中来使用它，但是公司还在用 jQuery，因此准备拿它扩展 jQuery。
+
 <!--more-->
-		
-		
-先上代码，熟悉 underscore 的同学可以略过了。		
+
 ```js
 /**
  * 使用 underscore.template 扩展 jquery
@@ -94,9 +92,9 @@ categories: [jQuery]
     });
 })(jQuery);
 ```
-		
-简单写个栗子来看看怎么使用吧。		
-		
+
+简单写个栗子来看看怎么使用吧。
+
 ```html
 <!DOCTYPE html>
 <html lang="en">
