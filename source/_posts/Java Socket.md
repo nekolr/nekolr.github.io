@@ -4,9 +4,10 @@ date: 2017/10/5 18:4:0
 tags: [Java]
 categories: [Java]
 ---
-打算将 Socket 编程再复习下，为后续学习 netty 做准备。		
+打算将 Socket 编程再复习下，为后续学习 netty 做准备。
+
 <!--more-->
-		
+
 # 知识准备
 学习 Socket 编程，一些前置知识必不可少。
 

@@ -4,18 +4,15 @@ date: 2017/9/14 17:45:0
 tags: [JavaScript]
 categories: [JavaScript]
 ---
-预备知识点：
 
-(1) 在 JavaScript 中，除了字符串、数字、true、false、null 和 undefined ，其他都是对象。
+在 JavaScript 中，除了字符串、数字、true、false、null 和 undefined ，其他都是对象。
 		
-(2) 在 JavaScript 中，每个对象都有一个原型指针，指向该对象所继承的原型对象。该对象仅供 JavaScript 引擎内部使用，一般我们无法直接使用它，也最好不要使用它。但是在一些浏览器中，可以使用对象实例的 `__proto__` 属性，可以认为它就是那个原型指针。
-		
+每个对象都有一个原型指针（隐式原型），指向该对象所继承的原型对象。该对象仅供 js 引擎内部使用，一般我们无法直接使用它，也最好不要使用它。但是在一些浏览器中，可以使用对象实例的 `__proto__` 属性，可以认为它就是那个原型指针。
+
 <!--more-->
 
-(3) 在 JavaScript 中，每个函数都有一个 `prototype`属性和一个原型指针，如果一定要使用该指针，可以通过 new 和构造函数调用来创建一个对象实例，然后通过对象实例来调用 `__proto__` 属性，也可以直接通过 `函数.prototype.__proto__` 来调用。
-		
-有了这些了解，可以正式开始学习 JavaScript 的原型与继承了。
-		
+每个函数都有一个 prototype（显式原型）属性和一个原型指针（连接到原型对象 Function.prototype）。
+
 # 函数创建过程
 首先写一个函数字面量：
 		
@@ -23,7 +20,7 @@ categories: [JavaScript]
 function fn() {}
 ```
 
-函数 fn 除了 name 等属性外，还包含一个 prototype 属性和一个原型指针。其中 prototype 属性包含一个 constructor（指向函数 fn 本身）和一个指向 Object.prototype 的原型指针。函数 fn 的原型指针指向 Function.prototype。
+函数 fn 除了 name 等属性外，还包含一个 prototype 属性和一个原型指针。其中 prototype 属性是一个对象，包含一个 constructor（指向函数 fn 本身）和一个指向 Object.prototype 的原型指针。函数 fn 的原型指针指向 Function.prototype。
 
 ```js
 function fn() {}
@@ -44,13 +41,15 @@ console.log(fn.prototype.constructor === fn); // true
 构造函数是一个创建并初始化一个新对象的函数。结论是：任何一个函数都可以是一个构造函数。
 
 # 原型
-函数在创建的时候会自动添加一个 prototype 属性，这个属性就是函数的原型。通过 new 关键字和构造函数创建的对象的原型，就是构造函数的 prototype 属性指向的那个原型对象。
+函数在创建的时候会自动添加一个 prototype 属性，这个属性就是函数的原型。
 
 ```js
 function Fn(a, b) {
     this.a = a
     this.b = b
 }
+
+console.log(new Fn(1, 2).prototype === Fn.prototype) // true
 
 // 直接给函数对象添加属性
 Fn.x = 'test'
@@ -87,7 +86,7 @@ console.log(fn)
 
 ![new 结构](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004172100/2020/04/17/xPb.png)
 
-通过使用 new 运算符和构造函数调用，能够创建一个新对象。那为什么不直接使用对象字面量的方式（var obj = {}）呢？通过上图能够发现，使用对象字面量创建的对象继承自 Object.prototype，而使用 new 和构造函数调用创建的对象继承自 Fn.prototype。
+通过使用 new 运算符和构造函数调用，能够创建一个新对象，需要注意的是**这个对象与函数对象不同，它没有 prototype 属性**。那为什么不直接使用对象字面量的方式（var obj = {}）创建对象呢？通过上图能够发现，使用对象字面量创建的对象继承自 Object.prototype，而使用 new 和构造函数调用创建的对象继承自 Fn.prototype。
 
 ```js
 function Fn(a, b) {
