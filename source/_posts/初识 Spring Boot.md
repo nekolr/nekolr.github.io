@@ -316,6 +316,8 @@ Devtools 内置了一个 Live Reload 服务，可以在资源发生改变时来�
 Spring Boot 可以通过 properties 文件、YAML 文件、环境变量和命令行参数来设置参数，然后使用 `@Value` 注解通过 Spring 的 Environment 获取参数值，也可以通过 `@ConfigurationProperties` 注解将值绑定到 Bean 上。  
 
 #### 参数取值途径
+以下配置覆盖的优先级顺序由高到低，高优先级的可以覆盖低优先级的形成互补。
+
 - 当 devtools 激活时，全局配置 `~/.spring-boot-devtools.properties`
 - `@TestPropertySource` 测试注解
 - `@SpringBootTest#properties` 测试注解属性
