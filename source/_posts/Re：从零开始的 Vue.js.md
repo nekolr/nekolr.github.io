@@ -38,8 +38,7 @@ Vue.js 实例可以看做是一个 ViewModel，因此很多人在创建实例时
 
 ## 实例生命周期
 
-<img alt="life_cycle" src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/W03.png
-" style="height:65%;width:65%;" />
+<img alt="life_cycle" src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004261232/2020/04/26/vmj.png" style="height:65%;width:65%;" />
 
 Vue 实例在被创建之前要执行一系列的初始化过程，在这个过程中也可以调用一些生命周期钩子，这使得我们可以执行一些自定义的逻辑。
 
