@@ -60,13 +60,13 @@ CREATE TABLE `SEQUENCE` (
 这种方案采用了双 buffer 的方式，即维护两个 segment 缓存区，在当前号段已经消费 10% 时，如果下一个号段还没有更新，就启动一个线程去更新下一个号段。在当前号段全部消费完毕后，如果下一个号段已经准备完毕，那么就将当前的 segment 缓冲区切换为下一个号段的 segment 缓冲区，如此往复。Leaf 官方推荐将 segment 的长度设置为 QPS 的 600 倍，这样即使数据库宕机，Leaf 仍然可以保证 10 到 20 分钟的可用。
 
 # 雪花算法
-snowflake 算法是 twitter 开源的分布式 ID 生成算法，它生成的是一个 64 位的二进制正整数，其中高位的第一位不使用，它的值始终是 0。接着是 41 位的时间戳，它存储的不是当前的时间戳，而是从生成器开始使用到当前时间的毫秒差值。接着是 10 位机器标识码（官方称为 worker process id），意味着可以将该服务部署到 1024 台机器上，如果机器是分机房（IDC）部署的，那么这 10 位可以再拆分成机房 ID + 机器 ID。剩下的 12 位是序列号，这表示一台机器每毫秒能够产生 4096 个 ID。
+snowflake 算法是 twitter 开源的分布式 ID 生成算法，它生成的是一个 64 位的二进制正整数，其中高位的第一位是符号位（sign），我们不使用它，它的值始终是 0。接着是 41 位的时间戳（delta seconds），它存储的不是当前的时间戳，而是从生成器开始使用到当前时间的毫秒差值。接着是 10 位机器标识码（worker node id），意味着可以将该服务部署到 1024 台机器上，如果机器是分机房（IDC）部署的，那么这 10 位可以再拆分成机房 ID + 机器 ID。剩下的 12 位是序列号（sequence），这表示一台机器每毫秒能够产生 4096 个 ID。
 
 > 我们一般取的时间戳是从 1970 年 01 月 01 日 00 时 00 分 00 秒到现在的时间差，如果我们能确定我们取的时间都是某个时间点以后的时间，那么可以将时间戳的起始点设置成这个时间点，从而延长服务的时间。
 
 ![雪花算法](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202005182226/2020/05/18/mYz.png)
 
-雪花算法的优点是性能较高，理论上每秒能够产生 409.6 万个 ID。由于时间戳在高位，自增序列在低位，从整体上看 ID 是趋势递增的（之所以不是单调递增的是因为节点 ID 这个因素的影响，比如在同一毫秒内，节点 ID 为 2 的机器先于节点 ID 为 1 的机器生成了的 ID，那么很明显前者大于后者）。同时我们可以根据自身业务的需求，在雪花算法的基础上调整 bit 位的划分。比如我们的单机高峰 QPS 为 10W，那么平均每毫秒的并发量为 100 左右，序列号的位置可以只分配 7 位。雪花算法的缺点是强依赖机器的时钟，如果机器的时钟出现回拨（时间校准，以及其他因素都有可能导致服务器时钟回拨），就很有可能导致重复 ID 的生成。twitter 官方没有对此给出解决方案，而是简单地抛出了异常。
+雪花算法的优点是性能较高，理论上每秒能够产生 409.6 万个 ID。由于时间戳在高位，自增序列在低位，从整体上看 ID 是趋势递增的（之所以不是单调递增的是因为节点 ID 这个因素的影响，比如在同一毫秒内，节点 ID 为 2 的机器先于节点 ID 为 1 的机器生成了的 ID，那么很明显前者大于后者）。同时我们可以根据自身业务的需求，在雪花算法的基础上调整 bit 位的划分。比如我们的单机高峰 QPS 为 10W，那么平均每毫秒的并发量为 100 左右，序列号的位置可以只分配 7 位。雪花算法的缺点是强依赖机器的时钟，如果机器的时钟出现回拨（NTP 时间校准，以及其他因素都有可能导致服务器时钟回拨），就很有可能导致重复 ID 的生成。twitter 官方没有对此给出解决方案，而是简单地抛出了异常。如果只是出现了短暂的回拨，比如 5 毫秒，那么可以等待时钟追回，但是如果出现了大步回拨，那么服务就会出现长时间的不可用。
 
 ```scala
 if (timestamp < lastTimestamp) {
@@ -76,7 +76,70 @@ if (timestamp < lastTimestamp) {
 }
 ```
 
+# Leaf-snowflake
+根据最新的代码库，Leaf 对于机器时钟回拨的处理很有限。由于 Leaf 在美团的服务规模较大，在每台机器手动配置 workId 的成本太高，于是他们引入了 Zookeeper，在 Leaf 服务初始化的时候，通过创建持久连续节点的方式为每台机器和端口号分配一个唯一的 workId，同时在机器的临时文件中缓存一份 workId，保证 Leaf 在 ZooKeeper 出现问题时仍能够正常运行。同时每台机器上的 Leaf 服务会每隔 3 秒定时将系统的时间戳更新到 Zookeeper 对应的节点中，在每次获取 ID 时都会检查当前时间与 3 秒前上报的时间，如果出现回拨会抛出异常，但是从代码来看，实际并没有对这个回拨做任何其他处理。
+
+```java
+public boolean init() {
+    try {
+        // 省略部分代码
+
+        // 检查当前时间是否小于之前上报的时间，如果是则直接抛异常
+        if (!checkInitTimeStamp(curator, zk_AddressNode)) {
+            throw new CheckLastTimeException("init timestamp check error,forever node timestamp gt this node time");
+        }
+        // 省略部分代码
+    } catch (Exception e) {
+        LOGGER.error("Start node ERROR {}", e);
+        try {
+            // Zookeeper 初始化失败时使用机器临时目录中的配置文件的 workId
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(new File(PROP_PATH.replace("{port}", port + ""))));
+            workerID = Integer.valueOf(properties.getProperty("workerID"));
+            LOGGER.warn("START FAILED ,use local node file properties workerID-{}", workerID);
+        } catch (Exception e1) {
+            LOGGER.error("Read file error ", e1);
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+真正处理回拨的地方是在获取 ID 时，如果时间回拨的偏差不超过 5 毫秒，可以在此处等待 2 倍的偏差时间来等待时钟追回，让上游服务最多多等待 10 毫秒是可以接收的。
+
+```java
+// 出现时钟回拨
+if (timestamp < lastTimestamp) {
+    long offset = lastTimestamp - timestamp;
+    if (offset <= 5) {
+        try {
+            // 偏差不超过 5 ms，等待两倍时间
+            wait(offset << 1);
+            timestamp = timeGen();
+            if (timestamp < lastTimestamp) {
+                return new Result(-1, Status.EXCEPTION);
+            }
+        } catch (InterruptedException e) {
+            LOGGER.error("wait interrupted");
+            return new Result(-2, Status.EXCEPTION);
+        }
+    } else {
+        return new Result(-3, Status.EXCEPTION);
+    }
+}
+```
+
+# 新思路
+理论上 snowflake 可以实现单机每秒产生 409.6 万个 ID，实际上大部分的业务都不太可能有如此高的并发，因此可能会有大量的时间戳被浪费掉，可能在某一毫秒内只生成了几个 ID，此时如果发生了时间回拨，这些被浪费的资源是不是可以利用起来，而不是直接在时钟出现回拨时直接抛出异常。
+
+如果在内存中建立一个数组，数组给一个固定的长度，比如 256（最好是 2 的倍数，方便取模），那么这个数组就可以存储所有最近（256 毫秒内）生成过的 ID 值，如果发生时钟回拨，只需要将回拨后的时间戳对数组长度取模，得到当前位置最近一次生成过的 ID 值，将该值的序列号自增后生成的新 ID 作为当前时间的 ID 值。举个例子，假如当前时间是系统运行的第 768 毫秒，生成过 ID，之后时间回拨到了第 512 毫秒，那么第 512 毫秒有没有生成过 ID 已经不得而知了，但是我们知道第 768 毫秒时生成过 ID，那么直接拿着该 ID 的序列号 + 1 即可得到新 ID 值。再举一个例子，假如还是第 768 毫秒，这个时间可能是最新的时间，也可能是回拨后的时间，但是我们不用去管它，只需要查看第 768 毫秒有没有生成过 ID，也就是去 0 号坑位查看，如果该位置没有值，那么直接用该毫秒生成新值；如果该位置有值，值为第 512 毫秒时生成的 ID，那么直接用第 512 毫秒时生成的 ID 的序列号自增即可；如果该位置有值，值为第 1024 毫秒生成的 ID，那么说明当前出现了时钟回拨，不用管，直接用第 1024 毫秒生成的 ID 的序列号自增即可。
+
+![新思路](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202005201255/2020/05/20/6qQ.png)
+
 # 参考
 > [Leaf —— 美团点评分布式 ID 生成系统](https://tech.meituan.com/2017/04/21/mt-leaf.html)
 
 > [美团分布式 ID 生成框架 Leaf 源码分析及优化改进](https://juejin.im/post/5eaea4f4f265da7b991c4c31)
+
+> [关于分布式唯一 ID，snowflake 的一些思考及改进(完美解决时钟回拨问题)](https://www.jianshu.com/p/b1124283fc43)
