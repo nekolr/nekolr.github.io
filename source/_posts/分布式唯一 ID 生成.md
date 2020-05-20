@@ -137,6 +137,8 @@ if (timestamp < lastTimestamp) {
 
 ![新思路](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202005201255/2020/05/20/6qQ.png)
 
+当然这种方案也并不是完美的，它假定了一个前提就是服务的 QPS 并不是特别高，在这个前提下，当出现了时钟回退时，它能够在时钟回退到时钟追回这段时间内再多提供 2^12 * 256 = 1048576 个 ID 生成。这里列举一个极限的例子，比如在第 768 毫秒生成的 sequence 为 4095，同时在第 769 毫秒生成的 sequence 为 0，这时发生了时钟回拨，回拨到了第 768 毫秒之前，那么在时间重新到达第 768 毫秒时，由于最近一次生成的 ID 的 sequence 进行自增操作后变成了 0，此时使用下一毫秒的时间和 sequence 来生成 ID 就会出现重复。
+
 # 参考
 > [Leaf —— 美团点评分布式 ID 生成系统](https://tech.meituan.com/2017/04/21/mt-leaf.html)
 
