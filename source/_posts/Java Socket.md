@@ -26,7 +26,8 @@ categories: [Java]
 - Socket 编程，即为网络编程，也称为套接字编程。Socket 是网络上具有唯一标识的 IP 地址和端口号组合在一起构成。Socket 通信的两端都有 Socket，网络通信即为 Socket 间的通信，数据在两个 Socket 间在某种协议下通过 IO 流传输。  
 
 # API 学习
-关于 Java Socket 的源码都在 net 包下，其中有几个比较重要的类 `InetAddress` 和 `URL` 等等。		
+关于 Java Socket 的源码都在 net 包下，其中有几个比较重要的类 `InetAddress` 和 `URL` 等等。
+
 ```java
 package com.nekolr;
 
@@ -130,112 +131,113 @@ public class APIDemo {
 ```
 
 # 简单 Socket 通信练习
-Socket 通信基于 TCP 和 UDP 协议，针对这两个协议有不同的写法。		
-![socket 通信模型 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/gm.jpg)
+Socket 通信基于 TCP 和 UDP 协议，针对这两个协议有不同的写法。
+
+![socket 通信模型](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/gm.jpg)
 		
 ```java
-package com.nekolr.socket;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.*;
 
-/**
- * @author nekolr
- */
 public class TcpSocket {
 
     static class TcpServer implements Runnable {
+        private int port;
 
-        private int port = 8888;
+        public TcpServer(int port) {
+            this.port = port;
+        }
 
         @Override
         public void run() {
-            try (
-                    // 创建服务端 Socket，监听端口
-                    ServerSocket serverSocket = new ServerSocket(port)
-            ) {
+            ServerSocket serverSocket = null;
+            BufferedReader reader = null;
+            BufferedWriter writer = null;
+            try {
+                // 创建服务端 Socket，监听端口
+                serverSocket = new ServerSocket(this.port);
                 // 打开监听，等待客户端的连接（在连接到来之前一直阻塞）
                 Socket socket = serverSocket.accept();
+                // 获取输入流
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                System.out.println("Client Message：" + reader.readLine());
 
-                try (
-                        // 获取输入流（获取客户端的消息）
-                        InputStream is = socket.getInputStream();
-                        InputStreamReader isr = new InputStreamReader(is, "utf-8");
-                        BufferedReader reader = new BufferedReader(isr)
-                ) {
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        System.out.println("客户端" + socket.getInetAddress().getHostAddress() + "发送消息：" + line);
-                    }
-                } catch (IOException e) {
+                writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                writer.write("Hello Client");
+                // 一定要加上 newLine，不然客户端在 readLine 时会一直阻塞
+                writer.newLine();
+                writer.flush();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (serverSocket != null) serverSocket.close();
+                    if (reader != null) reader.close();
+                    if (writer != null) writer.close();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
 
     static class TcpClient implements Runnable {
+        private String host;
+        private int port;
 
-        private String host = "localhost";
-
-        private int port = 8888;
+        public TcpClient(String host, int port) {
+            this.host = host;
+            this.port = port;
+        }
 
         @Override
         public void run() {
-            try (
-                    // 创建客户端 Socket，指定主机名和端口号
-                    Socket socket = new Socket(host, port)
-            ) {
-                try (
-                        // 获取输出流（向服务端发送消息）
-                        OutputStream os = socket.getOutputStream();
-                        OutputStreamWriter osw = new OutputStreamWriter(os, "utf-8");
-                        BufferedWriter writer = new BufferedWriter(osw)
-                ) {
-                    int i = 0;
-                    while (true) {
-                        i++;
-                        writer.write("hello" + i);
-                        writer.newLine();
-                    }
-                } catch (IOException e) {
+            Socket socket = null;
+            BufferedWriter writer = null;
+            BufferedReader reader = null;
+            try {
+                // 创建客户端 Socket，指定主机名和端口号
+                socket = new Socket(this.host, this.port);
+                // 获取输出流（向服务端发送消息）
+                writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+                writer.write("Hello Server");
+                // 一定要加上 newLine，不然服务端在 readLine 时会一直阻塞
+                writer.newLine();
+                writer.flush();
+                // 获取输入流
+                reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                System.out.println("Server Message：" + reader.readLine());
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                try {
+                    if (socket != null) socket.close();
+                    if (reader != null) reader.close();
+                    if (writer != null) writer.close();
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }
 
     public static void main(String[] args) {
-        TcpServer tcpServer = new TcpServer();
-        TcpClient tcpClient = new TcpClient();
+        TcpServer tcpServer = new TcpServer(8888);
+        TcpClient tcpClient = new TcpClient("localhost", 8888);
 
-        ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("thread-pool").build();
         ExecutorService executor = new ThreadPoolExecutor(2, 2,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(1024), factory, new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<>(1024), new ThreadPoolExecutor.AbortPolicy());
 
         executor.execute(tcpServer);
         executor.execute(tcpClient);
     }
 }
-
 ```
 		
 ```java
-package com.nekolr.socket;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -243,9 +245,6 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.concurrent.*;
 
-/**
- * @author nekolr
- */
 public class UdpSocket {
 
     static class UdpServer implements Runnable {
@@ -263,11 +262,8 @@ public class UdpSocket {
 
         @Override
         public void run() {
-            try (
-                    // 创建服务端 Socket
-                    DatagramSocket socket = new DatagramSocket(serverPort);
-            ) {
-
+            // 创建服务端 Socket
+            try (DatagramSocket socket = new DatagramSocket(serverPort)) {
                 // 创建数据报用于发送消息
                 byte[] bytes = "我是服务端，消息为：i'm server".getBytes();
                 DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, InetAddress.getByName(host), clientPort);
@@ -302,10 +298,8 @@ public class UdpSocket {
 
         @Override
         public void run() {
-            try (
-                    // 创建客户端 Socket
-                    DatagramSocket socket = new DatagramSocket(clientPort);
-            ) {
+            // 创建客户端 Socket
+            try (DatagramSocket socket = new DatagramSocket(clientPort)) {
                 // 创建数据报用于发送消息
                 byte[] bytes = "我是客户端，消息为：i'm client".getBytes();
                 DatagramPacket sendPacket = new DatagramPacket(bytes, bytes.length, InetAddress.getByName(host), serverPort);
@@ -331,14 +325,12 @@ public class UdpSocket {
         UdpServer udpServer = new UdpServer();
         UdpClient udpClient = new UdpClient();
 
-        ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("thread-pool").build();
         ExecutorService executor = new ThreadPoolExecutor(2, 2,
                 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(1024), factory, new ThreadPoolExecutor.AbortPolicy());
+                new LinkedBlockingQueue<>(1024), new ThreadPoolExecutor.AbortPolicy());
 
         executor.execute(udpServer);
         executor.execute(udpClient);
     }
 }
-
 ```
