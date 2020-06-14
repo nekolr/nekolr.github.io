@@ -7,7 +7,7 @@ categories: [问题集]
 
 公司项目使用 Maven 进行包依赖管理，一个项目少说得有上百个包，如何找到某个包是如何被引入的呢？可以有两种方式来定位。  
 
-<!--more-->  
+<!--more-->
 
 第一种就是通过开发工具查找。  
 
@@ -21,4 +21,4 @@ categories: [问题集]
 
 第二种方式就是通过 Maven 命令去查找。  
 
-使用 `mvn dependency:tree -Dverbose -Dincludes=com.google.code.gson:gson` 命令查找。这里的 `dependency:tree` 表示通过树状显示所有的依赖项，`Dverbose` 表示显示所有的引用，包括因为多次引用而重复的。`Dincludes` 表示被引用的包。
+使用 `mvn dependency:tree -Dverbose -Dincludes=com.google.code.gson:gson` 命令查找。这里的 dependency:tree 表示通过树状显示所有的依赖项，`Dverbose` 表示显示所有的引用，包括因为多次引用而重复的。`Dincludes` 表示被引用的包。
