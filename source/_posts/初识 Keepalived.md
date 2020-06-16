@@ -2,8 +2,9 @@
 title: 初识 Keepalived
 date: 2019/8/16 11:47:0
 tags: [Keepalived]
-categories: [集群]
+categories: [分布式]
 ---
+
 在初步了解了 keepalived 的作用后，手痒难耐，于是动手实践部署了一个 Nginx + keepalived + Tomcat 组合的双主高可用负载均衡集群。
 
 <!--more-->

@@ -1,8 +1,8 @@
 ---
 title: 学习 Dubbo 之前：应用架构演变
 date: 2018/5/7 14:7:0
-tags: [Dubbo,架构]
-categories: [架构]
+tags: [Dubbo,分布式]
+categories: [分布式]
 ---
 
 今天在学习 Dubbo 时，看到 Dubbo 官方文档中对应用架构演变作了一个说明。
