@@ -141,3 +141,281 @@ String[] before() | 扩展点列表，表示哪些扩展点要在本扩展点之
 String[] after() | 扩展点列表，表示哪些扩展点要在本扩展点之后
 int order() | 排序
 
+# ExtensionLoader
+ExtensionLoader 是整个扩展机制的主要逻辑类，通过它可以实现配置（META-INF 目录下的配置文件）的加载、扩展类和实例的缓存、自适应对象的生成等。
+
+ExtensionLoader 的逻辑入口可以分为三个：getExtension、getAdaptiveExtension 和 getActivateExtension，分别用来获取普通的扩展类实例、自适应扩展类实例和自动激活的扩展类实例列表。
+
+## getExtension
+大概的流程就是先从 cachedInstances 缓存中获取类实例，如果缓存中没有就先通过配置文件加载扩展类，然后实例化对应的扩展类并放入缓存，然后再处理 setter 依赖注入和 Wrapper 的构造器注入，最后根据是否实现了 LifeCycle 接口决定是否调用扩展类的 initialize 方法。
+
+```java
+public T getExtension(String name) {
+    if (StringUtils.isEmpty(name)) {
+        throw new IllegalArgumentException("Extension name == null");
+    }
+    // 如果扩展名称为 true，则使用 SPI 注解上默认的扩展
+    if ("true".equals(name)) {
+        return getDefaultExtension();
+    }
+    // 先从普通扩展类实例缓存 cachedInstances 中获取
+    final Holder<Object> holder = getOrCreateHolder(name);
+    Object instance = holder.get();
+    // 缓存中没有则需要创建扩展类实例
+    if (instance == null) {
+        synchronized (holder) {
+            instance = holder.get();
+            if (instance == null) {
+                // 创建扩展类实例
+                instance = createExtension(name);
+                // 设置缓存
+                holder.set(instance);
+            }
+        }
+    }
+    return (T) instance;
+}
+```
+
+```java
+private T createExtension(String name) {
+    // 先从普通扩展类缓存 cachedClasses 中获取
+    // 这里的 getExtensionClasses 方法会在初次调用时通过配置文件加载扩展类
+    Class<?> clazz = getExtensionClasses().get(name);
+    if (clazz == null) {
+        throw findException(name);
+    }
+    try {
+        // 从缓存中获取类实例
+        T instance = (T) EXTENSION_INSTANCES.get(clazz);
+        // 缓存为空则直接实例化后放入缓存
+        if (instance == null) {
+            EXTENSION_INSTANCES.putIfAbsent(clazz, clazz.newInstance());
+            instance = (T) EXTENSION_INSTANCES.get(clazz);
+        }
+        // 依赖注入（setter 注入）
+        injectExtension(instance);
+        // 通过构造器注入，并实例化 Wrapper 类
+        Set<Class<?>> wrapperClasses = cachedWrapperClasses;
+        if (CollectionUtils.isNotEmpty(wrapperClasses)) {
+            for (Class<?> wrapperClass : wrapperClasses) {
+                instance = injectExtension((T) wrapperClass.getConstructor(type).newInstance(instance));
+            }
+        }
+        // 初始化扩展类实例，如果扩展类实现了 org.apache.dubbo.common.context.LifeCycle 接口，
+        // 则调用 initialize 初始化方法 
+        initExtension(instance);
+        // 返回实例
+        return instance;
+    } catch (Throwable t) {
+        throw new IllegalStateException("Extension instance (name: " + name + ", class: " +
+                type + ") couldn't be instantiated: " + t.getMessage(), t);
+    }
+}
+```
+
+## getAdaptiveExtension
+大概的流程就是先从 cachedAdaptiveInstance 缓存中获取实例，如果缓存中没有就先通过配置文件加载扩展类，如果扩展类上使用了 `@Adaptive` 注解则该扩展类为默认实现，否则就使用代码生成器生成类似 Transporter$Adaptive 这种的自适应扩展类，拿到 Class 之后就进行实例化，然后进行依赖注入，最终放入缓存并返回。
+
+```java
+public T getAdaptiveExtension() {
+    // 先从缓存中获取
+    Object instance = cachedAdaptiveInstance.get();
+    // 缓存中没有则创建自适应扩展类实例
+    if (instance == null) {
+        if (createAdaptiveInstanceError != null) {
+            throw new IllegalStateException("Failed to create adaptive instance: " +
+                    createAdaptiveInstanceError.toString(),
+                    createAdaptiveInstanceError);
+        }
+
+        synchronized (cachedAdaptiveInstance) {
+            instance = cachedAdaptiveInstance.get();
+            if (instance == null) {
+                try {
+                    // 创建自适应扩展类实例
+                    instance = createAdaptiveExtension();
+                    // 放入缓存
+                    cachedAdaptiveInstance.set(instance);
+                } catch (Throwable t) {
+                    createAdaptiveInstanceError = t;
+                    throw new IllegalStateException("Failed to create adaptive instance: " + t.toString(), t);
+                }
+            }
+        }
+    }
+    return (T) instance;
+}
+```
+
+```java
+private T createAdaptiveExtension() {
+    try {
+        // 1 getAdaptiveExtensionClass 用来获取或者生成自适应扩展类
+        // 2 实例化
+        // 3 进行依赖注入
+        return injectExtension((T) getAdaptiveExtensionClass().newInstance());
+    } catch (Exception e) {
+        throw new IllegalStateException("Can't create adaptive extension " + type + ", cause: " + e.getMessage(), e);
+    }
+}
+```
+
+```java
+private Class<?> getAdaptiveExtensionClass() {
+    // 在初次调用时通过配置文件加载扩展类
+    getExtensionClasses();
+    // 如果在加载扩展类的时候，扩展类上使用了 @Adaptive 注解，
+    // 则该扩展类为默认实现类，会缓存到 cachedAdaptiveClass 中
+    if (cachedAdaptiveClass != null) {
+        return cachedAdaptiveClass;
+    }
+    // 创建自适应扩展类
+    return cachedAdaptiveClass = createAdaptiveExtensionClass();
+}
+```
+
+```java
+private Class<?> createAdaptiveExtensionClass() {
+    // 使用代码生成器生成 type$Adaptive 类的代码
+    String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
+    ClassLoader classLoader = findClassLoader();
+    // 获取 AdaptiveCompiler 扩展类
+    org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
+    // 编译代码，默认使用 JavassistCompiler 编译
+    return compiler.compile(code, classLoader);
+}
+```
+
+## getActivateExtension
+该方法有多个重载方法，我们关注参数最多的那个即可，大体上就是将缓存过的 `@Activate` 集合根据传入的条件进行筛选，最终使用获取普通扩展类实例的 getExtension 方法获取符合条件的扩展类实例即可。
+
+```java
+public List<T> getActivateExtension(URL url, String[] values, String group) {
+    List<T> activateExtensions = new ArrayList<>();
+    List<String> names = values == null ? new ArrayList<>(0) : asList(values);
+    if (!names.contains(REMOVE_VALUE_PREFIX + DEFAULT_KEY)) {
+        getExtensionClasses();
+        for (Map.Entry<String, Object> entry : cachedActivates.entrySet()) {
+            String name = entry.getKey();
+            Object activate = entry.getValue();
+
+            String[] activateGroup, activateValue;
+            // 获取注解的参数
+            if (activate instanceof Activate) {
+                activateGroup = ((Activate) activate).group();
+                activateValue = ((Activate) activate).value();
+            } else if (activate instanceof com.alibaba.dubbo.common.extension.Activate) {
+                activateGroup = ((com.alibaba.dubbo.common.extension.Activate) activate).group();
+                activateValue = ((com.alibaba.dubbo.common.extension.Activate) activate).value();
+            } else {
+                continue;
+            }
+            // 筛选
+            if (isMatchGroup(group, activateGroup)
+                    && !names.contains(name)
+                    && !names.contains(REMOVE_VALUE_PREFIX + name)
+                    && isActive(activateValue, url)) {
+                // getExtension 方法用来获取普通的扩展类实例
+                activateExtensions.add(getExtension(name));
+            }
+        }
+        activateExtensions.sort(ActivateComparator.COMPARATOR);
+    }
+    // 以下省略部分代码
+    ...
+    return activateExtensions;
+}
+```
+
+## ExtensionFactory
+如果我们单独使用 Dubbo 的 SPI 机制，可以先定义接口，然后添加配置文件（META-INF 目录下的配置文件），最后通过 ExtensionLoader 加载。
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        UserService userService = ExtensionLoader.getExtensionLoader(UserService.class)
+                .getDefaultExtension();
+        userService.getAll();
+    }
+}
+```
+
+可以看到，在使用 ExtensionLoader 的时候，需要先通过 getExtensionLoader 方法获取 ExtensionLoader，在这个方法中会对 ExtensionLoader 进行初始化。
+
+```java
+public static <T> ExtensionLoader<T> getExtensionLoader(Class<T> type) {
+    if (type == null) {
+        throw new IllegalArgumentException("Extension type == null");
+    }
+    // 判断 type 是否是接口
+    if (!type.isInterface()) {
+        throw new IllegalArgumentException("Extension type (" + type + ") is not an interface!");
+    }
+    // 判断是否有 @SPI 注解
+    if (!withExtensionAnnotation(type)) {
+        throw new IllegalArgumentException("Extension type (" + type +
+                ") is not an extension, because it is NOT annotated with @" + SPI.class.getSimpleName() + "!");
+    }
+    // 缓存中获取
+    ExtensionLoader<T> loader = (ExtensionLoader<T>) EXTENSION_LOADERS.get(type);
+    if (loader == null) {
+        // 缓存中没有就 new 一个
+        EXTENSION_LOADERS.putIfAbsent(type, new ExtensionLoader<T>(type));
+        loader = (ExtensionLoader<T>) EXTENSION_LOADERS.get(type);
+    }
+    return loader;
+}
+
+// 私有化的构造函数
+private ExtensionLoader(Class<?> type) {
+    this.type = type;
+    objectFactory = (type == ExtensionFactory.class ? null :
+            ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
+}
+```
+
+可以看到 ExtensionLoader 中有一个比较关键的属性：objectFactory，它在 ExtensionLoader 实例化的时候会通过 getAdaptiveExtension 方法获取 ExtensionFactory 接口的实现类。ExtensionFactory 有三个实现类：SpiExtensionFactory、SpringExtensionFactory 和 AdaptiveExtensionFactory，其中 AdaptiveExtensionFactory 类上使用了 `@Adaptive` 注解，因此它是默认的实现类。那么 ExtensionFactory 到底是干什么用的呢？我们可以全局搜索一下，发现它在 injectExtension 方法中被使用。
+
+```java
+private T injectExtension(T instance) {
+    if (objectFactory == null) {
+        return instance;
+    }
+    try {
+        // 遍历所有的方法
+        for (Method method : instance.getClass().getMethods()) {
+            // 不是 setter 方法就跳过
+            if (!isSetter(method)) {
+                continue;
+            }
+            if (method.getAnnotation(DisableInject.class) != null) {
+                continue;
+            }
+            // 获取 setter 方法第一个参数的类型
+            Class<?> pt = method.getParameterTypes()[0];
+            if (ReflectUtils.isPrimitives(pt)) {
+                continue;
+            }
+            try {
+                // 获取 setter 方法对应的属性名称，比如 setVersion，那么属性就是 version
+                String property = getSetterProperty(method);
+                // 通过 ExtensionFactory 获取对应的实例
+                Object object = objectFactory.getExtension(pt, property);
+                if (object != null) {
+                    // 调用 setter 方法注入属性
+                    method.invoke(instance, object);
+                }
+            } catch (Exception e) {
+                logger.error("Failed to inject via method " + method.getName()
+                        + " of interface " + type.getName() + ": " + e.getMessage(), e);
+            }
+        }
+    } catch (Exception e) {
+        logger.error(e.getMessage(), e);
+    }
+    return instance;
+}
+```
+
+在获取扩展类实例时，如果扩展类实例的属性包含其他扩展类实例，那么就会通过 ExtensionFactory#getExtension 方法加载，加载的范围包括 **Dubbo 自身缓存的扩展类实例以及 Spring 容器实例**，这也就意味着，我们可以在 Dubbo 的扩展类实例中使用其他扩展类实例和 Spring 容器中的实例。
