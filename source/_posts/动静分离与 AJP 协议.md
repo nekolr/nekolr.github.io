@@ -1,5 +1,5 @@
 ---
-title: 动静分离与 AJP
+title: 动静分离与 AJP 协议
 date: 2020/6/18 20:37:0
 tags: [架构]
 categories: [架构]
