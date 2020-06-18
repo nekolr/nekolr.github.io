@@ -138,7 +138,7 @@ Exchange.DeleteOk exchangeDelete(String exchange, boolean ifUnused) throws IOExc
 ```
 
 ## 队列的声明和删除等
-声明队列的方法主要有两个，其中一个不带任何参数，默认会创建一个由 RabbitMQ 命名的（类似 amq.gen-j6mNQFoLARlq18lj0LTjWQ 这种，它们也被成为匿名队列）、排他的、自动删除的、非持久化的队列。另一个方法带有很多参数。
+声明队列的方法主要有两个，其中一个不带任何参数，默认会创建一个由 RabbitMQ 命名的（类似 amq.gen-j6mNQFoLARlq18lj0LTjWQ 这种，它们也被称为匿名队列）、排他的、自动删除的、非持久化的队列。另一个方法带有很多参数。
 
 ```java
 Queue.DeclareOk queueDeclare(String queue, boolean durable, boolean exclusive, boolean autoDelete,
@@ -196,7 +196,7 @@ void basicPublish(String exchange, String routingKey, boolean mandatory, boolean
         throws IOException;
 ```
 
-其中 exchange 为交换器名称，如果设置为空字符串则消息会被转发到默认的交换器中，**默认的交换器为 direct 类型，隐式地绑定到了每个队列，并且路由键等于各自绑定的队列名称。不能显式绑定到默认的交换器或与之解绑。默认交换器不能删除**。routingKey 为路由键。当 mandatory 设置为 true，如果交换器出现无法根据自身的类型和路由键匹配一个队列时，那么 RabbitMQ 就会调用 Basic.Return 命令将消息返回给生产者，生产者可以通过 `channel.addReturnListener` 方法添加一个监听器来获取无法匹配的消息；当 mandatory 设置为 false 时，遇到上述情况消息则会被丢弃。当 immediate 设置为 true，如果交换器在将消息路由到队列时发现队列上不存在任何消费者，那么这条消息不会被存入队列中，当与路由键匹配的所有队列中都没有消费者时，消息会通过 Basic.Return 返回至生产者。概括来说就是，mandatory 参数告诉服务端至少要将消息路由到一个队列中，否则消息将返回给生产者。immediate 参数告诉服务端，如果消息匹配的队列上由消费者，则立刻投递，如果所有匹配的队列上都没有消费者，则立即将消息返回给生产者，而不需要将消息存储至队列。
+其中 exchange 为交换器名称，如果设置为空字符串则消息会被转发到默认的交换器中，**默认的交换器为 direct 类型，隐式地绑定到了每个队列，并且路由键等于各自绑定的队列名称。不能显式绑定到默认的交换器或与之解绑。默认交换器不能删除**。routingKey 为路由键。当 mandatory 设置为 true，如果交换器出现无法根据自身的类型和路由键匹配一个队列时，那么 RabbitMQ 就会调用 Basic.Return 命令将消息返回给生产者，生产者可以通过 `channel.addReturnListener` 方法添加一个监听器来获取无法匹配的消息；当 mandatory 设置为 false 时，遇到上述情况消息则会被丢弃。当 immediate 设置为 true，如果交换器在将消息路由到队列时发现队列上不存在任何消费者，那么这条消息不会被存入队列中，当与路由键匹配的所有队列中都没有消费者时，消息会通过 Basic.Return 返回至生产者。概括来说就是，mandatory 参数告诉服务端至少要将消息路由到一个队列中，否则消息将返回给生产者。immediate 参数告诉服务端，如果消息匹配的队列上有消费者，则立刻投递，如果所有匹配的队列上都没有消费者，则立即将消息返回给生产者，而不需要将消息存储至队列。
 
 > 需要注意的是，RabbitMQ 3.0 版本开始去掉了对 immediate 参数的支持，官方解释是该参数会影响镜像队列的性能，增加代码的复杂度，建议采用 TTL（过期时间）和 DLX（死信交换器）的方法来替代。
 
@@ -444,7 +444,7 @@ channel.basicConsume("queue1", false, consumer1);
 channel.basicConsume("queue2", false, consumer2);
 ```
 
-如果在订阅消息之前，即设置了 global 为 true，又设置了 global 为 false，那么这两个限制都会生效，比如下面的例子：
+如果在订阅消息之前，既设置了 global 为 true，又设置了 global 为 false，那么这两个限制都会生效，比如下面的例子：
 
 ```java
 Consumer consumer1 = ...;
@@ -478,7 +478,7 @@ channel.queueDeclare("noRouteQueue", true, false, false, null);
 channel.queueBind("noRouteQueue", "myAlternateExchange", "");
 ```
 
-上面的例子中，我们声明了两个交换器，两个交换器各自绑定了一个队列，同时 myAlternateExchange 交换器为 normalExchange 交换器的备份交换器。当路由键为 normalKey 时，消息能够正确路由到 normalQueue 队列中；但是路由键为值时，消息因为不能路由到与 normalExchange 交换器绑定的任意队列上，此时消息就会被发送到备份交换器并最终发送到 noRouteQueue 队列中。
+上面的例子中，我们声明了两个交换器，两个交换器各自绑定了一个队列，同时 myAlternateExchange 交换器为 normalExchange 交换器的备份交换器。当路由键为 normalKey 时，消息能够正确路由到 normalQueue 队列中；但是当路由键不为 normalKey 时，消息因为不能路由到与 normalExchange 交换器绑定的任意队列上，此时消息就会被发送到备份交换器并最终发送到 noRouteQueue 队列中。
 
 > 需要注意的是，备份交换器与普通的交换器没有太大区别，为了方便使用，一般都会设置为 fanout 类型。如果设置为 direct 类型，那么路由键同样需要进行匹配。
 
@@ -531,7 +531,7 @@ channel.basicPublish("exchange_priority", "rk_priority",
         new AMQP.BasicProperties.Builder().priority(5).build(), "message".getBytes());
 ```
 
-上面的例子中首先设置了队列的最大优先级为 10，然后有设置了一条消息的优先级为 5。默认消息的优先级最低为 0，最高为队列设置的最大优先级，优先级高的消息可以被优先消费，当然这个是有前提的：如果消费者的消费速度大于生产者的速度且 Broker 中没有消息堆积的情况下，消息设置优先级也就没有意义，因为这种情况下相当于 Broker 中至多只有一条消息，对一条消息设置优先级没有意义。
+上面的例子中首先设置了队列的最大优先级为 10，然后又设置了一条消息的优先级为 5。默认消息的优先级最低为 0，最高为队列设置的最大优先级，优先级高的消息可以被优先消费，当然这个是有前提的：如果消费者的消费速度大于生产者的速度且 Broker 中没有消息堆积的情况下，消息设置优先级也就没有意义，因为这种情况下相当于 Broker 中至多只有一条消息，对一条消息设置优先级没有意义。
 
 ## RPC 实现
 在 RabbitMQ 中实现 RPC 是比较简单的，客户端发送请求消息，服务端返回响应的消息，为了接收响应的消息还需要在请求消息中指定一个回调队列，但是光有回调队列可不行，因为对于回调队列而言，在其收到一条响应的消息之后，它并不知道这条响应的消息应该和哪个请求相匹配，因此这里就需要用到 `correlationId` 属性，我们只要为每个请求设置一个唯一的 `correlationId`，在回调队列接收到响应的消息时，就可以根据这个唯一值来匹配相应的请求。下面给出 RabbitMQ 官网的一个 RPC 例子：
