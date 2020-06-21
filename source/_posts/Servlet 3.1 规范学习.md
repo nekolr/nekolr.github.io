@@ -196,9 +196,11 @@ public class CustomAppInitializer implements AppInitializer {
 
 我们知道 HTTP 协议是无状态的，即没有记忆和存储的能力，这意味着当处理过一次的业务，再次请求需要重传，这会导致每次传输的数据量很大，尤其是当客户端与服务器进行交互的 Web 应用程序出现后，这种特性严重阻碍了这些程序的实现，因为交互需要承前启后的。为了解决这个问题，Session 和 Cookie 诞生了，它们都不属于 HTTP 协议标准的内容，但是网络应用提供商、实现语言、Web 容器等都默认实现了它。  
 
-Cookie 由服务器端生成，发送给 User-Agent（一般是浏览器），浏览器会将 Cookie 的 key/value 值保存到某个目录下的文本文件中，在下次请求同一个域时会在请求头中加上该 Cookie（前提是浏览器没有禁用 Cookie）。  
+Cookie 由服务器端生成（客户端也可以自己创建），发送给 User-Agent（一般是浏览器），浏览器会将 Cookie 的 key/value 值保存到某个目录下的文本文件中，在下次请求同一个域时会在请求头中加上该 Cookie（前提是浏览器没有禁用 Cookie）。
 
-Session 由服务器端程序生成，在生成 Session 时会生成一个唯一的 Session Id，一般的 Web 应用会将 Session 存储到服务器内存当中，同时这个 Session Id 会发送给浏览器，浏览器会将该 Id 以 Cookie 的形式保存到本地中，在下次请求同一个域时一并提交。  
+> Cookie 可以设置 domain 属性，该属性可以控制能够访问该 Cookie 的域名。比如设置为 `.google.com`，那么所有以 `google.com` 结尾的域名都可以访问该 Cookie，也就意味着该 Cookie 会被发送给所有以 `google.com` 结尾的子域名。
+
+Session 由服务器端程序生成，在生成 Session 时会生成一个唯一的 Session Id，一般的 Web 应用会将 Session 存储到服务器内存当中，同时这个 Session Id 会以 Cookie 的形式发送给浏览器，浏览器会将它保存到本地磁盘当中，在下次请求同一个域时一并提交。
 
 ## Java 中的 Session 操作
 
