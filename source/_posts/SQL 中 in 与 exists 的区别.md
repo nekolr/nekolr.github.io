@@ -15,7 +15,7 @@ create table user
   head      varchar(512) null,
   user_name char(50)     not null,
   password  char(128)    not null
-)
+) ENGINE=InnoDB
 ```
 
 ```sql
@@ -27,7 +27,7 @@ create table list
   create_time char(19)                     not null,
   finish_time char(19)                     null,
   status      tinyint(1) unsigned zerofill not null
-)
+) ENGINE=InnoDB
 ```
 
 ![user](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/07/28/l9v.png)
