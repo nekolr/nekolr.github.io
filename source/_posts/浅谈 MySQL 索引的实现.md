@@ -1,5 +1,5 @@
 ---
-title: MySQL 索引的实现
+title: 浅谈 MySQL 索引的实现
 date: 2019/9/10 14:29:0
 tags: [数据库]
 mathjax: true
