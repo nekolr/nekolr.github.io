@@ -36,17 +36,12 @@ categories: [数据库]
 # InnoDB 中的表锁
 InnoDB 中的表锁除了之前所说的 S 锁和 X 锁，IS 锁和 IX 锁，还有 AUTO-INC 锁，该锁只有在某个列添加了 AUTO_INCREMENT 属性，之后插入记录时才会使用。
 
-在对某个表执行增删改查操作时，InnoDB 存储引擎是不会为该表添加 S 锁或者 X 锁的。另外对于一些 DDL 操作，比如 ALTER TABLE、DROP TABLE 等操作，其实是在 MySQL 的 Server 层使用了一种称为元数据锁（Metadata Locks）的东西来实现的。只有在一些特殊场景下使用，比如崩溃恢复。当然我们也可以手工获取，比如先设置 `autocommit=0, innodb_table_locks=1`，然后通过 `LOCK TABLES t READ` 和 `LOCK TABLES t WRITE` 来分别获取表 t 的 S 锁和 X 锁。
+在对某个表执行增删改查操作时，InnoDB 存储引擎是不会为该表添加 S 锁或者 X 锁的。只有在一些特殊场景下才会使用，比如崩溃恢复。当然我们也可以手工获取，比如先设置 `autocommit=0, innodb_table_locks=1`，然后通过 `LOCK TABLES t READ` 和 `LOCK TABLES t WRITE` 来分别获取表 t 的 S 锁和 X 锁。另外对于一些 DDL 操作，比如 ALTER TABLE、DROP TABLE 等操作，其实是在 MySQL 的 Server 层使用了一种称为元数据锁（Metadata Locks）的东西来实现的。
 
 # InnoDB 中的行锁
-InnoDB 中的行锁有很多种，包括普通的记录锁（官方名称为 `LOCK_REC_NOT_GAP`）、GAP 锁（又叫间隙锁，官方名称为 `LOCK_GAP`）、Next-Key Locks（官方名称为 `LOCK_ORDINARY`）、插入意向锁（官方称为 `LOCK_INSERT_INTENTION`）。
+InnoDB 中的行锁有很多种，包括普通的记录锁（官方名称为 `LOCK_REC_NOT_GAP`）、GAP 锁（又叫间隙锁，官方名称为 `LOCK_GAP`）、Next-Key Lock（官方名称为 `LOCK_ORDINARY`）、插入意向锁（官方称为 `LOCK_INSERT_INTENTION`）。
 
-普通的记录锁有 S 锁和 X 锁之分，它们之间的关系与之前讲的一样，S 锁之间可以共存，S 锁与 X 锁之间、X 锁与 X 锁之间不能共存。
-
-## GAP 锁
-我们说 MySQL 在 REPEATABLE READ 隔离级别下是可以解决幻读问题的，具体来说是通过 MVCC 机制解决了快照读时可能产生的幻读问题，通过 Next-Key Locks 解决了使用当前读时可能产生的幻读问题。
-
-由于在事务在第一次执行读取操作时，那些幻影记录并不存在，因此我们无法给这些记录加上普通的记录锁，这时就可以使用 GAP 锁。为了说明方便，这里先创建一个表：
+接下来为了说明方便，先创建一个表：
 
 ```sql
 CREATE TABLE hero (
@@ -64,8 +59,57 @@ INSERT INTO hero VALUES
     (20, 's孙权', '吴');
 ```
 
-如果我们给 number 为 8 的那条记录加一个 GAP 锁，那么就不允许别的事务在 number 值为 8 的记录前的**间隙**插入新的记录，也就是 `(3,8)` 这个区间内是不允许立即插入新纪录的。比如一个 number 为 4 记录就无法插入到该间隙中。
+## Record Lock
+普通的记录锁只会锁住当前行，它有 S 锁和 X 锁之分，它们之间的关系与之前讲的一样，S 锁之间可以共存，S 锁与 X 锁之间、X 锁与 X 锁之间不能共存。在 READ COMMITTED 隔离级别下的当前读大多使用该锁，在 REPEATABLE READ 隔离级别下，唯一索引上的等值当前读也会给索引键对应的行加普通的记录锁。比如下面这个例子：
 
-可以看到，给一条记录添加一个 GAP 锁，只是不允许其他事务在这条记录前的间隙插入新记录，那么如果往是最后一条记录之后的间隙插入新记录又该怎么办呢？答案就是给表中最后一条记录，也就是 number 值为 20 的记录所在页面的 Supremum 记录加上一个 GAP 锁。由于 Supremum 记录总是比该数据页中最大的行记录还大，因此可以阻止其他事务向 `(20, +∞)` 这个区间插入新记录。
+Time | Session A | Session B
+---|---|---
+1 | `BEGIN;` |
+2 | `SELECT * FROM hero WHERE number = 8 FOR UPDATE;` |
+3 |  | `BEGIN;`
+4 |  | `INSERT INTO hero VALUES (4, 'g关羽', '蜀');`
+5 |  | `COMMIT;`
+6 | `COMMIT;` | 
 
-## Next-Key Locks
+由于 number 是主键，因此在会话 A 中只会给 number = 8 的记录加 X 锁，而不是 `(3, 8)` 这个范围，这样会话 B 中的插入操作可以立即执行而不会阻塞。
+
+如果加锁查询时使用的是辅助索引，那么就需要分别锁定辅助索引和聚簇索引，我们假设上面的例子中 name 是辅助索引。
+
+Time | Session A | Session B
+---|---|---
+1 | `BEGIN;` |
+2 | `SELECT * FROM hero WHERE name = 'c曹操' FOR UPDATE;` |
+3 |  | `BEGIN;`
+4 |  | `INSERT INTO hero VALUES (4, 'b', '蜀'); # 阻塞`
+5 |  | `INSERT INTO hero VALUES (4, 'd', '蜀'); # 阻塞`
+6 |  | `INSERT INTO hero VALUES (4, 't', '蜀'); # 立即执行`
+7 |  | `COMMIT;`
+8 | `COMMIT;` | 
+
+上面的例子中，对于聚簇索引，其仅对列 number = 8 的行加普通的记录锁；而对于辅助索引，其使用的是 Next-Key 锁，锁定的范围为 `(-∞, c曹操)`，需要注意的是，InnoDB 存储引擎还会对辅助索引的下一个键值加入 GAP Lock，即还有一个辅助索引范围为 `(c曹操, s孙权)` 的锁。
+
+> 在辅助索引中，“c曹操”的前面没有键值，因此这个间隙是从负无穷开始。后面的键值是“s孙权”，原因是在已有的数据当中，name 列按照字典顺序排序，c 字母的下一个就是 s。由于 t 字母不在这个范围内，因此可以立即执行。只有当首字母相同时，才会使用后面的数据继续排序。
+
+## GAP Lock
+我们说 MySQL 在 REPEATABLE READ 隔离级别下是可以解决幻读问题的，具体来说是通过 MVCC 机制解决了快照读时可能产生的幻读问题，通过 Next-Key Lock 解决了使用当前读时可能产生的幻读问题。
+
+由于在事务在第一次执行读取操作时，那些幻影记录并不存在，因此我们无法给这些记录加上普通的记录锁，这时就可以使用 GAP 锁。如果我们给 number 为 8 的那条记录加一个 GAP 锁，那么就不允许别的事务在 number 值为 8 的记录前的**间隙**插入新的记录，也就是 `(3, 8)` 这个区间内是不允许立即插入新记录的。比如一个 number 为 4 记录就无法插入到该间隙中。
+
+可以看到，给一条记录添加一个 GAP 锁，只是不允许其他事务在这条记录前的间隙插入新记录，那么如果向最后一条记录之后的间隙插入新记录又该怎么办呢？答案就是给表中最后一条记录，也就是 number 值为 20 的记录所在页面的 Supremum 记录加上一个 GAP 锁。由于 Supremum 记录总是比该数据页中最大的行记录还大，因此可以阻止其他事务向 `(20, +∞)` 这个区间插入新记录。
+
+## Next-Key Lock
+Next-Key 锁本质上就是一个普通的记录锁与一个 GAP 锁的结合，它既能保护该条记录，又能阻止其他事务将新记录插入到当前记录前边的间隙中。因此在上面提供的数据中，可以被 Next-Key Lock 锁住的区间包括：(-∞, 1]、(1, 3]、(3, 8]、(8, 15]、(15, 20]、(20, +∞)。下面通过一个例子来说明 InnoDB 是如何使用 Next-Key 锁来避免当前读可能出现的幻读问题的：
+
+Time | Session A | Session B
+---|---|---
+1 | `BEGIN;` |
+2 | `SELECT * FROM hero WHERE number > 3 FOR UPDATE;` |
+3 |  | `BEGIN;`
+4 |  | `INSERT INTO hero VALUES (4, 'g关羽', '蜀');`
+5 |  | `COMMIT;`
+6 | `SELECT * FORM hero WHERE number > 3 FOR UPDATE;` | 
+
+会话 A 中的查询语句，锁的范围为 `(3, +∞)`，这就意味着在会话 B 中的插入操作会被阻塞，这样就可以避免出现幻影行。
+
+## Insert Intention Lock
+一个事务在插入一条记录时需要判断插入位置是否被别的事务添加了 GAP 锁或者 Next-key 锁，如果有，那么就需要等待锁释放。该事务在等待的同时，也会生成一个锁结构，表明该事务想在某个间隙中插入新记录，但是现在处于等待状态，这个锁就是插入意向锁。插入意向锁并不会阻止别的事务继续获取该记录上任何类型的锁。
