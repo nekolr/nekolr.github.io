@@ -13,7 +13,7 @@ Map 属不属于集合？在讨论这个问题之前，要先分清什么才是�
 ![collection_framework](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/d2n.png)
 
 # ArrayList
-底层维护着一个 Object 数组。使用默认的构造函数会初始化一个容量为 0 的数组，在放第一个元素时会扩容成容量为 10 的数组。可指定初始化容量。扩容时会重新开辟一个计算好容量的数组，并使用 `System.arraycopy() `复制元素，每次扩容后容量为上次容量的 1.5 倍，容量上限为 `Integer.MAX_VALUE - 8（2^31-1-8）`。
+底层维护着一个 Object 数组。使用默认的构造函数会初始化一个容量为 0 的数组，在放第一个元素时会扩容成容量为 10 的数组。可指定初始化容量。扩容时会重新开辟一个计算好容量的数组，并使用 `System.arraycopy()` 复制元素，每次扩容后容量为上次容量的 1.5 倍，容量上限为 `Integer.MAX_VALUE - 8`（2^31-1-8）。
 
 ```java
 add(E e);
@@ -67,3 +67,15 @@ remove(int index);
 上述方法需要遍历查找索引，之后再改变元素前后指针指向，效率相对也较高（与数组不同，不需要改变结构）。
 
 **总结：使用 LinkedList 向前后插入元素效率高，其余需要知道索引位置的方法效率相对要低，但是不需要修改结构，是以空间换时间的思路。**
+
+# HashSet
+HashSet 的源码很少，也非常简单。它的内部维护着一个 HashMap，使用 key 存储数据，value 都是同一个 Object 对象。
+
+# LinkedHashSet
+LinkedHashSet 继承自 HashSet，它的源码更少，也更简单，与 HashSet 唯一区别就是它的内部使用的是 LinkedHashMap 存储数据，可以保证元素的插入顺序与遍历顺序一致。
+
+# TreeMap
+TreeMap 内部使用的是红黑树结构，插入的数据可以按照 key 的自然顺序排序，也可以自定义比较器实现自定义排序。其增删改查的平均时间复杂度为 `O(logN)`。
+
+# TreeSet
+TreeSet 内部使用的是 TreeMap，因此可以保证插入元素的唯一性，并且插入的元素会进行排序。
