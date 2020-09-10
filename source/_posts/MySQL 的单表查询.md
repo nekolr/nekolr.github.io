@@ -12,7 +12,7 @@ categories: [数据库]
 在开始之前，首先我们创建一张表，其中 id 列创建聚簇索引，username 和 email 列创建二级索引，code 列创建唯一的二级索引，而 province、city 和 county 这三列创建一个联合索引。接着通过程序插入随机数据 100 万条。
 
 ```sql
-create table single
+create table user
 (
     id         int auto_increment primary key,
     username   varchar(100) null,
@@ -36,40 +36,34 @@ create table single
 通过主键或者唯一二级索引进行等值查询时使用的就是 const，意为常数级别的访问方法，它的代价几乎可以忽略。比如：
 
 ```sql
-explain select * from single where id = 12286;
-```
+explain select * from user where id = 12286;
 
-```
 +--+-----------+------+----------+-----+-------------+-------+-------+-----+----+--------+-----+
 |id|select_type|table |partitions|type |possible_keys|key    |key_len|ref  |rows|filtered|Extra|
 +--+-----------+------+----------+-----+-------------+-------+-------+-----+----+--------+-----+
-|1 |SIMPLE     |single|NULL      |const|PRIMARY      |PRIMARY|4      |const|1   |100     |NULL |
+|1 |SIMPLE     |user  |NULL      |const|PRIMARY      |PRIMARY|4      |const|1   |100     |NULL |
 +--+-----------+------+----------+-----+-------------+-------+-------+-----+----+--------+-----+
 ```
 
 ```sql
-explain select * from single where code = 12286;
-```
+explain select * from user where code = 12286;
 
-```
 +--+-----------+------+----------+-----+-------------+--------+-------+-----+----+--------+-----+
 |id|select_type|table |partitions|type |possible_keys|key     |key_len|ref  |rows|filtered|Extra|
 +--+-----------+------+----------+-----+-------------+--------+-------+-----+----+--------+-----+
-|1 |SIMPLE     |single|NULL      |const|idx_code     |idx_code|5      |const|1   |100     |NULL |
+|1 |SIMPLE     |user  |NULL      |const|idx_code     |idx_code|5      |const|1   |100     |NULL |
 +--+-----------+------+----------+-----+-------------+--------+-------+-----+----+--------+-----+
 ```
 
 与主键不同的是，使用唯一二级索引作为查询条件时，如果没有覆盖索引，那么就需要回表。同时由于唯一二级索引并不限制 NULL（没有填充数据）的数量，所以在进行判空查询时无法使用 const，比如：
 
 ```sql
-explain select * from single where code is null;
-```
+explain select * from user where code is null;
 
-```
 +--+-----------+------+----------+----+-------------+--------+-------+-----+----+--------+---------------------+
 |id|select_type|table |partitions|type|possible_keys|key     |key_len|ref  |rows|filtered|Extra                |
 +--+-----------+------+----------+----+-------------+--------+-------+-----+----+--------+---------------------+
-|1 |SIMPLE     |single|NULL      |ref |idx_code     |idx_code|5      |const|4   |100     |Using index condition|
+|1 |SIMPLE     |user  |NULL      |ref |idx_code     |idx_code|5      |const|4   |100     |Using index condition|
 +--+-----------+------+----------+----+-------------+--------+-------+-----+----+--------+---------------------+
 ```
 
@@ -77,52 +71,44 @@ explain select * from single where code is null;
 通过二级索引进行等值查询时使用的就是 ref，由于索引列的值相同的记录基本上是连续的，因此这种访问方式也是比较快的。但是二级索引的等值查询不是一定使用 ref 的访问方式，这取决于查询条件所匹配到的记录条数，如果匹配到的记录较少，那么回表的代价还是比较低的，此时可以使用 ref 的方式；如果匹配到的记录较多，那么 MySQL 可能会选择使用全表扫描的方式执行查询。
 
 ```sql
-explain select * from single where username = 'Bob';
-```
+explain select * from user where username = 'Bob';
 
-```
 +--+-----------+------+----------+----+-------------+------------+-------+-----+----+--------+-----+
 |id|select_type|table |partitions|type|possible_keys|key         |key_len|ref  |rows|filtered|Extra|
 +--+-----------+------+----------+----+-------------+------------+-------+-----+----+--------+-----+
-|1 |SIMPLE     |single|NULL      |ref |idx_username |idx_username|303    |const|1724|100     |NULL |
+|1 |SIMPLE     |user  |NULL      |ref |idx_username |idx_username|303    |const|1724|100     |NULL |
 +--+-----------+------+----------+----+-------------+------------+-------+-----+----+--------+-----+
 ```
 
 对于包含多个索引列的二级索引（也叫联合索引）来说，只要符合最左匹配原则就可能采用 ref 的访问方式。比如：
 
 ```sql
-explain select * from single where province = '山东';
-```
+explain select * from user where province = '山东';
 
-```
 +--+-----------+------+----------+----+-------------+-----------+-------+-----+----+--------+-----+
 |id|select_type|table |partitions|type|possible_keys|key        |key_len|ref  |rows|filtered|Extra|
 +--+-----------+------+----------+----+-------------+-----------+-------+-----+----+--------+-----+
-|1 |SIMPLE     |single|NULL      |ref |idx_address  |idx_address|303    |const|1   |100     |NULL |
+|1 |SIMPLE     |user  |NULL      |ref |idx_address  |idx_address|303    |const|1   |100     |NULL |
 +--+-----------+------+----------+----+-------------+-----------+-------+-----+----+--------+-----+
 ```
 
 ```sql
-explain select * from single where province = '山东省' and city = '济南市';
-```
+explain select * from user where province = '山东省' and city = '济南市';
 
-```
 +--+-----------+------+----------+----+-------------+-----------+-------+-----------+----+--------+-----+
 |id|select_type|table |partitions|type|possible_keys|key        |key_len|ref        |rows|filtered|Extra|
 +--+-----------+------+----------+----+-------------+-----------+-------+-----------+----+--------+-----+
-|1 |SIMPLE     |single|NULL      |ref |idx_address  |idx_address|606    |const,const|1   |100     |NULL |
+|1 |SIMPLE     |user  |NULL      |ref |idx_address  |idx_address|606    |const,const|1   |100     |NULL |
 +--+-----------+------+----------+----+-------------+-----------+-------+-----------+----+--------+-----+
 ```
 
 ```sql
-explain select * from single where city = '济南市';
-```
+explain select * from user where city = '济南市';
 
-```
 +--+-----------+------+----------+----+-------------+----+-------+----+------+--------+-----------+
 |id|select_type|table |partitions|type|possible_keys|key |key_len|ref |rows  |filtered|Extra      |
 +--+-----------+------+----------+----+-------------+----+-------+----+------+--------+-----------+
-|1 |SIMPLE     |single|NULL      |ALL |NULL         |NULL|NULL   |NULL|989489|10      |Using where|
+|1 |SIMPLE     |user  |NULL      |ALL |NULL         |NULL|NULL   |NULL|989489|10      |Using where|
 +--+-----------+------+----------+----+-------------+----+-------+----+------+--------+-----------+
 ```
 
@@ -130,14 +116,12 @@ explain select * from single where city = '济南市';
 有时候我们不仅想找出某个二级索引列的值等于某个常数的记录，还想把该列值为 NULL 的记录也找出来，此时使用的就是 ref_or_null 的访问方法，比如：
 
 ```sql
-explain select * from single where username = 'Bob' or username is null;
-```
+explain select * from user where username = 'Bob' or username is null;
 
-```
 +--+-----------+------+----------+-----------+-------------+------------+-------+-----+----+--------+---------------------+
 |id|select_type|table |partitions|type       |possible_keys|key         |key_len|ref  |rows|filtered|Extra                |
 +--+-----------+------+----------+-----------+-------------+------------+-------+-----+----+--------+---------------------+
-|1 |SIMPLE     |single|NULL      |ref_or_null|idx_username |idx_username|303    |const|1725|100     |Using index condition|
+|1 |SIMPLE     |user  |NULL      |ref_or_null|idx_username |idx_username|303    |const|1725|100     |Using index condition|
 +--+-----------+------+----------+-----------+-------------+------------+-------+-----+----+--------+---------------------+
 ```
 
@@ -147,26 +131,22 @@ explain select * from single where username = 'Bob' or username is null;
 如果使用索引列进行范围查询，一般会使用 range 访问方法。比如：
 
 ```sql
-explain select * from single where username in ('Bob', 'Alice');
-```
+explain select * from user where username in ('Bob', 'Alice');
 
-```
 +--+-----------+------+----------+-----+-------------+------------+-------+----+----+--------+---------------------+
 |id|select_type|table |partitions|type |possible_keys|key         |key_len|ref |rows|filtered|Extra                |
 +--+-----------+------+----------+-----+-------------+------------+-------+----+----+--------+---------------------+
-|1 |SIMPLE     |single|NULL      |range|idx_username |idx_username|303    |NULL|3425|100     |Using index condition|
+|1 |SIMPLE     |user  |NULL      |range|idx_username |idx_username|303    |NULL|3425|100     |Using index condition|
 +--+-----------+------+----------+-----+-------------+------------+-------+----+----+--------+---------------------+
 ```
 
 ```sql
-explain select * from single where code >= 122 and code <= 300;
-```
+explain select * from user where code >= 122 and code <= 300;
 
-```
 +--+-----------+------+----------+-----+-------------+--------+-------+----+----+--------+---------------------+
 |id|select_type|table |partitions|type |possible_keys|key     |key_len|ref |rows|filtered|Extra                |
 +--+-----------+------+----------+-----+-------------+--------+-------+----+----+--------+---------------------+
-|1 |SIMPLE     |single|NULL      |range|idx_code     |idx_code|5      |NULL|179 |100     |Using index condition|
+|1 |SIMPLE     |user  |NULL      |range|idx_code     |idx_code|5      |NULL|179 |100     |Using index condition|
 +--+-----------+------+----------+-----+-------------+--------+-------+----+----+--------+---------------------+
 ```
 
@@ -181,14 +161,12 @@ explain select * from single where code >= 122 and code <= 300;
 所谓交集合并就是将从多个索引中查询到的结果取交集，比如下面这个：
 
 ```sql
-explain select * from single where username = 'Bob' and email = 'orghxctxih@cxmxz.gmz';
-```
+explain select * from user where username = 'Bob' and email = 'orghxctxih@cxmxz.gmz';
 
-```
 +--+-----------+------+----------+-----------+----------------------+----------------------+-------+----+----+--------+----------------------------------------------------+
 |id|select_type|table |partitions|type       |possible_keys         |key                   |key_len|ref |rows|filtered|Extra                                               |
 +--+-----------+------+----------+-----------+----------------------+----------------------+-------+----+----+--------+----------------------------------------------------+
-|1 |SIMPLE     |single|NULL      |index_merge|idx_username,idx_email|idx_email,idx_username|303,303|NULL|2   |100     |Using intersect(idx_email,idx_username); Using where|
+|1 |SIMPLE     |user  |NULL      |index_merge|idx_username,idx_email|idx_email,idx_username|303,303|NULL|2   |100     |Using intersect(idx_email,idx_username); Using where|
 +--+-----------+------+----------+-----------+----------------------+----------------------+-------+----+----+--------+----------------------------------------------------+
 ```
 
@@ -199,14 +177,12 @@ explain select * from single where username = 'Bob' and email = 'orghxctxih@cxmx
 一般只有在多个二级索引进行等值匹配（联合索引需要每个列都进行匹配，不能只匹配部分列）时才会使用 Intersection 索引合并，但是有些特殊的情况也可以使用，比如在主键列使用范围匹配的时候：
 
 ```sql
-explain select * from single where id > 12205 and username = 'Bob';
-```
+explain select * from user where id > 12205 and username = 'Bob';
 
-```
 +--+-----------+------+----------+-----------+--------------------+--------------------+-------+----+----+--------+--------------------------------------------------+
 |id|select_type|table |partitions|type       |possible_keys       |key                 |key_len|ref |rows|filtered|Extra                                             |
 +--+-----------+------+----------+-----------+--------------------+--------------------+-------+----+----+--------+--------------------------------------------------+
-|1 |SIMPLE     |single|NULL      |index_merge|PRIMARY,idx_username|idx_username,PRIMARY|307,4  |NULL|852 |100     |Using intersect(idx_username,PRIMARY); Using where|
+|1 |SIMPLE     |user  |NULL      |index_merge|PRIMARY,idx_username|idx_username,PRIMARY|307,4  |NULL|852 |100     |Using intersect(idx_username,PRIMARY); Using where|
 +--+-----------+------+----------+-----------+--------------------+--------------------+-------+----+----+--------+--------------------------------------------------+
 ```
 
@@ -216,14 +192,12 @@ explain select * from single where id > 12205 and username = 'Bob';
 与 Intersection 类似的，只不过不再使用 and 取交集，而是使用 or 取并集。比如：
 
 ```sql
-explain select * from single where username = 'Bob' or email = 'orghxctxih@cxmxz.gmz';
-```
+explain select * from user where username = 'Bob' or email = 'orghxctxih@cxmxz.gmz';
 
-```
 +--+-----------+------+----------+-----------+----------------------+----------------------+-------+----+----+--------+------------------------------------------------+
 |id|select_type|table |partitions|type       |possible_keys         |key                   |key_len|ref |rows|filtered|Extra                                           |
 +--+-----------+------+----------+-----------+----------------------+----------------------+-------+----+----+--------+------------------------------------------------+
-|1 |SIMPLE     |single|NULL      |index_merge|idx_username,idx_email|idx_username,idx_email|303,303|NULL|3317|100     |Using union(idx_username,idx_email); Using where|
+|1 |SIMPLE     |user  |NULL      |index_merge|idx_username,idx_email|idx_username,idx_email|303,303|NULL|3317|100     |Using union(idx_username,idx_email); Using where|
 +--+-----------+------+----------+-----------+----------------------+----------------------+-------+----+----+--------+------------------------------------------------+
 ```
 
@@ -233,14 +207,12 @@ explain select * from single where username = 'Bob' or email = 'orghxctxih@cxmxz
 一般使用 Union 索引合并的条件太苛刻，必须保证每个二级索引都是等值匹配，比如下面这种就无法使用：
 
 ```sql
-explain select * from single where username in ('Bob', 'Alice') or code < 2205;
-```
+explain select * from user where username in ('Bob', 'Alice') or code < 2205;
 
-```
 +--+-----------+------+----------+-----------+---------------------+---------------------+-------+----+----+--------+----------------------------------------------------+
 |id|select_type|table |partitions|type       |possible_keys        |key                  |key_len|ref |rows|filtered|Extra                                               |
 +--+-----------+------+----------+-----------+---------------------+---------------------+-------+----+----+--------+----------------------------------------------------+
-|1 |SIMPLE     |single|NULL      |index_merge|idx_code,idx_username|idx_username,idx_code|303,5  |NULL|5628|100     |Using sort_union(idx_username,idx_code); Using where|
+|1 |SIMPLE     |user  |NULL      |index_merge|idx_code,idx_username|idx_username,idx_code|303,5  |NULL|5628|100     |Using sort_union(idx_username,idx_code); Using where|
 +--+-----------+------+----------+-----------+---------------------+---------------------+-------+----+----+--------+----------------------------------------------------+
 ```
 
@@ -250,14 +222,12 @@ explain select * from single where username in ('Bob', 'Alice') or code < 2205;
 当我们使用索引覆盖，但需要扫描全部的索引记录时，使用的就是 index 访问方法。比如：
 
 ```sql
-explain select province, city, county from single where city = '青岛市';
-```
+explain select province, city, county from user where city = '青岛市';
 
-```
 +--+-----------+------+----------+-----+-------------+-----------+-------+----+------+--------+------------------------+
 |id|select_type|table |partitions|type |possible_keys|key        |key_len|ref |rows  |filtered|Extra                   |
 +--+-----------+------+----------+-----+-------------+-----------+-------+----+------+--------+------------------------+
-|1 |SIMPLE     |single|NULL      |index|NULL         |idx_address|909    |NULL|989489|10      |Using where; Using index|
+|1 |SIMPLE     |user  |NULL      |index|NULL         |idx_address|909    |NULL|989489|10      |Using where; Using index|
 +--+-----------+------+----------+-----+-------------+-----------+-------+----+------+--------+------------------------+
 ```
 
@@ -267,14 +237,12 @@ explain select province, city, county from single where city = '青岛市';
 all 就是全表扫描，也就是直接遍历聚簇索引，比如：
 
 ```sql
-explain select * from single where avatar = 'https://avatar.github.com/cjFQDo';
-```
+explain select * from user where avatar = 'https://avatar.github.com/cjFQDo';
 
-```
 +--+-----------+------+----------+----+-------------+----+-------+----+------+--------+-----------+
 |id|select_type|table |partitions|type|possible_keys|key |key_len|ref |rows  |filtered|Extra      |
 +--+-----------+------+----------+----+-------------+----+-------+----+------+--------+-----------+
-|1 |SIMPLE     |single|NULL      |ALL |NULL         |NULL|NULL   |NULL|989489|10      |Using where|
+|1 |SIMPLE     |user  |NULL      |ALL |NULL         |NULL|NULL   |NULL|989489|10      |Using where|
 +--+-----------+------+----------+----+-------------+----+-------+----+------+--------+-----------+
 ```
 
