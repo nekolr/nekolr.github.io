@@ -260,7 +260,7 @@ public static <T, R> List<R> map(List<T> list, Function<T, R> f) {
 map(Arrays.asList("Hello", "World"), (String s) -> s.length());
 ```
 
-我们知道，在 Java 中泛型只能绑定到引用类型上，因此 Java 提供了自动拆箱和装箱的操作。但是这种操作需要付出性能代价，为装箱后的值本质上就是把原始类型包裹起来并保存到堆上，装箱后的值需要更多的内存，并需要额外的内存搜索来获取被包裹的原始值。为了避免在使用这些函数式接口时出现自动装箱的操作，JDK 8 专门为这些接口提供了使用原始类型的版本。比如 IntPredicate、IntConsumer、LongToIntFunction 等。下面附上一些总结的使用案例：
+我们知道，在 Java 中泛型只能绑定到引用类型上，因此 Java 提供了自动拆箱和装箱的操作。但是这种操作需要付出性能代价，因为装箱后的值本质上就是把原始类型包裹起来并保存到堆上，装箱后的值需要更多的内存，并需要额外的内存搜索来获取被包裹的原始值。为了避免在使用这些函数式接口时出现自动装箱的操作，JDK 8 专门为这些接口提供了使用原始类型的版本。比如 IntPredicate、IntConsumer、LongToIntFunction 等。下面附上一些总结的使用案例：
 
 使用案例 | Lambda 的例子 | 对应的函数式接口
 ---|---|---
