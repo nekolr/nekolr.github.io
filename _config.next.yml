@@ -25,7 +25,8 @@ custom_file_path:
   #head: source/_data/head.swig
   #header: source/_data/header.swig
   #sidebar: source/_data/sidebar.swig
-  postMeta: source/_data/post-meta.swig
+  # 20210223: 由于新版主题样式修改，此处的自定义样式已经不需要了
+  #postMeta: source/_data/post-meta.swig
   #postBodyEnd: source/_data/post-body-end.swig
   #footer: source/_data/footer.swig
   #bodyEnd: source/_data/body-end.swig
@@ -354,11 +355,15 @@ safari_rainbow: false
 # Custom Logo (Do not support scheme Mist)
 custom_logo: #/uploads/custom-logo.jpg
 
+highlight:
+  enable: true
+prismjs:
+  enable: false
+
 codeblock:
-  # Code Highlight theme
-  # Available values: normal | night | night eighties | night blue | night bright | solarized | solarized dark | galactic
-  # See: https://github.com/chriskempson/tomorrow-theme
-  highlight_theme: night
+  theme:
+    light: darcula
+    dark: darcula
   # Add copy button on codeblock
   copy_button:
     enable: true
