@@ -145,4 +145,4 @@ storage:
 
 我们的注解为 `@ConditionalOnProperty(name = "storage.type", havingValue = "filesystem")`，那么使用这个注解的类就可以被加载到容器当中。
 
-大概说完了 `@Conditional` 注解，到了这里我们还有一个疑惑就是，Spring 是在什么时候什么地方处理 `@Conditional` 注解的呢？答案就是在 ConfigurationClassParser 类中，具体的位置是在 doProcessConfigurationClass 方法中，这里就不具体展开了。
+大概说完了 `@Conditional` 注解，到了这里我们还有一个疑惑就是，Spring 是在什么时候什么地方处理 `@Conditional` 注解的呢？答案就是在 ConfigurationClassParser 类中，具体的位置是在 processConfigurationClass 方法中，这里就不具体展开了。
