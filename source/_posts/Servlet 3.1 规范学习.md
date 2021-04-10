@@ -10,7 +10,7 @@ categories: [Servlet]
 <!--more-->
 
 # 编程注册组件
-除了使用 web.xml 以及注解来配置组件外，新的规范还支持以编程的方式动态注册组件（Servlet、Listener 以及 Filter），具体来说是在 Web 容器启动时来动态注册。我们可以使用 Servlet API 提供的 addServlet()、addFilter() 以及 addListener() 等方法来动态注册这些组件。注册的切入点有两种选择，其中一种是实现 `javax.servlet.ServletContextListener` 接口。
+除了使用 web.xml 以及注解来配置组件外，新的规范还支持以编程的方式动态注册组件（Servlet、Listener 以及 Filter），具体来说是在 Web 容器启动时动态注册。我们可以使用 Servlet API 提供的 addServlet()、addFilter() 以及 addListener() 等方法来动态注册这些组件。注册的切入点有两种选择，其中一种是实现 `javax.servlet.ServletContextListener` 接口。
 
 ```java
 @WebListener
@@ -32,14 +32,12 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 }
 ```
 
-另外一种是实现 `javax.servlet.ServletContainerInitializer` 接口，采用这种方式能够实现可插拔，所以在后边说。
+另外一种是实现 `javax.servlet.ServletContainerInitializer` 接口，采用这种方法能够在容器运行时通过可插拔的方式来注册组件。
 
-# 注解和可插拔性
+# Web 模块部署描述符片段
+从 Servlet 3.0 规范就开始提供一些注解来简化 web.xml 的配置，如：`@WebServlet`、`@WebListener`、`@WebFilter` 等等，这些注解的使用暂且不提。Servlet 3.0 新增可插拔性来增加 Servlet 配置的灵活性，引入了名为“Web 模块部署描述符片段”的 web-fragment.xml 部署文件。该文件必须放在 jar 文件的 META-INF 目录下，该部署描述符文件可以包含一切可以在 web.xml 文件中定义的内容。通过这种方式，能够将某些 Servlet 组件打包成 jar 文件，在需要时引入，不需要时卸载。
 
-## Web 模块部署描述片段
-从 Servlet 3.0 规范就开始提供一些注解来简化 web.xml 的配置，如：`@WebServlet`、`@WebListener`、`@WebFilter` 等等，这些注解的使用暂且不提。Servlet 3.0 新增可插拔性来增加 Servlet 配置的灵活性，引入了意为 **Web 模块部署描述片段** 的 web-fragment.xml 部署文件。该文件必须存放在 jar 文件的 META-INF 目录下，该部署描述文件可以包含一切可以在 web.xml 文件中定义的内容。通过这种方式，能够将某些 Servlet 组件打包成 jar 文件，在需要时引入，不需要时卸载。
-
-在新的规范下，我们为 Web 应用增加一个 Servlet（或 Filter、Listener 同理）有三种方式：
+在新的规范下，我们为 Web 应用增加一个 Servlet（或 Filter、Listener 同理）也就有三种方式：
 
 - 继承 `javax.servlet.http.HttpServlet`，修改 web.xml 文件，增加一个 Servlet 配置项。  
 - 继承 `javax.servlet.http.HttpServlet`，并为该类加上 `@WebServlet` 注解。  
@@ -51,7 +49,7 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee 
          http://xmlns.jcp.org/xml/ns/javaee/web-fragment_3_1.xsd"
-         version="3.1" metadata-complete="true">
+         version="3.1">
 
     <servlet>
         <servlet-name>index</servlet-name>
@@ -66,12 +64,12 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 </web-fragment>
 ```
 
-在 `web-app` 元素中包含一个新的 `metadata-complete` 属性，该属性定义了 web 描述符是否完整。当该属性值为 true 时，Web 容器会忽略类文件的注解以及 web-fragement.xml 的配置；当该属性值为 false 时，容器会扫描类文件的注解以及 web-fragement.xml 的配置。  
+在 `web-app` 元素中包含一个新的 `metadata-complete` 属性，该属性用于描述当前 web 描述符是否完整，即当前配置是否完全，默认情况下该属性值为 false。当该属性值为 true 时，表示当前配置完全，Web 容器只会应用该配置，忽略其他类文件的注解（如 @WebServlet）以及 web-fragement.xml 的配置；当该属性值为 false 时，容器会扫描其他类文件的注解以及 web-fragement.xml 的配置。
 
 由于规范允许应用配置多个文件（一个 web.xml 以及多个 web-fragement.xml），从应用中的多个不同的位置发现和加载配置，因此加载的顺序必须处理。具体细节参考规范中的说明。  
 
-## 运行时可插拔性
-为了实现运行时可插拔，需要实现 `javax.servlet.ServletContainerInitializer` 接口，同时，我们的实现必须在 jar 包的 META-INF/services 目录中一个名为 `javax.servlet.ServletContainerInitializer` 的文件中指定。  
+# 运行时可插拔性
+为了实现运行时可插拔，需要实现 `javax.servlet.ServletContainerInitializer` 接口。同时，我们的实现必须在 jar 包的 META-INF/services 目录中一个名为 `javax.servlet.ServletContainerInitializer` 的文件中指定。  
 
 ![javax.servlet.ServletContainerInitializer](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/27/O7n.png)
 
@@ -87,7 +85,7 @@ public class WebInitializer implements ServletContainerInitializer {
 }
 ```
 
-典型的例子是 spring，查看 spring-web 的 META-INF/services，果然有名为 javax.servlet.ServletContainerInitializer 的文件。
+典型的例子是 Spring，查看 spring-web 的 META-INF/services，果然有名为 javax.servlet.ServletContainerInitializer 的文件。
 
 ![spring-web](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/27/a9N.png)
 
@@ -96,7 +94,7 @@ org.springframework.web.SpringServletContainerInitializer
 ```
 
 ```java
-@HandlesTypes(WebApplicationInitializer.class)
+@HandlesTypes({WebApplicationInitializer.class})
 public class SpringServletContainerInitializer implements ServletContainerInitializer {
 
 	@Override
@@ -135,7 +133,7 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 }
 ```
 
-其中有一个 @HandlesTypes 注解，按照规范中的意思，这个注解用在我们感兴趣的一些 javax.servlet.ServletContainerInitializer 的实现类上，@HandlesTypes 注解的 value 值指定**类型、方法或自动级别的注解**，使用 onStartup() 方法中的 Set&lt;Class&lt;?&gt;&gt; webAppInitializerClasses 参数来获取这些类型。如 spring 的实现中，SpringServletContainerInitializer 作为实现类，使用 @HandlesTypes 注解的 value 值为 WebApplicationInitializer 接口，并且通过它的 onStartup() 方法也能够发现，实际调用的是 WebApplicationInitializer 的 onStartup() 方法。我们可以模仿 spring 的这种实现。
+在 SpringServletContainerInitializer 类上有一个 @HandlesTypes 注解，按照规范中的意思，这个注解可以用在一些 javax.servlet.ServletContainerInitializer 的实现类上，@HandlesTypes 注解的 value 值是一个 Class 类型的数组，通过 onStartup() 方法中的 webAppInitializerClasses 参数，我们可以获取这些类型。比如在 Spring 的实现中，SpringServletContainerInitializer 作为实现类，使用 @HandlesTypes 注解的 value 值为 WebApplicationInitializer 接口，并且通过它的 onStartup() 方法也能够发现，实际调用的是 WebApplicationInitializer 的 onStartup() 方法。我们可以模仿 Spring 的这种实现。
 
 ```java
 @HandlesTypes(value = AppInitializer.class)
@@ -194,7 +192,9 @@ public class CustomAppInitializer implements AppInitializer {
 
 # Session 与 Cookie
 
-我们知道 HTTP 协议是无状态的，即没有记忆和存储的能力，这意味着当处理过一次的业务，再次请求需要重传，这会导致每次传输的数据量很大，尤其是当客户端与服务器进行交互的 Web 应用程序出现后，这种特性严重阻碍了这些程序的实现，因为交互需要承前启后的。为了解决这个问题，Session 和 Cookie 诞生了，它们都不属于 HTTP 协议标准的内容，但是网络应用提供商、实现语言、Web 容器等都默认实现了它。  
+我们知道 HTTP 协议是无状态的，即没有记忆和存储的能力，这意味着当处理过一次的业务，再次请求时需要重传，这会导致每次传输的数据量很大，尤其是在客户端与服务器进行交互的 Web 应用程序出现后，这种特性严重阻碍了这些程序的实现，因为交互是需要承前启后的。为了解决这个问题，Session 和 Cookie 诞生了。
+
+与 Cookie 相关的标准有四个，最早的是 Netscape 标准，这也是最原始的 Cookie 规范，同时也是 [RFC 2109](https://tools.ietf.org/html/rfc2109) 规范的基础。1997 年 2 月份，Network Working Group 推出了第一份官方的 Cookie 标准，理论上，所有使用 Cookie 的客户端与服务端都应该实现该标准，但是由于那时的浏览器市场还是 Netscape 的天下，导致很多服务端仍然在使用 Netscape 标准。为了解决这个问题，2000 年 Network Working Group 又推出了 [RFC 2965](https://tools.ietf.org/html/rfc2965) 规范，该规范中增加了两个新的 Header：Cookie2 和 Set-Cookie2，其他部分与 RFC 2109 相差不多。2011 年，时隔 11 年，新的 Cookie 标准：[RFC 6265](https://tools.ietf.org/html/rfc6265) 规范发布。新规范可以说是把 Cookie 规则整个翻新了一遍，修改幅度很大，值得一提的是，新规范中增加了 HttpOnly 属性，指定 HttpOnly 的 Cookie 不能被客户端读写，仅供 HTTP 传输使用，或者只有服务端可以读写，客户端需要确保其不能读写。
 
 Cookie 由服务器端生成（客户端也可以自己创建），发送给 User-Agent（一般是浏览器），浏览器会将 Cookie 的 key/value 值保存到某个目录下的文本文件中，在下次请求同一个域时会在请求头中加上该 Cookie（前提是浏览器没有禁用 Cookie）。
 
