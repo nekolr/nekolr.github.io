@@ -9,7 +9,7 @@ categories: [Spring Boot]
 
 <!--more-->
 
-Spring Boot 有很多重要的特性：  
+Spring Boot 有很多重要的特性，这里简单列举几个具有代表性的：
 
 - **独立运行**
 可以以 jar 包的形式独立运行，使用命令 java -jar xxx.jar。
@@ -21,18 +21,19 @@ Spring Boot 有很多重要的特性：
 如果只是代替我们将代码生成，Spring Boot 也就没有这么神奇了。Spring Boot 使用条件注解，同时可以通过 Java 类配置和注解结合，避免使用 xml。  
 
 ## 快速开始
-如果使用 eclipse 等 IDE 可以安装 [Spring Tool Suite ](http://spring.io/tools/sts/)插件，这里使用 IDEA 作为 IDE。
+如果使用 eclipse 等 IDE 可以安装 [Spring Tool Suite](https://spring.io/tools/) 插件，这里使用 IDEA 作为 IDE。
 
-**1. create new project**		
+首先第一步是创建一个新项目，填写项目相关信息。
+
 ![create new project1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911251055/2018/04/14/k4z.png)		
 		
 ![create new project2](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911251055/2018/04/14/8RB.png)		
 		
-**2. dependencies**		
+接下来需要选择项目的依赖，比如 Web 开发可能需要 Web 模块、Spring Data JPA 模块等。
 		
 ![dependencies](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911251055/2019/11/25/4yb.png)		
 		
-**3. project structure**		
+最后耐心等待。IDEA 会自动执行新建项目的操作（包括下载依赖包、索引项目文件等），新建好的项目结构如下图。	
 		
 ![project archive](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911251055/2018/04/14/NAr.png)		
 		
@@ -141,9 +142,7 @@ public @interface SpringBootApplication {
 		
 其中，@EnableAutoConfiguration 可以让 Spring Boot 根据类路径中依赖的 jar 包为项目自动配置。比如添加了 `spring-boot-starter-web` 依赖，则会自动添加 tomcat 和 Spring MVC 依赖，同时自动配置 tomcat 和 Spring MVC。  
 
-使用 exclude 可以在扫描时过滤某些类，如 `@SpringBootApplication(exclude=CacheAutoConfiguration.class)`。  
-
-**Srping Boot 会自动扫描 `@SpringBootApplication` 所在类同级或下级包中的 Bean，因此入口类最好放在 `groupId.artifactId` 包下。**  
+使用 exclude 可以在扫描时过滤某些类，如 `@SpringBootApplication(exclude=CacheAutoConfiguration.class)`。Spring Boot 会自动扫描 `@SpringBootApplication` 所在类同级或下级包中的 Bean，因此入口类最好放在 `groupId.artifactId` 包下。
 
 ### Banner
 在 `src/main/resources` 下添加 banner.txt 文件，在 <http://patorjk.com/software/taag> 中选择 banner 样式并复制到 banner.txt 文件中。当然可以选择不显示 banner。  
@@ -200,7 +199,7 @@ public class DemoApplication {
 </dependencyManagement>
 ```
 
-上述的配置虽然可以再使用默认的依赖配置，但是不能使用 properties 修改默认的依赖版本，只有在 dependencyManagement 中指定版本。  
+上述配置不能通过 properties 修改默认的依赖版本，只能在 dependencyManagement 中指定版本。  
 
 ```xml
 <dependencyManagement>
@@ -284,7 +283,7 @@ spring-boot-devtools 是为开发者提供的一个热部署工具，当我们�
 spring.devtools.restart.exclude=static/**,public/**
 ```
 
-如果想保留默认配置并添加额外的排除配置，可以使用 `spring.devtools.restart.additional-exclude`。对于不在 classpath 下的文件，也可以使用 `spring.devtools.restart.additional-paths` 设置目录以监视其更改，并通过 `spring.devtools.restart.exclude` 来控制改监视目录下的文件修改后是应用重启还是资源重新加载。  
+如果想保留默认配置并添加额外的排除配置，可以使用 `spring.devtools.restart.additional-exclude`。对于不在 classpath 下的文件，也可以使用 `spring.devtools.restart.additional-paths` 设置目录以监视其更改。
 
 #### 关闭热部署
 ```properties
@@ -334,8 +333,10 @@ Spring Boot 可以通过 properties 文件、YAML 文件、环境变量和命令
 - 应用内部的 `application-{profile}.properties`、`application.properties` 和 YAML 文件
 - 带 `@Configuration` 注解的配置类的 `@PropertySource` 注解
 - 通过 `SpringApplication.setDefaultProperties` 指定的默认属性
-		
-#### @Value 注解	
+
+
+#### @Value 注解
+
 ```properties
 # application.properties
 com.nekolr.name=nekolr
@@ -444,7 +445,7 @@ public class ConfigBean {
 #### Profile 多环境
 我们知道，在开发时和应用上线运行时，应用具体的配置可能会有所不同，每次修改替换配置文件比较麻烦，此时可以使用 profile 多环境配置。  
 
-除了 application.properties 文件外，还可以设置特定的配置文件，格式：application-${profile}.properties，比如：application-dev.properties，在 application.properties 中设置 spring.profiles.active=dev 或者通过命令行 `java -jar xxx.jar --spring.profiles.active=dev` 来指定当前激活的是哪个特定的配置文件。  
+除了 application.properties 文件外，还可以设置特定的配置文件，文件的格式为：application-${profile}.properties，比如：application-dev.properties，在 application.properties 中设置 spring.profiles.active=dev 或者通过命令行 `java -jar xxx.jar --spring.profiles.active=dev` 来指定当前激活的是哪个特定的配置文件。  
 
 也可以直接通过 `@Profile` 注解来表明使用哪个配置。首先定义一个接口：  
 
