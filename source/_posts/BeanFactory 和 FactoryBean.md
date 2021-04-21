@@ -15,9 +15,7 @@ BeanFactory 是 Spring Framework 中一个很重要的接口，从接口名称�
 ![BeanFactory](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/kvA.png)
 
 # FactoryBean
-一般情况下，Spring 是根据 bean 的配置信息，然后通过反射机制来实例化 bean 并放入容器中的，但是有时 bean 的实例化过程比较复杂，如果按照之前的方式，则需要大量的 bean 的配置信息，这时采用编码的方式来获得 bean 实例会更加简单直接。  
-
-Spring 就提供了这样一个接口：`org.springframework.beans.factory.FactoryBean`。  
+一般情况下，Spring 是根据 bean 的配置信息，然后通过反射机制来实例化 bean 并放入容器中的，但是有时 bean 的实例化过程比较复杂，如果按照之前的方式，则需要大量的 bean 的配置信息，这时采用编码的方式来获得 bean 实例会更加简单直接。  Spring 就提供了这样一个接口：`org.springframework.beans.factory.FactoryBean`。  
 
 ![FactoryBean](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/dlM.png)
 
@@ -34,9 +32,7 @@ protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredTy
 
     final String beanName = transformedBeanName(name);
     Object bean;
-
-    // Eagerly check singleton cache for manually registered singletons.
-    // Spring 手动注册了一些单例 bean，这里检测是不是这些 bean。
+    // 尝试从缓存中获取单例 bean
     Object sharedInstance = getSingleton(beanName);
     if (sharedInstance != null && args == null) {
         if (logger.isDebugEnabled()) {
@@ -50,7 +46,7 @@ protected <T> T doGetBean(final String name, @Nullable final Class<T> requiredTy
         }
         bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
     }
-    ...
+    // 省略以下代码
 }
 
 protected Object getObjectForBeanInstance(
@@ -66,18 +62,14 @@ protected Object getObjectForBeanInstance(
             throw new BeanIsNotAFactoryException(transformedBeanName(name), beanInstance.getClass());
         }
     }
-
-    // Now we have the bean instance, which may be a normal bean or a FactoryBean.
-    // If it's a FactoryBean, we use it to create a bean instance, unless the
-    // caller actually wants a reference to the factory.
-    // 如果这是一个 FactoryBean，那么必须以 & 开头才能获取 FactoryBean 实例本身
+    // 如果是 FactoryBean，则会根据用户传入的 name 来决定是返回 FactoryBean 实例
+    // 还是通过 FactoryBean 的 getObject 方法返回实例。如果不是 FactoryBean 则会原样返回
     if (!(beanInstance instanceof FactoryBean) || BeanFactoryUtils.isFactoryDereference(name)) {
         return beanInstance;
     }
 
     Object object = null;
     if (mbd == null) {
-        // 没有 bean 的定义，则先从缓存获取
         object = getCachedObjectForFactoryBean(beanName);
     }
     if (object == null) {
@@ -174,7 +166,6 @@ private Object doGetObjectFromFactoryBean(final FactoryBean<?> factory, final St
     catch (Throwable ex) {
         throw new BeanCreationException(beanName, "FactoryBean threw exception on object creation", ex);
     }
-
     // Do not accept a null value for a FactoryBean that's not fully
     // initialized yet: Many FactoryBeans just return null then.
     if (object == null) {

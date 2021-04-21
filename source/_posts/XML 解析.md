@@ -184,7 +184,8 @@ public class DOMResolver {
 > 需要应用程序自己负责节点的处理逻辑（例如维护父/子关系等），文档越复杂程序就越复杂。
 > 单向导航，无法定位文档层次，很难同时访问同一文档的不同部分数据，不支持 XPath。	
 > 只能读取文档，不能进行其他操作（新增、修改和删除）。
-		
+
+
 SAX 解析过程及使用：		
 		
 ![SAX_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/LyR.png)
@@ -286,7 +287,8 @@ public class SAXDemo {
 - **缺点**
 > 由于与 DOM 类似的生成 DOM 树结构，使得 JDOM 在处理大型 XML 文档时性能较差。		
 > 灵活性差，不支持 DOM 中某些遍历。
-		
+
+
 JDOM 的使用：
 
 ![JDOM_XML1](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911241944/2018/04/14/4KA.png)

@@ -21,7 +21,7 @@ public class DemoApplication {
 }
 ```
 		
-`@SpringBootApplication` 已经分析过了，主要包含 `@SpringBootConfiguration`、`@EnableAutoConfiguration` 和 `@ComponentScan` 三个注解，能够实现自动配置的是 `@EnableAutoConfiguration` 注解。  
+`@SpringBootApplication` 主要包含 `@SpringBootConfiguration`、`@EnableAutoConfiguration` 和 `@ComponentScan` 三个注解，能够实现自动配置的是 `@EnableAutoConfiguration` 注解。  
 
 ```java
 @Target(ElementType.TYPE)
