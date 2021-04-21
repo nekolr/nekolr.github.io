@@ -849,7 +849,7 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
 > 在 Spring 中，AOP 的功能通过 Bean 后置处理器来完成的，更确切的说，是由 `@EnableAspectJAutoProxy` 注解导入的 `AnnotationAwareAspectJAutoProxyCreator` 来完成的。在它的 postProcessAfterInitialization 方法中，同样实现了根据已有 bean 实例创建代理对象的逻辑，这也是为什么说如果不存在循环依赖，那么代理对象的创建会在 bean 完全初始化之后才会进行的原因。
 
 # IoC 容器的依赖注入
-IoC 容器的依赖注入过程是在用户第一次向容器索要 Bean 时触发的，当然也有例外，那些设置 Bean 的 lazy-init 属性为 false（默认就是 false）的 BeanDefinition 会在容器初始化时就完成预实例化。这个预实例化实际上也是一个完成依赖注入的过程，只不过它是在容器初始化的过程中完成的，后面我们会提到。
+IoC 容器的依赖注入过程是在用户第一次向容器索要 Bean 时触发的，当然也有例外，那些设置 Bean 的 lazy-init 属性为 false（默认就是 false）的 BeanDefinition 会在容器初始化时就完成预实例化。这个预实例化实际上也是一个完成依赖注入的过程，只不过它是在容器初始化的过程中完成的。
 
 ```java
 /**
