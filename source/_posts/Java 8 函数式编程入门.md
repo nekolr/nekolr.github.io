@@ -265,10 +265,10 @@ map(Arrays.asList("Hello", "World"), (String s) -> s.length());
 使用案例 | Lambda 的例子 | 对应的函数式接口
 ---|---|---
 布尔表达式 | (List&lt;String&gt; list) -> list.isEmpty() | Predicate&lt;List&lt;String&gt;&gt;
-消费一个对象 | (Apple a) -> System.out.println(a.getWeight()) | Consumer&lt;Apple&gt;
+消费一个对象 | (Apple a) -> <br/>System.out.println(a.getWeight()) | Consumer&lt;Apple&gt;
 从一个对象中选择或提取 | (String s) -> s.length() | Function&lt;String, Integer&gt; 或 ToIntFunction&lt;String&gt;
 合并两个值 | (int a, int b) -> a * b | IntBinaryOperrator
-比较两个对象 | (Apple a1, Apple a2) -> a1.getWeight().compareTo(a2.getWeight()) | Comparator&lt;Apple&gt; 或 BiFunction&lt;Apple, Apple, Integer&gt; 或 ToIntBiFunction&lt;Apple, Apple&gt;
+比较两个对象 | (Apple a1, Apple a2) -> <br/>a1.getWeight().compareTo(a2.getWeight()) | Comparator&lt;Apple&gt; 或 BiFunction&lt;Apple, Apple, Integer&gt; 或 ToIntBiFunction&lt;Apple, Apple&gt;
 
 ## 方法引用
 方法引用使得我们可以重复使用现有的方法定义，并像 Lambda 一样传递它们。当我们使用方法引用时，我们需要将目标引用放在分隔符 `::` 前面，方法名称放在后面，比如 `Apple::getWeight` 就是一个方法引用。它的基本思想是，如果一个 Lambda 表达式代表的只是“直接调用这个方法”，那最好还是用名称来调用它，而不是去描述如何调用它。下面列举一些例子来说明：

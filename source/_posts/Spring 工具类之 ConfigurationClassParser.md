@@ -4,7 +4,7 @@ date: 2019/5/5 10:41:0
 tags: [Spring]
 categories: [Spring]
 ---
-ConfigurationClassParser 类主要用于分析带有 @Configuration 注解的配置类，产生 ConfigurationClass 配置类对象，并将这些配置类对象传递给调用者（使用该工具的类为 ConfigurationClassPostProcessor，它是一个 BeanFactoryPostProcessor，会在 Spring 容器启动时被调用）。  
+ConfigurationClassParser 类主要用于分析带有 @Configuration 注解的配置类，产生 ConfigurationClass 配置类对象（使用该工具的类为 ConfigurationClassPostProcessor，它是一个 BeanFactoryPostProcessor，会在 Spring 容器启动时被调用）。  
 
 <!--more-->
 
@@ -111,7 +111,7 @@ protected void processConfigurationClass(ConfigurationClass configClass) throws 
 
 doProcessConfigurationClass 才是真正处理配置类的方法，具体的处理如下：  
 
-- 配置类的成员类也可能是配置类，所以需要先遍历这些成员配置类，然后分别调用 doProcessConfigurationClass 方法。
+- 配置类的成员类也可能是配置类，所以先遍历这些成员配置类，然后分别调用 doProcessConfigurationClass 方法。
 - 处理配置类上的 @PropertySources 和 @PropertySource 注解。
 - 处理配置类上的 @ComponentScans 和 @ComponentScan 注解。
 - 处理配置类上的 @Import 注解。
@@ -185,7 +185,7 @@ protected final SourceClass doProcessConfigurationClass(ConfigurationClass confi
     }
 
     // Process individual @Bean methods
-    // 处理 @Bean注解，获取被 @Bean 注解修饰的方法，然后添加到配置类的 beanMethods 属性中
+    // 处理 @Bean 注解，获取被 @Bean 注解修饰的方法，然后添加到配置类的 beanMethods 属性中
     Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
     for (MethodMetadata methodMetadata : beanMethods) {
         configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
@@ -213,7 +213,7 @@ protected final SourceClass doProcessConfigurationClass(ConfigurationClass confi
 /**
 * 处理配置类上搜集到的 @Import 注解
 *
-* 参数 configuClass 配置类
+* 参数 configClass 配置类
 * 参数 currentSourceClass 当前源码类
 * 参数 importCandidates 所有的 @Import 注解的 value
 * 参数 checkForCircularImports 是否检查循环导入
