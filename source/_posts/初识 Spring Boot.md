@@ -261,9 +261,9 @@ spring-boot-devtools 是为开发者提供的一个热部署工具，当我们�
 ```
 
 #### 触发重启
-只要 classpath 中的文件发生改变就会触发，在使用 IDE 时，如果是 eclipse，则只需编辑后保存即可（eclipse 默认开启了 build automatically）；如果使用 IDEA，如果没有设置自动 build，则需要手动 build 项目。  
+只要 classpath 中的文件发生改变就会触发。在使用 IDE 时，如果是 eclipse，只需编辑后保存即可（eclipse 默认开启了 build automatically）。如果是 IDEA，一般情况下可能没有设置自动 build，此时需要手动 build 项目。  
 
-当然，某些文件的改变并不会重启应用，而是重新加载资源。查看 `DevToolsProperties` 类的源码会发现，默认的不重启应用的目录和文件为：  
+当然，某些文件的改变并不会重启应用，而是重新加载资源。查看 `DevToolsProperties` 类的源码会发现，默认不重启应用的目录和文件为：  
 
 - `META-INF/maven/**`
 - `META-INF/resources/**`
@@ -293,7 +293,7 @@ spring.devtools.restart.enabled=false
 
 ```java
 public static void main(String[] args) {
-   // 完全关闭热部署功能
+   // 关闭热部署功能
    System.setProperty("spring.devtools.restart.enabled", "false");
     new SpringApplicationBuilder(DemoApplication.class)
             .bannerMode(Banner.Mode.OFF)
@@ -312,7 +312,7 @@ spring.devtools.restart.trigger-file=某个文件
 Devtools 内置了一个 Live Reload 服务，可以在资源发生改变时来刷新浏览器页面，这个功能需要配合[ Live Reload ](http://livereload.com/)，也可以在 Chrome 应用商店中搜索 LiveReload 插件安装。  
 
 ### 全局配置
-Spring Boot 可以通过 properties 文件、YAML 文件、环境变量和命令行参数来设置参数，然后使用 `@Value` 注解通过 Spring 的 Environment 获取参数值，也可以通过 `@ConfigurationProperties` 注解将值绑定到 Bean 上。  
+在 Spring Boot 中，可以通过 properties 文件、YAML 文件、环境变量和命令行参数来设置参数，然后使用 `@Value` 注解从 Spring 的 Environment 获取参数值，也可以通过 `@ConfigurationProperties` 注解将值绑定到 Bean 上。  
 
 #### 参数取值途径
 以下配置覆盖的优先级顺序由高到低，高优先级的可以覆盖低优先级的形成互补。
@@ -447,59 +447,37 @@ public class ConfigBean {
 
 除了 application.properties 文件外，还可以设置特定的配置文件，文件的格式为：application-${profile}.properties，比如：application-dev.properties，在 application.properties 中设置 spring.profiles.active=dev 或者通过命令行 `java -jar xxx.jar --spring.profiles.active=dev` 来指定当前激活的是哪个特定的配置文件。  
 
-也可以直接通过 `@Profile` 注解来表明使用哪个配置。首先定义一个接口：  
+也可以使用 `@Profile` 注解来表明当前配置属于哪个 profile，然后在 application.properties 中设置当前激活哪个环境。
 
 ```java
-// 定义接口，在实际中可能是一个数据源
-public interface ITest {
+@PropertySource("classpath:db.properties")
+@Configuration
+public class DataSourceConfig {
 
-    void show();
-}
-```
+  @Value("${db.user}")
+  private String user;
+  @Value("${db.password}")
+  private String password;
 
-再定义两个实现类。  
+  @Profile("test")
+  @Bean("test")
+  public DataSource testDataSource(@Value("${db.test.url}") String url) {
+    DataSource dataSource = new ComboPooledDataSource();
+    dataSource.setUser(user);
+    dataSource.setPassword(password);
+    dataSource.setUrl(url);
+    return dataSource;
+  }
 
-```java
-@Component
-@Profile("dev")
-public class DevEnvironment implements ITest {
-    @Override
-    public void show() {
-        System.out.println("in the dev environment");
-    }
-}
-```
-
-```java
-@Component
-@Profile("test")
-public class TestEnvironment implements ITest {
-    @Override
-    public void show() {
-        System.out.println("in the test environment");
-    }
-}
-```
-
-在入口类加入调用方法，然后在 application.properties 文件中指定激活哪个 profile。  
-
-```java
-@SpringBootApplication
-public class DemoApplication {
-
-    @Autowired
-    private ITest iTest;
-
-    @PostConstruct
-    public void test(){
-        iTest.show();
-    }
-
-    public static void main(String[] args) {
-        new SpringApplicationBuilder(DemoApplication.class)
-                .bannerMode(Banner.Mode.OFF)
-                .run(args);
-    }
+  @Profile("dev")
+  @Bean("dev")
+  public DataSource devDataSource(@Value("${db.dev.url}") String url) {
+    DataSource dataSource = new ComboPooledDataSource();
+    dataSource.setUser(user);
+    dataSource.setPassword(password);
+    dataSource.setUrl(url);
+    return dataSource;
+  }
 }
 ```
 
