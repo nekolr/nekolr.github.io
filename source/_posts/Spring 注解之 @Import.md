@@ -118,7 +118,7 @@ private void processImports(ConfigurationClass configClass, SourceClass currentS
 }
 ```
 
-如果导入的是一个 ImportSelector，那么在这里会调用它的 selectImports 方法，加载多个类到 Spring 容器中，典型的比如 Spring Boot 的 `@EnableAutoConfiguration` 自动装配注解。
+如果导入的是一个 ImportSelector，那么在这里会调用它的 selectImports 方法获取更多需要导入到容器的类，典型的比如 Spring Boot 的 `@EnableAutoConfiguration` 自动装配注解。
 
 如果导入的是一个 ImportBeanDefinitionRegistrar，那么会在这里将它添加到配置类的 importBeanDefinitionRegistrars 属性中。Spring 容器在初始化时，会通过 ConfigurationClassBeanDefinitionReader 的 loadBeanDefinitions 方法获取所有的 BeanDefinition：
 

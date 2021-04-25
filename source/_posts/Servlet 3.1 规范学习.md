@@ -15,7 +15,6 @@ categories: [Servlet]
 ```java
 @WebListener
 public class ServletContextListener implements javax.servlet.ServletContextListener {
-
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
         LogUtil.log("---------------------ServletContextInitialized---------------------");
@@ -24,7 +23,6 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
                 addServlet(IndexServlet.class.getSimpleName(), IndexServlet.class);
         servletRegistration.addMapping("/index");
     }
-
     @Override
     public void contextDestroyed(ServletContextEvent servletContextEvent) {
         LogUtil.log("---------------------ServletContextDestroyed---------------------");
@@ -75,7 +73,6 @@ public class ServletContextListener implements javax.servlet.ServletContextListe
 
 ```java
 public class WebInitializer implements ServletContainerInitializer {
-
     @Override
     public void onStartup(Set<Class<?>> set, ServletContext servletContext) throws ServletException {
         ServletRegistration servletRegistration = servletContext.
@@ -96,40 +93,39 @@ org.springframework.web.SpringServletContainerInitializer
 ```java
 @HandlesTypes({WebApplicationInitializer.class})
 public class SpringServletContainerInitializer implements ServletContainerInitializer {
+  @Override
+  public void onStartup(Set<Class<?>> webAppInitializerClasses, ServletContext servletContext)
+      throws ServletException {
 
-	@Override
-	public void onStartup(Set<Class<?>> webAppInitializerClasses, ServletContext servletContext)
-			throws ServletException {
+    List<WebApplicationInitializer> initializers = new LinkedList<WebApplicationInitializer>();
 
-		List<WebApplicationInitializer> initializers = new LinkedList<WebApplicationInitializer>();
+    if (webAppInitializerClasses != null) {
+      for (Class<?> waiClass : webAppInitializerClasses) {
+        // Be defensive: Some servlet containers provide us with invalid classes,
+        // no matter what @HandlesTypes says...
+        if (!waiClass.isInterface() && !Modifier.isAbstract(waiClass.getModifiers()) &&
+            WebApplicationInitializer.class.isAssignableFrom(waiClass)) {
+          try {
+            initializers.add((WebApplicationInitializer) waiClass.newInstance());
+          }
+          catch (Throwable ex) {
+            throw new ServletException("Failed to instantiate WebApplicationInitializer class", ex);
+          }
+        }
+      }
+    }
 
-		if (webAppInitializerClasses != null) {
-			for (Class<?> waiClass : webAppInitializerClasses) {
-				// Be defensive: Some servlet containers provide us with invalid classes,
-				// no matter what @HandlesTypes says...
-				if (!waiClass.isInterface() && !Modifier.isAbstract(waiClass.getModifiers()) &&
-						WebApplicationInitializer.class.isAssignableFrom(waiClass)) {
-					try {
-						initializers.add((WebApplicationInitializer) waiClass.newInstance());
-					}
-					catch (Throwable ex) {
-						throw new ServletException("Failed to instantiate WebApplicationInitializer class", ex);
-					}
-				}
-			}
-		}
+    if (initializers.isEmpty()) {
+      servletContext.log("No Spring WebApplicationInitializer types detected on classpath");
+      return;
+    }
 
-		if (initializers.isEmpty()) {
-			servletContext.log("No Spring WebApplicationInitializer types detected on classpath");
-			return;
-		}
-
-		servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
-		AnnotationAwareOrderComparator.sort(initializers);
-		for (WebApplicationInitializer initializer : initializers) {
-			initializer.onStartup(servletContext);
-		}
-	}
+    servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
+    AnnotationAwareOrderComparator.sort(initializers);
+    for (WebApplicationInitializer initializer : initializers) {
+      initializer.onStartup(servletContext);
+    }
+  }
 }
 ```
 
@@ -138,7 +134,6 @@ public class SpringServletContainerInitializer implements ServletContainerInitia
 ```java
 @HandlesTypes(value = AppInitializer.class)
 public class WebInitializer implements ServletContainerInitializer {
-
     @Override
     public void onStartup(Set<Class<?>> set, ServletContext servletContext) throws ServletException {
         List<AppInitializer> initializers = new LinkedList<>();
