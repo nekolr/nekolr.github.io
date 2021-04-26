@@ -8,8 +8,6 @@ ConfigurationClassParser 类主要用于分析带有 @Configuration 注解的配
 
 <!--more-->
 
-对于其他使用非 @Configuration 注解的 bean，比如使用了 @Component 注解的类，它会使用另外一个工具类 ComponentScanAnnotationParser 来分析扫描，并且会直接将扫描到的 bean 定义注册到 Spring 容器当中。  
-
 ConfigurationClassParser 的外部调用入口为 parse 方法。  
 
 ```java
@@ -61,7 +59,7 @@ protected final void parse(AnnotationMetadata metadata, String beanName) throws 
 }
 ```
 
-processConfigurationClass 方法会分析一个配置类。该方法从配置类开始遍历其所有需要处理的父类，每个类都调用 doProcessConfigurationClass 来处理，直到该类已经被处理过或者该类为 JDK 提供的类（即类的全限定名以 java 开头，比如 java.lang.Object）。所有被处理过的类都会保存到 this.configurationClasses 中。  
+该方法会分析一个配置类。该方法从配置类开始遍历其所有需要处理的父类，每个类都调用 doProcessConfigurationClass 来处理，直到该类已经被处理过或者该类为 JDK 提供的类（即类的全限定名以 java 开头，比如 java.lang.Object）。所有被处理过的类都会保存到 this.configurationClasses 中。  
 
 ```java
 /**

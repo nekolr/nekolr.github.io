@@ -43,7 +43,7 @@ public interface Condition {
 }
 ```
 
-可以看到，这是一个函数式接口，该接口有一个 matches 方法，其中 context 是 Condition 的上下文，包含 BeanDefinitionRegistry、BeanFactory、Environment 等信息，AnnotatedTypeMetadata 是使用了 `@Conditional` 注解的类型或方法的元数据，比如有一个类 WebMvcAutoConfiguration，它使用了 `@Conditional` 注解，那么 metadata 参数就是 WebMvcAutoConfiguration 的元数据。
+可以看到，这是一个函数式接口，该接口只有一个 matches 方法，在它的参数列表中，context 是 Condition 的上下文，包含 BeanDefinitionRegistry、BeanFactory、Environment 等信息，AnnotatedTypeMetadata 是使用了 `@Conditional` 注解的类型或方法的元数据，比如有一个类 WebMvcAutoConfiguration，它使用了 `@Conditional` 注解，那么 metadata 参数就是 WebMvcAutoConfiguration 的元数据。
 
 在 Spring 的整个体系当中，广泛使用 `@Conditional` 注解家族成员的就是 Spring Boot，因为 Spring Boot 包含大量的自动配置类，它们需要根据不同的条件选择性地注册到 Spring 容器当中。因此接下来我们就根据 Spring Boot 继续向下分析，先查看实现了 Condition 接口的类 SpringBootCondition。
 
@@ -98,10 +98,10 @@ class OnClassCondition extends FilteringSpringBootCondition {
     public ConditionOutcome getMatchOutcome(ConditionContext context, AnnotatedTypeMetadata metadata) {
         ClassLoader classLoader = context.getClassLoader();
         ConditionMessage matchMessage = ConditionMessage.empty();
-        // 通过 metadata 获取 ConditionalOnClass 注解中的值
+        // 通过 metadata 获取 ConditionalOnClass 注解中的属性值
         List<String> onClasses = getCandidates(metadata, ConditionalOnClass.class);
         if (onClasses != null) {
-            // 通过使用类加载器尝试加载注解中的值来判断该值是否存在，如果没有则暂存
+            // 通过使用类加载器尝试加载注解中的值来判断该值是否存在，missing 存放的是不存在的类型
             List<String> missing = filter(onClasses, ClassNameFilter.MISSING, classLoader);
             if (!missing.isEmpty()) {
                 // 创建不匹配的结果
@@ -129,7 +129,34 @@ class OnClassCondition extends FilteringSpringBootCondition {
 }
 ```
 
-通过以上代码我们可以看出，`@ConditionalOnClass` 在注解值中所有的类都存在时（通过尝试使用类加载器加载指定的类的方式判断）才会匹配，此时也就意味着使用该注解的类将被注册到容器中。同理还有很多类似的注解，比如 `ConditionalOnMissingClass` 会在注解中所有的值都不存在时才会匹配，`@ConditionalOnBean` 会在注解中所有的值都在容器中存在时才会匹配，`@ConditionalOnProperty` 注解稍微复杂一点，它包含 prefix、name、havingValue、matchIfMissing 等属性，其中 prefix 表示配置文件中配置的前缀，name 表示具体的配置属性名称，havingValue 表示属性的值，matchIfMissing 表示如果所有的值都不满足时是否匹配。举个例子，假如我们的配置为：
+`@ConditionalOnClass` 在注解值中所有的类都存在时（通过尝试使用类加载器加载指定类的方式判断）才会匹配，此时也就意味着使用该注解的类将被注册到容器中。同理还有很多类似的注解，比如 `ConditionalOnMissingClass` 会在注解中所有的值都不存在时才会匹配，`@ConditionalOnBean` 会在注解中所有的值都在容器中存在时才会匹配，`@ConditionalOnProperty` 注解稍微复杂一点，它包含 prefix、name、havingValue、matchIfMissing 等属性。其中 prefix 表示配置文件中配置的前缀，name 表示具体的配置属性名称，havingValue 表示属性的值，matchIfMissing 表示如果所有的值都不满足时是否匹配。
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD })
+@Documented
+@Conditional(OnPropertyCondition.class)
+public @interface ConditionalOnProperty {
+
+  // 数组，对应 property 名称的值，与 name 不可同时使用
+  String[] value() default {};
+
+  // 属性名称的前缀，比如 spring.http.encoding
+  String prefix() default "";
+
+  // 数组，属性完整名称或部分名称
+  // 可与 prefix 组合使用，组成完整的配置属性名称，与 value 不可同时使用
+  String[] name() default {};
+
+  // 可与 name 组合使用，比较获取到的属性值与 havingValue 给定的值是否相同，相同才加载配置
+  String havingValue() default "";
+
+  // 缺少该配置属性时是否可以加载。如果为 true，没有该配置属性时也会正常加载；反之则不会生效
+  boolean matchIfMissing() default false;
+}
+```
+
+举个例子，假如我们的配置为：
 
 ```yml
 # storage
