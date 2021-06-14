@@ -39,7 +39,7 @@ Linux 中的一种内核虚拟化技术，提供轻量级的虚拟化，以便�
 它是实现 Docker 镜像的技术基础，是一种轻量级的高性能分层文件系统，支持将文件系统中的修改进行提交和层层叠加，这个特性使得镜像可以通过分层实现和继承。同时支持将不同目录挂载到同一个虚拟文件系统下。  
 
 **AUFS（Another Union File System）**  
-也是一种联合文件系统，支持将不同目录挂载到同一个虚拟文件系统下（unite several directories into a single virtual filesystem）的文件系统形成一层 layer，更进一步地，AUFS 支持为每一个成员目录 (AKA branch) 设定只读 readonly，读写 readwrite 和 写出 whiteout-able 权限，对 read-only 目录只能读，而写操作只能在 read-write 目录中。写操作是在 read-only 上的一种增量操作，不影响 read-only 目录。当挂载目录的时候要严格按照各目录之间的这种增量关系，将被增量操作的目录优先于在它基础上增量操作的目录挂载，待所有目录挂载结束了，继续挂载一个 read-write 目录，如此便形成了一种层次结构。  
+也是一种联合文件系统，支持将不同目录挂载到同一个虚拟文件系统下（unite several directories into a single virtual filesystem）的文件系统形成一层 layer，更进一步地，AUFS 支持为每一个成员目录 (AKA branch) 设定只读 readonly，读写 readwrite 和写出 whiteout-able 权限，对 read-only 目录只能读，而写操作只能在 read-write 目录中。写操作是在 read-only 上的一种增量操作，不影响 read-only 目录。当挂载目录的时候要严格按照各目录之间的这种增量关系，将被增量操作的目录优先于在它基础上增量操作的目录挂载，待所有目录挂载结束了，继续挂载一个 read-write 目录，如此便形成了一种层次结构。  
 
 Docker 在启动容器的时候，需要创建文件系统，为 rootfs 提供挂载点。最初 Docker 仅能在支持 Aufs 文件系统的 Linux 发行版上运行，但是由于 Aufs 未能加入 Linux 内核，为了寻求兼容性、扩展性，Docker 在内部通过 graphdriver 机制这种可扩展的方式来实现对不同文件系统的支持。Docker 支持 AUFS、Device mapper、Btrfs、ZFS、ZFS 和 OverlayFS。  
 
@@ -139,7 +139,6 @@ $ docker run hello-world
 ### 加速镜像
 使用 Docker 在拉取官方镜像时，显然网络是个问题。因此我们可以使用一些镜像加速器或者直接从国内的镜像平台（阿里、网易等）拉取。
 
-> Docker 官方镜像加速：<https://www.docker-cn.com/registry-mirror>
 > DaoCloud 镜像加速：<https://www.daocloud.io/mirror>		
 
 ## Docker 架构
