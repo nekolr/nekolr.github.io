@@ -108,8 +108,8 @@ SIMPLE | 简单查询，不包含子查询或者 UNION 查询
 PRIMARY | 最外层的那个查询
 UNION | UNION 后面的查询
 UNION RESULT | UNION 去重时使用的临时表的查询
-SUBQUERY | 依赖外部查询的子查询
-DEPENDENT SUBQUERY | 不依赖外部查询的子查询
+SUBQUERY | 不依赖外部查询的子查询
+DEPENDENT SUBQUERY | 依赖外部查询的子查询
 DERIVED | 采用物化的方式执行包含派生表的查询
 MATERIALIZED | 查询优化器选择将子查询物化后与外层查询进行连接查询时
 
