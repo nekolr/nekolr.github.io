@@ -1817,13 +1817,33 @@ protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanNam
 简单说来，如果用户想要获取的 bean 是一个 FactoryBean，那么根据用户传入的 bean 名称（首字符是否为 `&`），选择返回 FactoryBean 对象还是返回通过调用它的 getObject 方法返回的对象。而如果用户想要获取的 bean 就是一个普通的 bean，那么直接返回。
 
 # Spring Bean 生命周期
-在 Spring bean 的完整生命周期中，Spring 提供了一系列的扩展方法方便我们调用，可以将这些方法大体划分为：bean 级别和容器级别。
+在 Spring Bean 的生命周期中，框架为我们提供了一系列扩展方法方便我们调用，可以将这些方法大体分为：bean 级别和容器级别。
 
-bean 级别的方法包括 bean 本身的方法，比如通过配置文件定义的 `init-method` 方法和 `destroy-method` 方法，bean 实现 `InitializingBean`、`BeanNameAware`、`BeanFactoryAware`、`DisposableBean` 等接口的方法。
+bean 级别的方法包括 bean 本身的方法，比如通过配置文件定义的 `init-method` 方法和 `destroy-method` 方法，以及 bean 实现的 `InitializingBean`、`BeanNameAware`、`BeanFactoryAware`、`DisposableBean` 等接口的方法。
 
-容器级别包括 bean 后置处理器 `BeanPostProcessor` 和 `InstantiationAwareBeanPostProcessor` 接口的方法，bean 工厂后置处理器 `BeanFactoryPostProcessor` 接口的方法。
+容器级别的包括 bean 后置处理器 `BeanPostProcessor` 和 `InstantiationAwareBeanPostProcessor` 接口的方法，以及 bean 工厂后置处理器 `BeanFactoryPostProcessor` 接口的方法等。
 
-![Spring bean 生命周期 ](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/05/31/dQz.png)  
+如下表格列出的是 Spring Bean 的一般生命周期以及生命周期中的扩展方法，按照从上到下的顺序依次进行。需要注意两个单词：`Instantiation` 和 `Initialization`，它们分别对应了 Bean 的两个生命周期阶段：实例化阶段和初始化阶段。
+
+方法或过程 | 描述
+---|---
+BeanFactoryPostProcessor.postProcessorBeanFactory | 可以对 bean 的定义（配置元数据）进行处理
+InstantiationAwareBeanPostProcessor.postProcessBeforeInstantiation | 在 bean 实例化之前执行一些操作
+构造器方法 | 调用 bean 的构造器进行实例化
+InstantiationAwareBeanPostProcessor.postProcessAfterInstantiation | 在 bean 实例化之后执行一些操作
+InstantiationAwareBeanPostProcessor.postProcessPropertyValues | 完成其他定制依赖注入和依赖检查等
+属性值注入 | 
+BeanNameAware.setBeanName | 设置 beanName
+BeanFactoryAware.setBeanFactory | 设置 BeanFactory
+ApplicationContextAware.setApplicationContext |  设置 ApplicationContext
+BeanPostProcessor.postProcessBeforeInitialization | 在 bean 初始化之前执行一些操作
+InitializingBean.afterPropertiesSet | 执行一些初始化操作
+init-method 属性指定的方法 | 执行一些初始化操作
+BeanPostProcessor.postProcessAfterInitialization | 在 bean 初始化之后执行一些操作
+DisposableBean.destroy | 在 Bean 销毁之前，执行一些销毁操作
+destroy-method 属性指定的方法 | 在 Bean 销毁之前，执行一些销毁操作
+
+除了上述方法，还有一些方法也可以影响 Bean 生命周期中执行的操作。比如 `@PostConstruct` 和 `@PreDestroy` 注解，它们是 JSR 250 规范中定义的注解，Spring 也支持这些注解。被 `@PostConstruct` 注解标注的方法会在当前 Bean 完成依赖注入之后调用；被 `@PreDestroy` 注解标注的方法会在当前 Bean 销毁之前调用。
 
 # 参考
 
