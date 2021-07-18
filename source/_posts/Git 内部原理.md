@@ -98,7 +98,7 @@ $ find .git/objects -type f
 .git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4
 ```
 
-接下来我们只需要通过 `cat-file` 传入不同的键，就可以取回该文件的第一个版本和第二个版本：
+接下来我们可以删除该文件，同时只需要通过 `cat-file` 传入不同的键，就可以取回该文件的第一个版本和第二个版本：
 
 ```
 $ git cat-file -p 83baae61804e65cc73a7201a7252750c76066a30
@@ -113,3 +113,17 @@ version 2
 $ git cat-file -t 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a
 blob
 ```
+
+## 树对象
+Git 以一种类似于 UNIX 文件系统的方式存储内容，所有内容均以树对象和数据对象的形式存储。其中树对象对应 UNIX 中的目录，数据对象则大致对应 inodes 或文件内容。一个树对象包含一条或多条树对象记录（tree entry），每条记录含有一个指向数据对象或子树对象的 SHA-1 指针，以及相应的模式、类型和文件名信息。例如，某个项目当前对应的最新树对象可能是这样的：
+
+```
+100644 blob a906cb2a4a904a152e80877d4088654daad0c859      README
+100644 blob 8f94139338f9404f26296befa88755fc2598c289      Rakefile
+040000 tree 99f1a6d12cb4b6f19c8655fca46c3ecf317074e0      lib
+
+$ git cat-file -p 99f1a6d12cb4b6f19c8655fca46c3ecf317074e0
+100644 blob 47c6340d6459e05787f644c2447d2595f5d3a54b      simplegit.rb
+```
+
+![树对象](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107182129/2021/07/18/Y2E.png)
