@@ -259,4 +259,121 @@ Date:   Sun Jul 25 16:47:42 2021 +0800
 
 我们没有借助任何上层命令，仅凭几个底层操作便完成了 Git 提交历史的创建。这就是我们在执行 `git add` 和 `git commit` 命令时，Git 所做的工作：将被改写的文件保存为数据对象，更新暂存区，记录树对象，最后创建一个指明了顶层树对象和父提交的提交对象。如果跟踪所有的内部指针，可以得到类似下面的对象关系图：
 
-![对象关系](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107252029/2021/07/25/vvp.png)
+![对象关系（原图中的 SHA-1 值与本地并不一致）](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107252029/2021/07/25/vvp.png)
+
+# Git 引用
+如果想查看一个提交（比如 `1dd880`）之前的历史，可以运行 `git log 1dd880` 命令，但是这样我们需要记住 `1dd880` 是我们查看历史的起点提交。如果我们能有一个文件来保存这个 SHA-1 值，同时该文件又有一个简单的名字，使用这个名字指针替代原始的 SHA-1 值会使查看日志变得更加简单。
+
+在 Git 中，这个简单的名字被称为引用（references，简写为 refs），可以在 `.git/refs` 目录下找到它们。在当前的项目中，这个目录下并没有任何文件，但它包含了一个简单的目录结构：
+
+```
+$ find .git/refs
+.git/refs
+.git/refs/heads
+.git/refs/tags
+```
+
+如果要创建一个新的引用来帮助记录最新提交所在的位置，从原理上讲，只需要执行以下操作：
+
+```
+$ cho 1dd880144c02a460642d6d00c204a86289c23fe7 > .git/refs/heads/master
+```
+
+接下来就可以使用这个刚创建的新引用来替代 SHA-1 值查看 log 记录了：
+
+```
+$ git log --pretty=oneline master
+1dd880144c02a460642d6d00c204a86289c23fe7 (HEAD -> master) third commit
+5dd39238bee9e686bd8436140c5e07776c5bc73b second commit
+444dd711ed72fa1fbc5f3004d0d2ba43adf126fb first commit
+```
+
+不过 Git 并不提倡直接编辑引用文件，如果想更新某个引用，Git 提供了一个更加安全的命令 `update-ref` 来完成这项工作。
+
+```
+$ git update-ref refs/heads/master 1dd880144c02a460642d6d00c204a86289c23fe7
+```
+
+这基本上就是 Git 分支的本质：**一个指向某一系列提交之首的指针或引用**。当运行类似于 `git branch <branch_name>` 这样的命令时，Git 实际上执行的是 `update-ref` 命令，取得当前所在分支最新提交对应的 SHA-1 值。如果想在第二个提交上创建一个新分支，可以这样做：
+
+```
+$ git update-ref refs/heads/test 5dd39238bee9e686bd8436140c5e07776c5bc73b
+
+$ git log --pretty=oneline test
+5dd39238bee9e686bd8436140c5e07776c5bc73b (test) second commit
+444dd711ed72fa1fbc5f3004d0d2ba43adf126fb first commit
+```
+
+![引用（原图中的 SHA-1 值与本地并不一致）](https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107312345/2021/07/31/RxK.png)
+
+## HEAD 引用
+那么 Git 在执行 `git branch <branch_name>` 时，又是如何得知当前分支最新提交的 SHA-1 值的呢？答案是 HEAD 文件。HEAD 文件通常是一个符号引用（symbolic reference），它是一个指向其他引用的指针，指向当前所在的分支。在你检出一个标签、提交或远程分支时，HEAD 文件可能会包含一个 git 对象的 SHA-1 值，这是因为此时仓库处于**分离 HEAD**状态。
+
+直接查看 HEAD 文件内容，通常是：`ref: refs/heads/master`，如果执行 `git checkout test`，Git 会更新这个值：
+
+```
+$ cat .git/HEAD
+ref: refs/heads/master
+
+$ git checkout test
+$ cat .git/HEAD
+ref: refs/heads/test
+```
+
+当我们执行 `git commit` 时，该命令会创建一个提交对象，并用 HEAD 文件中的那个引用所指向的 SHA-1 值设置其父提交字段。我们可以手动编辑该文件，当然 Git 同样提供了一个更安全的命令 `git symbolic-ref` 来完成这件事。
+
+```
+# 查看 HEAD 引用的值
+$ git symbolic-ref HEAD
+
+# 设置 HEAD 引用的值
+$ git symbolic-ref HEAD refs/heads/test
+```
+
+## 标签引用
+Git 中除了数据对象、树对象和提交对象，实际上还有一种对象：标签对象（tag object），它非常类似于提交对象，包含一个标签创建者信息，一个日期，一段注释，以及一个指针。标签对象与提交对象的主要区别在于，标签对象的指针指向的通常是一个提交对象，而不是一个树对象。它就像一个永不移动的分支引用，永远指向同一个提交对象，只不过是给这个提交对象指定了一个更加友好的名字罢了。
+
+Git 中存在两种类型的标签：附注标签和轻量标签。轻量标签可以直接通过指定一个固定的引用，也就是提交对象来创建。
+
+```
+$ git update-ref refs/tags/v1.0 5dd39238bee9e686bd8436140c5e07776c5bc73b
+
+$ cat .git/refs/tags/v1.0
+5dd39238bee9e686bd8436140c5e07776c5bc73b
+```
+
+而若要创建一个附注标签，Git 会创建一个标签对象，然后记录一个引用来指向该标签对象。也就是说：标签引用中存储的并不是某个提交对象，而是一个指向该标签对象的引用。我们可以通过创建一个附注标签来验证这一过程（使用 `-a` 选项）。
+
+```
+$ git tag -a v1.1 1dd880144c02a460642d6d00c204a86289c23fe7 -m 'test tag'
+
+$ cat .git/refs/tags/v1.1
+3a62c1d03f5e77c307ed4a9176e3dce46369f01e
+
+$ git cat-file -p 3a62c1d03f5e77c307ed4a9176e3dce46369f01e
+object 1dd880144c02a460642d6d00c204a86289c23fe7
+type commit
+tag v1.1
+tagger nekolr <excalibll@163.com> 1627745037 +0800
+
+test tag
+
+```
+
+要注意的是，标签对象并非必须指向某个提交对象，我们可以对任意类型的 Git 对象打标签。例如，在 Git 源码中，项目维护者将他们的 GPG 公钥添加为一个数据对象，然后对这个对象打了一个标签。可以克隆一个 Git 版本库，然后通过执行下面的命令在这个版本库中查看上述公钥：
+
+```
+$ git cat-file blob junio-gpg-pub
+```
+
+## 远程引用
+如果我们添加了一个远程版本库并对其执行过推送操作，Git 会记录下最近一次推送操作时每一个分支所对应的值，并保存在 refs/remotes 目录下。例如，你可以添加一个叫做 origin 的远程版本库，然后把 master 分支推送上去：
+
+```
+$ git remote add origin git@github.com:nekolr/simplegit-progit.git
+$ git push origin master
+```
+
+此时查看 `refs/remotes/origin/master` 文件，可以发现 origin 远程版本库的 master 分支所对应的 SHA-1 值，就是最近一次与服务器通信时本地 master 分支所对应的 SHA-1 值。
+
+远程引用和分支（位于 refs/heads 目录下的引用）之间最主要的区别在于：远程引用是只读的。虽然可以 `git checkout` 某个远程引用，但是 Git 并不会将 HEAD 引用指向该远程引用。因此，你永远不能通过 commit 命令来更新远程引用。Git 将这些远程引用作为记录远程服务器上各分支最后已知位置状态的书签来管理。
