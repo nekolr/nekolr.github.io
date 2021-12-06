@@ -145,3 +145,74 @@ public class SubjectImpl implements Subject {
 
 # 加载阶段
 由于类的加载本质上就是类加载器将从文件、网络或者其他渠道获取的字节流解析成 Class 对象的过程，因此我们只需要通过某种方式修改字节流，就可以实现类的增强。也就是说，在类加载阶段，我们只需要自定义一个类加载器，在类加载器读取字节流之前，利用一些字节码增强工具（比如：ASM、Javassist 等）对类进行增强，最后将增强后的字节流解析为 Class 对象即可。
+
+下面使用 Javassist 简单演示一下在类加载阶段实现类增强的步骤。首先写一个类，添加一个方法 `test`，方便我们后续对该方法进行增强。
+
+```java
+public class SomeThing {
+
+    public void test () {
+        System.out.println("test...");
+    }
+}
+```
+
+然后写一个方法，该方法接收字节流，内部通过 Javassist 的 API 对字节流进行修饰。
+
+```java
+public class EnhanceMethod {
+
+    public static byte[] printCost(byte[] classBytes) throws Exception {
+        CtClass ctClass = ClassPool.getDefault().makeClass(new ByteArrayInputStream(classBytes));
+        CtMethod ctMethod = ctClass.getMethod("test", "()V");
+        ctMethod.addLocalVariable("cost", CtClass.longType);
+        ctMethod.insertBefore("cost = System.currentTimeMillis();");
+        ctMethod.insertAfter("cost = System.currentTimeMillis() - cost; " +
+                "System.out.println(\"total cost: \" + cost);");
+        return ctClass.toBytecode();
+    }
+
+}
+```
+
+接下来自定义一个类加载器，在读到原始类文件的流之后，调用该方法替换流。
+
+```java
+public class MyClassLoader extends ClassLoader {
+
+    private String filePath;
+
+    public MyClassLoader(String filePath) {
+        this.filePath = filePath;
+    }
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        String fileUrl = filePath;
+        try {
+            Path path = Paths.get(new URI(fileUrl + name + ".class"));
+            byte[] bytes = Files.readAllBytes(path);
+            bytes = EnhanceMethod.printCost(bytes);
+            return defineClass(name, bytes, 0, bytes.length);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return super.findClass(name);
+    }
+}
+```
+
+最后就是使用自定义的类加载器加载原始类文件，然后调用对象的 `test` 方法即可。
+
+```java
+public class Main {
+    public static void main(String[] args) throws Exception {
+        String filePath = "file:/d:/code/myAgent/";
+        MyClassLoader myClassLoader = new MyClassLoader(filePath);
+        Class clazz = myClassLoader.loadClass("SomeThing");
+        Object obj = clazz.newInstance();
+        Method method = clazz.getMethod("test");
+        method.invoke(obj);
+    }
+}
+```
