@@ -216,3 +216,30 @@ public class Main {
     }
 }
 ```
+
+# Instrument
+Instrument 是 JDK 5 提供的一个新特性，用一句话来总结它的作用就是：实现了 JVM 级别的 AOP。通过这个特性，开发者可以构建一个独立于应用程序的代理程序，用来监测和协助运行在 JVM 上的应用，甚至能够替换和修改某些类的定义。
+
+## JVMTI
+Instrument 的底层实现依赖于 JVMTI（JVM Tool Interface），它是 JVM 暴露出来为了方便用户扩展的接口集合。JVMTI 是基于事件驱动的，具体来说就是，JVM 在执行过程中触发了某些事件就会调用对应事件的回调接口（如果有的话），这些接口可以供开发者去扩展自己的逻辑。
+
+## JVMTIAgent
+JVMTI Agent 其实就是一个动态库。它利用 JVMTI 暴露出来的接口实现了一些特殊的功能，一般情况下，它会实现如下的一个或者多个接口。
+
+```c
+JNIEXPORT jint JNICALL
+Agent_OnLoad(JavaVM *vm, char *options, void *reserved);
+
+JNIEXPORT jint JNICALL
+Agent_OnAttach(JavaVM* vm, char* options, void* reserved);
+
+JNIEXPORT void JNICALL
+Agent_OnUnload(JavaVM *vm); 
+```
+
+如果 agent 是在启动时加载的，也就是在 java 命令中通过 `-agentlib` 来指定的，那在启动过程中就会去执行这个 agent 里的 Agent_OnLoad 函数。如果 agent 不是在启动时加载的，而是我们先 attach 到目标进程上，然后给对应的目标进程发送 load 命令来加载，则在加载过程中会调用 Agent_OnAttach 函数。而 Agent_OnUnload 函数会在 agent 卸载时调用，一般很少实现它。
+
+> 我们在使用 Eclipse 或者 IDEA 等 IDE 进行开发时，如果仔细观察，会发现在控制台中会有类似的命令：java.exe -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:62290,suspend=y,server=n
+
+## javaagent
+说到 javaagent，必须要讲的是一个叫做 instrument 的 JVMTIAgent，因为 javaagent 功能就是由它来实现的。它是一个特殊的 JVMTIAgent，在 Linux 下对应的动态库是 `libinstrument.so`。由于它实现了 Agent_OnLoad 和 Agent_OnAttach 函数，因此 agent 可以在启动时加载，也可以在运行时动态加载。其中，启动时加载还可以通过类似 `-javaagent:xxx.jar` 的方式来声明。
