@@ -224,7 +224,7 @@ Instrument 是 JDK 5 提供的一个新特性，用一句话来总结它的作�
 Instrument 的底层实现依赖于 JVMTI（JVM Tool Interface），它是 JVM 暴露出来为了方便用户扩展的接口集合。JVMTI 是基于事件驱动的，具体来说就是，JVM 在执行过程中触发了某些事件就会调用对应事件的回调接口（如果有的话），这些接口可以供开发者去扩展自己的逻辑。
 
 ## JVMTIAgent
-JVMTI Agent 其实就是一个动态库。它利用 JVMTI 暴露出来的接口实现了一些特殊的功能，一般情况下，它会实现如下的一个或者多个接口。
+JVMTIAgent 其实就是一个动态链接库。它利用 JVMTI 暴露出来的接口实现了一些特殊的功能，一般情况下，它会实现如下的一个或者多个接口。
 
 ```c
 JNIEXPORT jint JNICALL
@@ -234,12 +234,35 @@ JNIEXPORT jint JNICALL
 Agent_OnAttach(JavaVM* vm, char* options, void* reserved);
 
 JNIEXPORT void JNICALL
-Agent_OnUnload(JavaVM *vm); 
+Agent_OnUnload(JavaVM *vm);
 ```
 
-如果 agent 是在启动时加载的，也就是在 java 命令中通过 `-agentlib` 来指定的，那在启动过程中就会去执行这个 agent 里的 Agent_OnLoad 函数。如果 agent 不是在启动时加载的，而是我们先 attach 到目标进程上，然后给对应的目标进程发送 load 命令来加载，则在加载过程中会调用 Agent_OnAttach 函数。而 Agent_OnUnload 函数会在 agent 卸载时调用，一般很少实现它。
+VM 是通过启动函数来启动 agent 的。如果 agent 是在 VM 启动时加载的，也就是说 agent 是在 java 命令中通过 `-agentlib` 指定的，那么 VM 就会在启动过程中去执行这个 agent 里的 Agent_OnLoad 函数来启动该 agent。如果 agent 不是在 VM 启动时加载的，而是在 VM 处于运行过程中时，先 attach 到目标进程上，然后向目标进程发送 load 命令来加载的，此时 VM 会在加载过程中会调用这个 agent 里的 Agent_OnAttach 函数来启动该 agent。而 Agent_OnUnload 函数会在 agent 卸载时被调用，一般很少实现它。
 
-> 我们在使用 Eclipse 或者 IDEA 等 IDE 进行开发时，如果仔细观察，会发现在控制台中会有类似的命令：java.exe -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:62290,suspend=y,server=n
+> 这里提到的 agent 程序和 javaagent 不是同一概念。我们在使用 IDE 进行开发时，如果仔细观察，在控制台中会发现类似的命令：`java.exe -agentlib:jdwp=transport=dt_socket,address=127.0.0.1:62290,suspend=y,server=n`，这个动态链接库 jdwp 同样也是一个 JVMTIAgent，它实现了程序调试相关的功能。
 
 ## javaagent
-说到 javaagent，必须要讲的是一个叫做 instrument 的 JVMTIAgent，因为 javaagent 功能就是由它来实现的。它是一个特殊的 JVMTIAgent，在 Linux 下对应的动态库是 `libinstrument.so`。由于它实现了 Agent_OnLoad 和 Agent_OnAttach 函数，因此 agent 可以在启动时加载，也可以在运行时动态加载。其中，启动时加载还可以通过类似 `-javaagent:xxx.jar` 的方式来声明。
+javaagent 的功能则是由一个叫做 instrument 的 JVMTIAgent 实现的，它由 JDK 内置提供，在 Linux 下对应的动态库是 `libinstrument.so`，在 Windows 下是 `instrument.dll`。由于它实现了 Agent_OnLoad 和 Agent_OnAttach 函数，因此可以在 JVM 启动时加载，也可以在运行时动态加载。其中，启动时加载还可以通过类似 `-javaagent:agent.jar` 的方式来间接加载 instrument agent。
+
+对于开发人员来说，要使用 javaagent 的功能，只需要编写一个类，然后实现以下方法：
+
+```java
+public static void premain(String agentArgs, Instrumentation inst);
+```
+
+其中 agentArgs 是 premain 函数得到的程序参数，由 `-javaagent` 指定。inst 是一个 `Instrumentation` 实例，由 JVM 传入。然后还需要再添加一个 `MANIFEST.MF` 文件，并在文件中指定 Premain-Class。
+
+```
+Manifest-Version: 1.0
+Premain-Class: org.example.AgentApplication
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+```
+
+在 `premain` 方法中，我们拿到了 inst 实例，这个实例由 JVM 实例化并传入。它提供了很多有用的方法，一般常用的方法有以下几个：
+
+```java
+void addTransformer(ClassFileTransformer transformer, boolean canRetransform);
+void addTransformer(ClassFileTransformer transformer);
+void retransformClasses(Class<?>... classes) throws UnmodifiableClassException;
+```
