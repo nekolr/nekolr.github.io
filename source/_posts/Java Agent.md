@@ -218,7 +218,7 @@ public class Main {
 ```
 
 # Instrument
-Instrument 是 JDK 5 提供的一个新特性，用一句话来总结它的作用就是：实现了 JVM 级别的 AOP。通过这个特性，开发者可以构建一个独立于应用程序的代理程序，用来监测和协助运行在 JVM 上的应用，甚至能够替换和修改某些类的定义。
+Instrument 是 JDK 5 提供的一个新特性，用一句话来总结它的主要作用就是：实现了 JVM 级别的 AOP。通过这个特性，开发者可以构建一个独立于应用程序的代理程序，用来监测和协助运行在 JVM 上的应用。
 
 ## JVMTI
 Instrument 的底层实现依赖于 JVMTI（JVM Tool Interface），它是 JVM 暴露出来为了方便用户扩展的接口集合。JVMTI 是基于事件驱动的，具体来说就是，JVM 在执行过程中触发了某些事件就会调用对应事件的回调接口（如果有的话），这些接口可以供开发者去扩展自己的逻辑。
@@ -244,25 +244,26 @@ VM 是通过启动函数来启动 agent 的。如果 agent 是在 VM 启动时�
 ## javaagent
 javaagent 的功能则是由一个叫做 instrument 的 JVMTIAgent 实现的，它由 JDK 内置提供，在 Linux 下对应的动态库是 `libinstrument.so`，在 Windows 下是 `instrument.dll`。由于它实现了 Agent_OnLoad 和 Agent_OnAttach 函数，因此可以在 JVM 启动时加载，也可以在运行时动态加载。其中，启动时加载还可以通过类似 `-javaagent:agent.jar` 的方式来间接加载 instrument agent。
 
-对于开发人员来说，要使用 javaagent 的功能，只需要编写一个类，然后实现以下方法：
+对于开发人员来说，如果希望 agent 在目标 JVM 启动时加载，只需要编写一个类，然后实现以下方法：
 
 ```java
 public static void premain(String agentArgs, Instrumentation inst);
+public static void premain(String agentArgs);
 ```
 
-其中 agentArgs 是 premain 函数得到的程序参数，由 `-javaagent` 指定。inst 是一个 `Instrumentation` 实例，由 JVM 传入。然后还需要再添加一个 `MANIFEST.MF` 文件，并在文件中指定 Premain-Class。
+如果希望目标 JVM 在运行时加载 agent，则需要实现以下方法：
+
+```java
+public static void agentmain(String agentArgs, Instrumentation inst);
+public static void agentmain(String agentArgs);
+```
+
+上述方法中，JVM 会先寻找对应的第一个方法，如果没有找到则会去寻找对应的第二个方法。其中 agentArgs 是 premain 函数得到的程序参数，由 `-javaagent` 指定。inst 是一个 `Instrumentation` 实例，由 JVM 传入，我们可以通过该参数进行类增强等操作。
+
+接下来需要将这个 agent 打包成一个 jar 文件，同时 jar 文件中还要包含一个 `MANIFEST.MF` 描述文件，文件中需要指定 Premain-Class 或 Agent-Class 属性。
 
 ```
 Manifest-Version: 1.0
 Premain-Class: org.example.AgentApplication
-Can-Redefine-Classes: true
-Can-Retransform-Classes: true
-```
-
-在 `premain` 方法中，我们拿到了 inst 实例，这个实例由 JVM 实例化并传入。它提供了很多有用的方法，一般常用的方法有以下几个：
-
-```java
-void addTransformer(ClassFileTransformer transformer, boolean canRetransform);
-void addTransformer(ClassFileTransformer transformer);
-void retransformClasses(Class<?>... classes) throws UnmodifiableClassException;
+Agent-Class: org.example.AgentApplication
 ```
