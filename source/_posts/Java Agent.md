@@ -323,27 +323,19 @@ static void add_init_agent(const char* name, char* options, bool absolute_path)
 
 这里我们只需要关注 `add_init_agent` 方法，该方法将解析好的参数放入了一个 `AgentLibraryList` 类型的链表中，以备后续使用。
 
-接下来我们回到创建 JVM 的方法，在这个方法中，我省略了部分代码，我们只重点关注解析参数后的加载过程即可。
+接下来我们回到创建 JVM 的方法，在这个方法中，我省略了部分代码，重点关注解析参数后的加载过程即可。
 
 ```cpp
 jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
   // ...
-
   // 解析参数
   jint parse_result = Arguments::parse(args);
   if (parse_result != JNI_OK) return parse_result;
-
-  // Convert -Xrun to -agentlib: if there is no JVM_OnLoad
-  // Must be before create_vm_init_agents()
-  if (Arguments::init_libraries_at_startup()) {
-    convert_vm_init_libraries_to_agents();
-  }
-
+  // ...
   // Launch -agentlib/-agentpath and converted -Xrun agents
   if (Arguments::init_agents_at_startup()) {
     create_vm_init_agents();
   }
-
   // ...
 }
 ```
@@ -352,13 +344,10 @@ jint Threads::create_vm(JavaVMInitArgs* args, bool* canTryAgain) {
 void Threads::create_vm_init_agents() {
   extern struct JavaVM_ main_vm;
   AgentLibrary* agent;
-
   JvmtiExport::enter_onload_phase();
-
   // agents 方法从 _agentList 链表中取出一个元素
   for (agent = Arguments::agents(); agent != NULL; agent = agent->next()) {
     OnLoadEntry_t  on_load_entry = lookup_agent_on_load(agent);
-
     if (on_load_entry != NULL) {
       // 调用 Agent_OnLoad 方法
       jint err = (*on_load_entry)(&main_vm, agent->options(), NULL);
@@ -384,7 +373,7 @@ static OnLoadEntry_t lookup_agent_on_load(AgentLibrary* agent) {
 
 > ref: hotspot/src/share/vm/runtime/thread.cpp
 
-可以看到，在加载过程中，又调用了 `lookup_agent_on_load` 方法，该方法的主要作用是加载 agent 对应的 dll 文件。我们回忆刚才分析的代码，也就是说，当指定了 `-javaagent` 参数时，这里会加载 `instrument` 这个 dll 文件，最终还会调用它的 Agent_OnLoad 方法，因此，我们接下来要去分析 Agent_OnLoad 方法。
+可以看到，在加载过程中，又调用了 `lookup_agent_on_load` 方法，该方法的主要作用是加载 agent 对应的动态链接文件。我们回忆刚才分析的代码，也就是说，当指定了 `-javaagent` 参数时，这里会加载 `instrument` 这个动态链接文件，最终还会调用它的 Agent_OnLoad 方法，因此，我们接下来要分析 Agent_OnLoad 方法。
 
 ```cpp
 JNIEXPORT jint JNICALL
@@ -482,7 +471,7 @@ processJavaStart(   JPLISAgent *    agent,
 可以看到，这个 VMInit 事件发生时，虚拟机的主要操作是实例化了一个 `sun.instrument.InstrumentationImpl`，然后设置了 ClassFileLoadHook 事件的回调函数，最后加载 java agent 同时调用它的 premain 方法。其中，InstrumentationImpl 是 `java.lang.instrument.Instrumentation` 接口的实现类。此时我们很容易就会想到 premain 方法中的 inst 参数，没错，在调用 premain 方法时，由虚拟机传入的 inst 参数就是它。
 
 ## 从源代码解析运行时加载
-与启动时加载 Agent 相比，运行时加载 Agent 显得更有吸引力，因为运行时加载 Agent 给我们提供了很强的动态性，我们可以在需要的时候加载 Agent 来进行一些工作。Oracle JDK 中提供了一个 `com.sun.tools.attach.VirtualMachine` 类，通过它可以实现虚拟机在运行时动态加载 agent。以下代码来自美团技术博客。
+与启动时加载 Agent 相比，运行时加载 Agent 显得更有吸引力，因为运行时加载 Agent 给我们提供了很强的动态性，我们可以在需要的时候加载 Agent 来进行一些工作。`tools.jar` 中提供了一个 `com.sun.tools.attach.VirtualMachine` 类，通过它可以实现虚拟机在运行时动态加载 agent。以下代码来自美团技术博客。
 
 ```java
 private void attachAgentToTargetJVM() throws Exception {
