@@ -790,5 +790,7 @@ public class ExecuteTimeInterceptor {
 }
 ```
 
+与加载时不同，运行时需要通过 redefineClasses 方法进行类的重定义，同时使用该方法不能添加、删除或者重命名字段和方法，也不能修改方法的签名或者类的继承关系。
+
 # 参考
 > [Java 动态调试技术原理及实践](https://tech.meituan.com/2019/11/07/java-dynamic-debugging-technology.html)
