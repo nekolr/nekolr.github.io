@@ -747,5 +747,48 @@ private String findSocketFile(int var1) {
 
 attachVirtualMachine 方法在不同的平台有不同的实现，上面的代码是 linux 平台下的实现。大体逻辑是，首先检查 `/tmp` 目录下是否存在 `java_pid{pid}` 文件。如果已经存在了，则说明 Attach 机制已经准备就绪，可以接受客户端的命令了，这个时候客户端就可以通过 connect 方法连接到目标 JVM 进行命令的发送。如果 `java_pid{pid}` 文件还不存在，则通过 sendQuitTo 方法向目标 JVM 发送一个 `SIGBREAK` 信号，让它初始化 Attach Listener 线程并准备接受客户端连接。可以看到，发送了信号之后客户端会循环等待 `java_pid{pid}` 这个文件，之后再通过 connect 连接到目标 JVM 上。
 
+## instrument 实例
+在上面我们分析了 agent 技术的实现，在实际使用中，我们只需要编写 premain 或者 agentmain 方法，然后在其中通过 Instrument API 来完成类的动态修改即可。Instrument 接口的 addTransformer 方法可以添加一个类转换器（也就是 ClassFileTransformer 接口），该接口只有一个方法：transform，当类被加载时，虚拟机就会调用它进行类的转换。
+
+下面我们通过 Byte Buddy 这个开源库来写一个简单的实例，这个 java agent 能够实现打印指定包中所有方法的执行耗时。
+
+```java
+public class MyAgent {
+
+    public static void premain(String agentArgs, Instrumentation inst) {
+        System.out.println("this is a java agent");
+        System.out.println("arguments: " + agentArgs);
+
+        AgentBuilder.Transformer transformer = (builder, typeDescription, classLoader, javaModule) -> builder
+                // 拦截所有方法
+                .method(ElementMatchers.any())
+                // 指定拦截器
+                .intercept(MethodDelegation.to(ExecuteTimeInterceptor.class));
+
+        new AgentBuilder
+                .Default()
+                // 根据包名前缀拦截类
+                .type(ElementMatchers.nameStartsWith("org.example.agent.demo"))
+                .transform(transformer)
+                .installOn(inst);
+    }
+}
+```
+
+```java
+public class ExecuteTimeInterceptor {
+    @RuntimeType
+    public static Object intercept(@Origin Method method, @SuperCall Callable<?> callable) throws Exception {
+        long start = System.currentTimeMillis();
+        try {
+            // 执行原始方法
+            return callable.call();
+        } finally {
+            System.out.println(method.getName() + ":" + (System.currentTimeMillis() - start) + " ms");
+        }
+    }
+}
+```
+
 # 参考
 > [Java 动态调试技术原理及实践](https://tech.meituan.com/2019/11/07/java-dynamic-debugging-technology.html)
