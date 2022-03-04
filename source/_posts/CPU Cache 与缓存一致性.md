@@ -118,5 +118,23 @@ Modified | 写 | 同样没有总线请求产生，同时状态保持不变，直
 
 写操作仅在缓存行是已修改或者独占状态时可以自由执行，如果在共享状态，其他处理器的缓存都需要先设置为无效，这种广播操作称为 RFO（Request For Ownership）。对于已修改状态的缓存行，要监听各处理器对其的读请求，发送其数据到总线的同时还要写回主存。对于共享状态的缓存行，要监听使其无效或请求拥有的广播，当匹配时把该缓存行置为无效。
 
+# Store Buffer
+当某个处理器尝试修改其他处理器的 Cache Line 中的数据时，MESI 的广播操作带来的延迟对于处理器来说是难以忍受的。为了解决这个问题，在 CPU 和 Cache 中间又引入了 Store Buffer。这是一个容量比高速缓存还小的私有部件，当处理器需要修改数据时，会先将数据写入写缓冲器中，然后继续处理其他事情，当收到其他处理器的响应时，才将数据从写缓冲器转移到 Cache Line 中。
+
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202203041757/2022/03/04/ova.png" alt="Store Buffer" style="width: 70%" />
+
+# Store Forwarding
+在同一个处理器中，写缓冲器的引入必然会带来一个问题，即异步操作引发的数据滞后性。自处理器的写操作将最新的数据放入写缓冲器时起，高速缓存中的数据就已经过时，此后所有的加载操作看到的都是旧的数据，直到写缓冲器将数据同步到高速缓存。
+
+为了解决这个问题，硬件工程师实现了 Store Forwarding 技术，这个技术可以使 CPU 直接从 Store Buffer 加载数据，即支持将 CPU 放入 Store Buffer 的数据传递给后续的加载操作而不经过高速缓存。
+
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202203041757/2022/03/04/Bwe.png" alt="Store Forwarding" style="width: 70%" />
+
+需要注意的是，虽然处理器可以直接读取其 Store Buffer 中自己以前的写操作，但是在将这些操作从写缓冲区刷新到高速缓存之前，其他处理器是无法看到这些写操作的。这就意味着，Store Forwarding 技术只能解决单个处理器中的缓存滞后问题，无法解决多核处理器的此类问题。
+
+# Invalid Queue
+由于 Store Buffer 的容量很小，因此它很容易就会被填满，此时处理器必须等待它发出的使缓存无效的广播请求得到响应，才可以将 Store Buffer 中的数据转移到高速缓存，从而释放空间。
+
+
 # 参考
 > [关于CPU Cache -- 程序猿需要知道的那些事](http://cenalulu.github.io/linux/all-about-cpu-cache/)
