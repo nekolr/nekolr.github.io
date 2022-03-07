@@ -135,6 +135,21 @@ Modified | 写 | 同样没有总线请求产生，同时状态保持不变，直
 # Invalid Queue
 由于 Store Buffer 的容量很小，因此它很容易就会被填满，此时处理器必须等待它发出的使缓存无效的广播请求得到响应，才可以将 Store Buffer 中的数据转移到高速缓存，从而释放空间。
 
+为了解决这个同步操作带来的延迟问题，硬件工程师又为每个处理器添加了一个无效队列。处理器在监听到使缓存无效的消息后，直接将消息放入无效队列中排队，然后立即发送回复消息，这就大大降低了响应的延迟。
+
+> 有些处理器并没有实现 Invalid Queue。
+
+# 内存屏障
+内存屏障（memory barrier）又叫内存栅栏（memory fence），其目的是用来阻止 CPU 对指令的重排序（有些编译器也会对指令进行重排序）。根据 CPU 对于变量的操作读（load）和写（store），两两组合可以有四种内存屏障：
+
+名称 | 描述
+--|--
+LoadLoad 屏障 | 保证屏障前的 load 操作一定在屏障后的 load 操作之前完成
+StoreStore 屏障 | 保证屏障前的 store 操作一定在屏障后的 store 操作之前完成
+LoadStore 屏障 | 保证屏障前的 load 操作一定在屏障后的 store 操作之前完成
+StoreLoad 屏障 | 保证屏障前的 store 操作一定在屏障后的 load 操作之前完成
+
+内存屏障除了有阻止指令重排序的作用，还与 MESI 协议有关。我们知道 MESI 为了优化性能，引入了 Store Buffer 和 Invalid Queue，因此写类型的内存屏障还能触发内存的强制更新，让 Store Buffer 中的数据立刻写回到高速缓存中。读类型的内存屏障会让 Invalid Queue 中的缓存行在后面的 load 操作之前全部标记为失效。
 
 # 参考
 > [关于CPU Cache -- 程序猿需要知道的那些事](http://cenalulu.github.io/linux/all-about-cpu-cache/)
