@@ -18,7 +18,7 @@ categories: [Python]
 # 环境变量
 为了能够全局使用 python 和 pip 命令，以及后续我们安装的第三方包提供的命令，我们需要设置环境变量。  
 
-设置 `PYTHON_HOME` 为 Python 的安装目录，同时在 `PATH` 中加入 `%PYTHON_HOME%` 和 `%PYTHON_HOME%\scripts`，这样我们就可以在全局使用 python 和 pip 等命令了。接下来再添加第三方包的命令的搜索目录，为此我创建了 `PIPINSTALL` 变量，然后使用 `py -m site --user-site` 找到 pip 的第三方包安装目录，把最后的 site-packages 替换为 Scripts，这个替换后的路径作为 `PIPINSTALL` 变量的值，然后将该变量加入到 `PATH` 变量的值中。  
+设置 `PYTHON_HOME` 为 Python 的安装目录，同时在 `PATH` 中加入 `%PYTHON_HOME%` 和 `%PYTHON_HOME%\Scripts`，这样我们就可以在全局使用 python 和 pip 等命令了。接下来再添加第三方包的命令的搜索目录，为此我创建了 `PIPINSTALL` 变量，然后使用 `py -m site --user-site` 找到 pip 的第三方包安装目录，把最后的 site-packages 替换为 Scripts，这个替换后的路径作为 `PIPINSTALL` 变量的值，然后将该变量加入到 `PATH` 变量的值中。  
 
 # 安装
 安装 virtualenv 比较简单，直接通过 pip 命令安装。  
