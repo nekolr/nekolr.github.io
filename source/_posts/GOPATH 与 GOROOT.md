@@ -8,7 +8,7 @@ categories: [Golang]
 
 <!--more-->
 
-Golang 的环境变量中有几个比较重要的：GOROOT 和 GOPATH，其中 GOROOT 其实就是 Golang 的安装路径，而 GOPATH 是 Golang 的工作目录，也就是平常开发使用的所有项目的根目录。在设置环境变量时，新建 `$GOROOT` 和 `$GOROOT` 环境变量，值分别为 `D:\go` 和 `D:\goworkspace`，同时添加一条 `$PATH` 值为 `%GOROOT%\bin`，这样就可以使用 go 命令了。  
+Golang 的环境变量中有几个比较重要的：GOROOT 和 GOPATH，其中 GOROOT 其实就是 Golang 的安装路径，而 GOPATH 是 Golang 的工作目录，也就是平常开发使用的所有项目的根目录，默认情况下该值为 `%USERPROFILE%\go`。在设置环境变量时，新建 `$GOROOT` 和 `$GOPATH` 环境变量，值分别为 `D:\go` 和 `D:\goworkspace`，同时添加一条 `$PATH` 值为 `%GOROOT%\bin`，这样就可以使用 go 命令了。  
 
 接下来将 Golang 官方的包管理工具 dep 安装到 `%$GOROOT%\bin` 中，此时就可以开始编程惯例 Hello World 了。  
 
