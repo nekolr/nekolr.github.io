@@ -222,28 +222,16 @@ your_name='Alice'
 ## 变量的测试与替换
 有时候我们需要判断某个变量是否存在，并根据判断的结果进行选择性地赋值。  
 
-```bash
-message="hello"
-# 如果 var 未设置，则返回字符串 hi；如果 var 为空，则返回空；否则返回 var 的值
-echo ${var-hi}
-# 如果 var 为空或者未设置，那么返回字符串 hi；否则返回 var 的值
-echo ${var:-'hi'}
-# 如果 var 为空或者未设置，那么返回 message 的值；否则返回 var 的值
-echo ${var:-$message}
-# 如果 var 未设置，则返回字符串 hi，并将值赋给 var；如果 var 为空，则 var 的值不变，并返回空；
-# 否则，var 的值不变并返回 var 的值
-echo ${var='hi'}
-# 如果 var 为空或者未设置，那么返回 message 的值，并将值赋给 var；否则返回 var 的值
-echo ${var:=$message}
-# 如果 var 未设置，那么输出错误信息到 stderr；如果 var 为空，则返回空；否则，返回 var 的值
-echo ${var?err_info}
-# 如果 var 为空或者未设置，那么输出错误信息到 stderr；否则返回 var 的值
-echo ${var:?err_info}
-# 如果 var 未设置，则返回空；如果 var 为空，则返回 hi 字符串；如果 var 不为空，则返回 hi 字符串
-echo ${var+"hi"}
-# 如果 var 不为空，那么返回字符串 hi；如果 var 为空或者未设置，则返回空
-echo ${var:+"hi"}
-```
+参数是指表达式 | str 没有设置 | str 为空字符串 | str 为非空字符串
+-|-|-|-
+var=${str-expr} | var=expr | var= | var=$str
+var=${str:-expr} | var=expr | var=expr | var=$str
+var=${str+expr} | var= | var=expr | var=expr
+var=${str:+expr} | var= | var= | var=expr
+var=${str=expr} | str=expr, var=expr | str 不变, var= | str 不变, var=$str
+var=${str:=expr} | str=expr, var=expr | str=expr, var=expr | str 不变, var=$str
+var=${str?expr} | expr 输出至 stderr | var= | var=$str
+var=${str:?expr} | expr 输出至 stderr | expr 输出至 stderr | var=$str
 
 ## 使用变量
 使用一个定义过的变量，只要在变量名前面加上 `$` 符号即可。  
