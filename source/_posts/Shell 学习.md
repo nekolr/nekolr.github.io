@@ -222,7 +222,7 @@ your_name='Alice'
 ## 变量的测试与替换
 有时候我们需要判断某个变量是否存在，并根据判断的结果进行选择性地赋值。  
 
-参数是指表达式 | str 没有设置 | str 为空字符串 | str 为非空字符串
+参数设置表达式 | str 没有设置 | str 为空字符串 | str 为非空字符串
 -|-|-|-
 var=${str-expr} | var=expr | var= | var=$str
 var=${str:-expr} | var=expr | var=expr | var=$str
