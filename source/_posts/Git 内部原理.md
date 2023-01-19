@@ -276,7 +276,7 @@ $ find .git/refs
 如果要创建一个新的引用来帮助记录最新提交所在的位置，从原理上讲，只需要执行以下操作：
 
 ```
-$ cho 1dd880144c02a460642d6d00c204a86289c23fe7 > .git/refs/heads/master
+$ echo 1dd880144c02a460642d6d00c204a86289c23fe7 > .git/refs/heads/master
 ```
 
 接下来就可以使用这个刚创建的新引用来替代 SHA-1 值查看 log 记录了：
