@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.14.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="这篇博文主要用于记录博主在学习 Git 官方教程时的整个过程和一些心得体会，具体学习的章节是《Git 内部原理》。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git 内部原理">
+<meta property="og:url" content="https://blog.nekolr.com/2021/06/10/Git%20%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="这篇博文主要用于记录博主在学习 Git 官方教程时的整个过程和一些心得体会，具体学习的章节是《Git 内部原理》。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107182129/2021/07/18/Y2E.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107252029/2021/07/25/MMg.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107252029/2021/07/25/vvp.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107312345/2021/07/31/RxK.png">
+<meta property="article:published_time" content="2021-06-10T11:47:00.000Z">
+<meta property="article:modified_time" content="2023-01-29T03:16:37.319Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="Git">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107182129/2021/07/18/Y2E.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2021/06/10/Git%20%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2021/06/10/Git%20%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86/","path":"2021/06/10/Git 内部原理/","title":"Git 内部原理"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Git 内部原理 | nekolr's blog</title>
+  
+
+
+
+
+
+
+  <script async defer data-website-id="" src=""></script>
+
+  <script defer data-domain="" src=""></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BA%95%E5%B1%82%E5%91%BD%E4%BB%A4%E4%B8%8E%E4%B8%8A%E5%B1%82%E5%91%BD%E4%BB%A4"><span class="nav-number">1.</span> <span class="nav-text">底层命令与上层命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%9B%AE%E5%BD%95%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">目录结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Git-%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.</span> <span class="nav-text">Git 对象</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%91%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.1.</span> <span class="nav-text">树对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E4%BA%A4%E5%AF%B9%E8%B1%A1"><span class="nav-number">3.2.</span> <span class="nav-text">提交对象</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Git-%E5%BC%95%E7%94%A8"><span class="nav-number">4.</span> <span class="nav-text">Git 引用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#HEAD-%E5%BC%95%E7%94%A8"><span class="nav-number">4.1.</span> <span class="nav-text">HEAD 引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A0%87%E7%AD%BE%E5%BC%95%E7%94%A8"><span class="nav-number">4.2.</span> <span class="nav-text">标签引用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%BF%9C%E7%A8%8B%E5%BC%95%E7%94%A8"><span class="nav-number">4.3.</span> <span class="nav-text">远程引用</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2021/06/10/Git%20%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Git 内部原理 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Git 内部原理
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-06-10 11:47:00" itemprop="dateCreated datePublished" datetime="2021-06-10T11:47:00+00:00">2021-06-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Git/" itemprop="url" rel="index"><span itemprop="name">Git</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>这篇博文主要用于记录博主在学习 Git 官方教程时的整个过程和一些心得体会，具体学习的章节是《Git 内部原理》。</p>
+<span id="more"></span>
+
+<h1 id="底层命令与上层命令"><a href="#底层命令与上层命令" class="headerlink" title="底层命令与上层命令"></a>底层命令与上层命令</h1><p>我们平常使用的 git 命令一般都是对用户友好的上层（porcelain）命令，然而，由于 Git 最初只是一套面向版本控制系统的工具集，所以它还包含了一部分用于完成底层工作的子命令，这部分命令一般称为底层（plumbing）命令。</p>
+<h1 id="目录结构"><a href="#目录结构" class="headerlink" title="目录结构"></a>目录结构</h1><p>当在一个新目录或已有目录执行 <code>git init</code> 时，Git 会创建一个 <code>.git</code> 目录。 这个目录包含了几乎所有 Git 存储和操作的东西。如果想备份或复制一个版本库，只需把这个目录拷贝至另一处即可。新初始化的 <code>.git</code> 目录的典型结构如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">config</span><br><span class="line">description</span><br><span class="line">HEAD</span><br><span class="line">hooks/</span><br><span class="line">info/</span><br><span class="line">objects/</span><br><span class="line">refs/</span><br></pre></td></tr></table></figure>
+
+<p>description 文件仅供 GitWeb 程序使用，我们无需关心。config 文件包含项目特有的配置选项。info 目录包含一个全局性的排除（global exclude）文件，用于放置那些不希望被记录在 <code>.gitignore</code> 文件中的忽略模式（ignored patterns）。hooks 目录包含客户端或服务端的钩子脚本（hook scripts）。</p>
+<p>剩下的四个条目很重要：HEAD 文件、（尚未创建的）index 文件，和 objects 目录、refs 目录。它们都是 Git 的核心组成部分。objects 目录存储所有的数据内容；refs 目录存储指向数据（分支、远程仓库和标签等）的提交对象的指针；HEAD 文件指向目前被检出的分支；index 文件保存暂存区信息。</p>
+<h1 id="Git-对象"><a href="#Git-对象" class="headerlink" title="Git 对象"></a>Git 对象</h1><p>Git 的核心部分是一个简单的键值对数据库。我们可以向 Git 仓库中插入任意类型的内容（文本或文件），它会返回一个唯一的键，通过该键可以在任意时刻再次取回该内容。底层命令 <code>git hash-object</code> 可以实现该效果：将任意数据保存到 <code>objects</code> 目录，并返回指向该数据对象的唯一的键。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ git init test</span><br><span class="line">Initialized empty Git repository in /tmp/test/.git/</span><br><span class="line">$ cd test</span><br><span class="line">$ find .git/objects</span><br><span class="line">.git/objects</span><br><span class="line">.git/objects/info</span><br><span class="line">.git/objects/pack</span><br></pre></td></tr></table></figure>
+
+<p>可以看到，Git 对 objects 目录进行了初始化，并创建了 pack 和 info 子目录，但均为空。接着，我们用 <code>git hash-object</code> 创建一个新的数据对象并将它手动存入 Git 数据库中：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;test content&#x27; | git hash-object -w --stdin</span><br><span class="line">d670460b4b4aece5915caf5c68d12f560a9fe3e4</span><br></pre></td></tr></table></figure>
+
+<p>其中，<code>-w</code> 选项指示该命令不光要返回键，还要将该对象写入数据库中。<code>--stdin</code> 选项则指示该命令从标准输入读取内容，如果不指定此选项，则须在命令尾部给出需要存储的文件的路径。比如：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;test content&#x27; &gt; test.txt</span><br><span class="line">$ git hash-object -w test.txt</span><br><span class="line">d670460b4b4aece5915caf5c68d12f560a9fe3e4</span><br></pre></td></tr></table></figure>
+
+<p>该命令输出的是一个长度为 40 个字符的哈希值，该校验和通过将待存储的数据外加一个头部信息（header）一起做 SHA-1 校验运算得到。现在我们可以查看 Git 是如何存储数据的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ find .git/objects -type f</span><br><span class="line">.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4</span><br></pre></td></tr></table></figure>
+
+<p>再次查看 objects 目录，可以在其中找到一个与新内容对应的文件。这就是 Git 存储内容的方式：一个文件对应一条内容，以该内容加上特定头部信息一起做 SHA-1 校验和来为文件命名。校验和的前两个字符用于命名子目录，余下的 38 个字符则用作文件名。</p>
+<p>一旦将内容存储在了对象数据库中，那么就可以通过 <code>cat-file</code> 命令从 Git 仓库取回数据（如果直接使用 cat 命令查看写入的内容，会发现全是乱码，这是因为写入的东西是经过压缩的）。指定 <code>-p</code> 选项可指示该命令自动判断内容的类型，并为我们显示大致的内容：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git cat-file -p d670460b4b4aece5915caf5c68d12f560a9fe3e4</span><br><span class="line">test content</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们尝试对一个文件进行简单的版本控制。首先，创建一个新文件并将其内容存入数据库：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;version 1&#x27; &gt; test.txt</span><br><span class="line">$ git hash-object -w test.txt</span><br><span class="line">83baae61804e65cc73a7201a7252750c76066a30</span><br></pre></td></tr></table></figure>
+
+<p>接着，向文件里写入新内容，并再次将其存入数据库：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;version 2&#x27; &gt; test.txt</span><br><span class="line">$ git hash-object -w test.txt</span><br><span class="line">1f7a7a472abf3dd9643fd615f6da379c4acb3e3a</span><br></pre></td></tr></table></figure>
+
+<p>对象数据库记录下了该文件的两个不同版本，当然之前我们存入的第一条内容也还在：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ find .git/objects -type f</span><br><span class="line">.git/objects/1f/7a7a472abf3dd9643fd615f6da379c4acb3e3a</span><br><span class="line">.git/objects/83/baae61804e65cc73a7201a7252750c76066a30</span><br><span class="line">.git/objects/d6/70460b4b4aece5915caf5c68d12f560a9fe3e4</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们可以删除该文件，同时只需要通过 <code>cat-file</code> 传入不同的键，就可以取回该文件的第一个版本和第二个版本：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ git cat-file -p 83baae61804e65cc73a7201a7252750c76066a30</span><br><span class="line">version 1</span><br><span class="line">$ git cat-file -p 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a</span><br><span class="line">version 2</span><br></pre></td></tr></table></figure>
+
+<p>然而，记住文件的每一个版本所对应的 SHA-1 值并不现实；另一个问题是，在这个（简单的版本控制）系统中，文件名并没有被保存。上述类型的对象我们称之为数据对象（blob object）。利用 <code>git cat-file -t</code> 命令，可以让 Git 告诉我们其内部存储的任何对象类型，只要给定该对象的 SHA-1 值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git cat-file -t 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a</span><br><span class="line">blob</span><br></pre></td></tr></table></figure>
+
+<h2 id="树对象"><a href="#树对象" class="headerlink" title="树对象"></a>树对象</h2><p>Git 以一种类似于 UNIX 文件系统的方式存储内容，所有内容均以树对象和数据对象的形式存储。其中树对象对应 UNIX 中的目录，数据对象则大致对应 inodes 或文件内容。一个树对象包含一条或多条树对象记录（tree entry），每条记录含有一个指向数据对象或子树对象的 SHA-1 指针，以及相应的模式、类型和文件名信息。例如，某个项目当前对应的最新树对象可能是这样的：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ git cat-file -p master^&#123;tree&#125;</span><br><span class="line">100644 blob a906cb2a4a904a152e80877d4088654daad0c859      README</span><br><span class="line">100644 blob 8f94139338f9404f26296befa88755fc2598c289      Rakefile</span><br><span class="line">040000 tree 99f1a6d12cb4b6f19c8655fca46c3ecf317074e0      lib</span><br><span class="line"></span><br><span class="line">$ git cat-file -p 99f1a6d12cb4b6f19c8655fca46c3ecf317074e0</span><br><span class="line">100644 blob 47c6340d6459e05787f644c2447d2595f5d3a54b      simplegit.rb</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><code>master^&#123;tree&#125;</code> 语法表示 master 分支上最新的提交所指向的树对象。</p>
+</blockquote>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107182129/2021/07/18/Y2E.png" alt="树对象"></p>
+<p>通常，Git 根据某一时刻暂存区（index 文件）所表示的状态创建并记录一个对应的树对象，如此重复便可以依次记录（某个时间段内）一系列的树对象。因此，为了创建一个树对象，首先需要通过暂存一些文件来创建一个暂存区。可以通过底层命令 <code>git update-index</code> 为一个单独文件（之前 test.txt 文件的首个版本）创建一个暂存区。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git update-index --add --cacheinfo 100644 83baae61804e65cc73a7201a7252750c76066a30 test.txt</span><br></pre></td></tr></table></figure>
+
+<p>使用该命令，可以将 test.txt 的首个版本人为地加入到一个新的暂存区，<code>--add</code> 选项表示此前该文件并不在暂存区中（我们甚至都没有创建过一个暂存区）。<code>--cacheinfo</code> 选项表示该文件位于 Git 数据库中，而不是当前目录下。同时还需要指定文件模式、SHA-1（Git 数据库对象的键）和文件名。</p>
+<blockquote>
+<p>Git 中的文件模式参考了 UNIX 的文件模式，但远没有那么灵活。数据对象只有三种文件模式：普通文件 100644、可执行文件 100755、符号链接 120000。还有一些其他的文件模式用于目录项和子模块。</p>
+</blockquote>
+<p>接下来可以通过 <code>git write-tree</code> 命令将暂存区的内容写入到一个树对象。这里不用指定 <code>-w</code> 选项，如果某个树对象此前并不存在的话，调用此命令会根据当前暂存区的状态自动创建一个新的树对象。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">$ git write-tree</span><br><span class="line">d8329fc1cc938780ffdd9f94e0d364e0ea74f579</span><br><span class="line"></span><br><span class="line">$ git cat-file -p d8329fc1cc938780ffdd9f94e0d364e0ea74f579</span><br><span class="line">100644 blob 83baae61804e65cc73a7201a7252750c76066a30      test.txt</span><br><span class="line"></span><br><span class="line">$ git cat-file -t d8329fc1cc938780ffdd9f94e0d364e0ea74f579</span><br><span class="line">tree</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们创建一个新的数对象，它包含 test.txt 文件的第二个版本，以及一个新的文件：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;new file&#x27; &gt; new.txt</span><br><span class="line"></span><br><span class="line">$ git update-index --add --cacheinfo 100644 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a test.txt</span><br><span class="line"></span><br><span class="line">$ git update-index --add new.txt</span><br></pre></td></tr></table></figure>
+
+<p>暂存区现在包含了 test.txt 文件的新版本和一个新文件：new.txt。记录下这个目录树（将当前暂存区的状态记录为一个树对象）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ git write-tree</span><br><span class="line">0155eb4229851634a0f03eb265b69f5a2d56f341</span><br><span class="line"></span><br><span class="line">$ git cat-file -p 0155eb4229851634a0f03eb265b69f5a2d56f341</span><br><span class="line">100644 blob fa49b077972391ad58037050f2a75f74e3671e92      new.txt</span><br><span class="line">100644 blob 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a      test.txt</span><br></pre></td></tr></table></figure>
+
+<p>我们发现新的树对象包含两条文件记录，同时 test.txt 的 SHA-1 值就是之前该文件的第二个版本。我们还可以将第一个树对象加入到第二个树对象中，使其成为新树对象的一个子目录。使用 <code>git read-tree</code> 命令可以将一个树对象读入暂存区。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">$ git read-tree --prefix=bak d8329fc1cc938780ffdd9f94e0d364e0ea74f579</span><br><span class="line"></span><br><span class="line">$ git write-tree</span><br><span class="line">3c4e9cd789d88d8d89c1073707c3585e41b0e614</span><br><span class="line"></span><br><span class="line">$ git cat-file -p 3c4e9cd789d88d8d89c1073707c3585e41b0e614</span><br><span class="line">040000 tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579    bak</span><br><span class="line">100644 blob fa49b077972391ad58037050f2a75f74e3671e92    new.txt</span><br><span class="line">100644 blob 1f7a7a472abf3dd9643fd615f6da379c4acb3e3a    test.txt</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107252029/2021/07/25/MMg.png" alt="树对象"></p>
+<h2 id="提交对象"><a href="#提交对象" class="headerlink" title="提交对象"></a>提交对象</h2><p>现在我们已经有了三个树对象，它们代表我们想要跟踪的不同项目的快照。然而我们要想重用这些快照，还是需要提供它们的 SHA-1 值，并且我们也不知道是谁保存了这些快照，在什么时候保存的，以及为什么保存这些快照。而以上这些信息，都可以通过提交对象（commit object）来保存。</p>
+<p>可以通过 <code>commit-tree</code> 命令创建一个提交对象，为此需要指定一个树对象的 SHA-1 值，以及该提交的父提交对象（如果有的话）。我们先从之前创建的第一个树对象开始：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;first commit&#x27; | git commit-tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579</span><br><span class="line">444dd711ed72fa1fbc5f3004d0d2ba43adf126fb</span><br><span class="line"></span><br><span class="line">$ git cat-file -p 444dd711ed72fa1fbc5f3004d0d2ba43adf126fb</span><br><span class="line">tree d8329fc1cc938780ffdd9f94e0d364e0ea74f579</span><br><span class="line">author nekolr &lt;excalibll@163.com&gt; 1627202862 +0800</span><br><span class="line">committer nekolr &lt;excalibll@163.com&gt; 1627202862 +0800</span><br><span class="line"></span><br><span class="line">first commit</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>由于创建时间和作者数据不同，现在及之后的散列值都有可能不同。</p>
+</blockquote>
+<p>提交对象的格式很简单：它先指定一个顶层树对象，代表当前项目快照。然后是可能存在的父提交，之后是作者和提交者信息（外加时间戳），接着留空一行，最后是提交注释。</p>
+<p>接着，我们将创建另外两个提交对象，它们分别引用各自的上一个提交作为其父提交对象：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ echo &#x27;second commit&#x27; | git commit-tree 0155eb -p 444dd71</span><br><span class="line">5dd39238bee9e686bd8436140c5e07776c5bc73b</span><br><span class="line"></span><br><span class="line">$ echo &#x27;third commit&#x27;  | git commit-tree 3c4e9c -p 5dd3923</span><br><span class="line">1dd880144c02a460642d6d00c204a86289c23fe7</span><br></pre></td></tr></table></figure>
+
+<p>现在，如果对最后一个提交的 SHA-1 值运行 git log 命令，你会发现已经有一个货真价实的、可由 git log 查看的 Git 提交历史了：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">$ git log --stat 1dd880</span><br><span class="line">commit 1dd880144c02a460642d6d00c204a86289c23fe7</span><br><span class="line">Author: nekolr &lt;excalibll@163.com&gt;</span><br><span class="line">Date:   Sun Jul 25 16:50:24 2021 +0800</span><br><span class="line"></span><br><span class="line">    third commit</span><br><span class="line"></span><br><span class="line"> bak/test.txt | 1 +</span><br><span class="line"> 1 file changed, 1 insertion(+)</span><br><span class="line"></span><br><span class="line">commit 5dd39238bee9e686bd8436140c5e07776c5bc73b</span><br><span class="line">Author: nekolr &lt;excalibll@163.com&gt;</span><br><span class="line">Date:   Sun Jul 25 16:50:00 2021 +0800</span><br><span class="line"></span><br><span class="line">    second commit</span><br><span class="line"></span><br><span class="line"> new.txt  | 1 +</span><br><span class="line"> test.txt | 2 +-</span><br><span class="line"> 2 files changed, 2 insertions(+), 1 deletion(-)</span><br><span class="line"></span><br><span class="line">commit 444dd711ed72fa1fbc5f3004d0d2ba43adf126fb</span><br><span class="line">Author: nekolr &lt;excalibll@163.com&gt;</span><br><span class="line">Date:   Sun Jul 25 16:47:42 2021 +0800</span><br><span class="line"></span><br><span class="line">    first commit</span><br><span class="line"></span><br><span class="line"> test.txt | 1 +</span><br><span class="line"> 1 file changed, 1 insertion(+)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>我们没有借助任何上层命令，仅凭几个底层操作便完成了 Git 提交历史的创建。这就是我们在执行 <code>git add</code> 和 <code>git commit</code> 命令时，Git 所做的工作：将被改写的文件保存为数据对象，更新暂存区，记录树对象，最后创建一个指明了顶层树对象和父提交的提交对象。如果跟踪所有的内部指针，可以得到类似下面的对象关系图：</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107252029/2021/07/25/vvp.png" alt="对象关系（原图中的 SHA-1 值与本地并不一致）"></p>
+<h1 id="Git-引用"><a href="#Git-引用" class="headerlink" title="Git 引用"></a>Git 引用</h1><p>如果想查看一个提交（比如 <code>1dd880</code>）之前的历史，可以运行 <code>git log 1dd880</code> 命令，但是这样我们需要记住 <code>1dd880</code> 是我们查看历史的起点提交。如果我们能有一个文件来保存这个 SHA-1 值，同时该文件又有一个简单的名字，使用这个名字指针替代原始的 SHA-1 值会使查看日志变得更加简单。</p>
+<p>在 Git 中，这个简单的名字被称为引用（references，简写为 refs），可以在 <code>.git/refs</code> 目录下找到它们。在当前的项目中，这个目录下并没有任何文件，但它包含了一个简单的目录结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ find .git/refs</span><br><span class="line">.git/refs</span><br><span class="line">.git/refs/heads</span><br><span class="line">.git/refs/tags</span><br></pre></td></tr></table></figure>
+
+<p>如果要创建一个新的引用来帮助记录最新提交所在的位置，从原理上讲，只需要执行以下操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ echo 1dd880144c02a460642d6d00c204a86289c23fe7 &gt; .git/refs/heads/master</span><br></pre></td></tr></table></figure>
+
+<p>接下来就可以使用这个刚创建的新引用来替代 SHA-1 值查看 log 记录了：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ git log --pretty=oneline master</span><br><span class="line">1dd880144c02a460642d6d00c204a86289c23fe7 (HEAD -&gt; master) third commit</span><br><span class="line">5dd39238bee9e686bd8436140c5e07776c5bc73b second commit</span><br><span class="line">444dd711ed72fa1fbc5f3004d0d2ba43adf126fb first commit</span><br></pre></td></tr></table></figure>
+
+<p>不过 Git 并不提倡直接编辑引用文件，如果想更新某个引用，Git 提供了一个更加安全的命令 <code>update-ref</code> 来完成这项工作。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git update-ref refs/heads/master 1dd880144c02a460642d6d00c204a86289c23fe7</span><br></pre></td></tr></table></figure>
+
+<p>这基本上就是 Git 分支的本质：<strong>一个指向某一系列提交之首的指针或引用</strong>。当运行类似于 <code>git branch &lt;branch_name&gt;</code> 这样的命令时，Git 实际上执行的是 <code>update-ref</code> 命令，取得当前所在分支最新提交对应的 SHA-1 值。如果想在第二个提交上创建一个新分支，可以这样做：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ git update-ref refs/heads/test 5dd39238bee9e686bd8436140c5e07776c5bc73b</span><br><span class="line"></span><br><span class="line">$ git log --pretty=oneline test</span><br><span class="line">5dd39238bee9e686bd8436140c5e07776c5bc73b (test) second commit</span><br><span class="line">444dd711ed72fa1fbc5f3004d0d2ba43adf126fb first commit</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202107312345/2021/07/31/RxK.png" alt="引用（原图中的 SHA-1 值与本地并不一致）"></p>
+<h2 id="HEAD-引用"><a href="#HEAD-引用" class="headerlink" title="HEAD 引用"></a>HEAD 引用</h2><p>那么 Git 在执行 <code>git branch &lt;branch_name&gt;</code> 时，又是如何得知当前分支最新提交的 SHA-1 值的呢？答案是 HEAD 文件。HEAD 文件通常是一个符号引用（symbolic reference），它是一个指向其他引用的指针，指向当前所在的分支。在你检出一个标签、提交或远程分支时，HEAD 文件可能会包含一个 git 对象的 SHA-1 值，这是因为此时仓库处于<strong>分离 HEAD</strong>状态。</p>
+<p>直接查看 HEAD 文件内容，通常是：<code>ref: refs/heads/master</code>，如果执行 <code>git checkout test</code>，Git 会更新这个值：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">$ cat .git/HEAD</span><br><span class="line">ref: refs/heads/master</span><br><span class="line"></span><br><span class="line">$ git checkout test</span><br><span class="line">$ cat .git/HEAD</span><br><span class="line">ref: refs/heads/test</span><br></pre></td></tr></table></figure>
+
+<p>当我们执行 <code>git commit</code> 时，该命令会创建一个提交对象，并用 HEAD 文件中的那个引用所指向的 SHA-1 值设置其父提交字段。我们可以手动编辑该文件，当然 Git 同样提供了一个更安全的命令 <code>git symbolic-ref</code> 来完成这件事。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"># 查看 HEAD 引用的值</span><br><span class="line">$ git symbolic-ref HEAD</span><br><span class="line"></span><br><span class="line"># 设置 HEAD 引用的值</span><br><span class="line">$ git symbolic-ref HEAD refs/heads/test</span><br></pre></td></tr></table></figure>
+
+<h2 id="标签引用"><a href="#标签引用" class="headerlink" title="标签引用"></a>标签引用</h2><p>Git 中除了数据对象、树对象和提交对象，实际上还有一种对象：标签对象（tag object），它非常类似于提交对象，包含一个标签创建者信息，一个日期，一段注释，以及一个指针。标签对象与提交对象的主要区别在于，标签对象的指针指向的通常是一个提交对象，而不是一个树对象。它就像一个永不移动的分支引用，永远指向同一个提交对象，只不过是给这个提交对象指定了一个更加友好的名字罢了。</p>
+<p>Git 中存在两种类型的标签：附注标签和轻量标签。轻量标签可以直接通过指定一个固定的引用，也就是提交对象来创建。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ git update-ref refs/tags/v1.0 5dd39238bee9e686bd8436140c5e07776c5bc73b</span><br><span class="line"></span><br><span class="line">$ cat .git/refs/tags/v1.0</span><br><span class="line">5dd39238bee9e686bd8436140c5e07776c5bc73b</span><br></pre></td></tr></table></figure>
+
+<p>而若要创建一个附注标签，Git 会创建一个标签对象，然后记录一个引用来指向该标签对象。也就是说：标签引用中存储的并不是某个提交对象，而是一个指向该标签对象的引用。我们可以通过创建一个附注标签来验证这一过程（使用 <code>-a</code> 选项）。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">$ git tag -a v1.1 1dd880144c02a460642d6d00c204a86289c23fe7 -m &#x27;test tag&#x27;</span><br><span class="line"></span><br><span class="line">$ cat .git/refs/tags/v1.1</span><br><span class="line">3a62c1d03f5e77c307ed4a9176e3dce46369f01e</span><br><span class="line"></span><br><span class="line">$ git cat-file -p 3a62c1d03f5e77c307ed4a9176e3dce46369f01e</span><br><span class="line">object 1dd880144c02a460642d6d00c204a86289c23fe7</span><br><span class="line">type commit</span><br><span class="line">tag v1.1</span><br><span class="line">tagger nekolr &lt;excalibll@163.com&gt; 1627745037 +0800</span><br><span class="line"></span><br><span class="line">test tag</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>要注意的是，标签对象并非必须指向某个提交对象，我们可以对任意类型的 Git 对象打标签。例如，在 Git 源码中，项目维护者将他们的 GPG 公钥添加为一个数据对象，然后对这个对象打了一个标签。可以克隆一个 Git 版本库，然后通过执行下面的命令在这个版本库中查看上述公钥：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ git cat-file blob junio-gpg-pub</span><br></pre></td></tr></table></figure>
+
+<h2 id="远程引用"><a href="#远程引用" class="headerlink" title="远程引用"></a>远程引用</h2><p>如果我们添加了一个远程版本库并对其执行过推送操作，Git 会记录下最近一次推送操作时每一个分支所对应的值，并保存在 refs&#x2F;remotes 目录下。例如，你可以添加一个叫做 origin 的远程版本库，然后把 master 分支推送上去：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ git remote add origin git@github.com:nekolr/simplegit-progit.git</span><br><span class="line">$ git push origin master</span><br></pre></td></tr></table></figure>
+
+<p>此时查看 <code>refs/remotes/origin/master</code> 文件，可以发现 origin 远程版本库的 master 分支所对应的 SHA-1 值，就是最近一次与服务器通信时本地 master 分支所对应的 SHA-1 值。</p>
+<p>远程引用和分支（位于 refs&#x2F;heads 目录下的引用）之间最主要的区别在于：远程引用是只读的。虽然可以 <code>git checkout</code> 某个远程引用，但是 Git 并不会将 HEAD 引用指向该远程引用。因此，你永远不能通过 commit 命令来更新远程引用。Git 将这些远程引用作为记录远程服务器上各分支最后已知位置状态的书签来管理。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Git/" rel="tag"># Git</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/03/29/CAS%20%E5%88%9D%E6%8E%A2/" rel="prev" title="CAS 初探">
+                  <i class="fa fa-chevron-left"></i> CAS 初探
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/08/15/Java%20Agent/" rel="next" title="Java Agent">
+                  Java Agent <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.14.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="平台无关性由于计算机只能识别 0 和 1，所以我们写的程序需要经过编译器编译成二进制格式的本地机器码（Native Code）。本地机器码依赖于平台，不同平台编译成的机器码不同。Java 打破了这种模式，加入了 Java 虚拟机这个中间者。我们只要将写好的代码经过 Java 的编译器编译，就会生成能够被 Java 虚拟机理解的 class 文件，只要任意平台安装有 Java 虚拟机，就能够执行这个">
+<meta property="og:type" content="article">
+<meta property="og:title" content="类文件结构">
+<meta property="og:url" content="https://blog.nekolr.com/2018/04/18/%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="平台无关性由于计算机只能识别 0 和 1，所以我们写的程序需要经过编译器编译成二进制格式的本地机器码（Native Code）。本地机器码依赖于平台，不同平台编译成的机器码不同。Java 打破了这种模式，加入了 Java 虚拟机这个中间者。我们只要将写好的代码经过 Java 的编译器编译，就会生成能够被 Java 虚拟机理解的 class 文件，只要任意平台安装有 Java 虚拟机，就能够执行这个">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/19/2W2.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/19/Vnr.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/yMJ.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/zPk.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/xRg.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/rRb.png">
+<meta property="article:published_time" content="2018-04-18T17:22:00.000Z">
+<meta property="article:modified_time" content="2023-01-29T03:16:37.327Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/19/2W2.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2018/04/18/%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2018/04/18/%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/","path":"2018/04/18/类文件结构/","title":"类文件结构"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>类文件结构 | nekolr's blog</title>
+  
+
+
+
+
+
+
+  <script async defer data-website-id="" src=""></script>
+
+  <script defer data-domain="" src=""></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B9%B3%E5%8F%B0%E6%97%A0%E5%85%B3%E6%80%A7"><span class="nav-number">1.</span> <span class="nav-text">平台无关性</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Class-%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">Class 文件结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AD%94%E6%95%B0%E4%B8%8E-Class-%E6%96%87%E4%BB%B6%E7%9A%84%E7%89%88%E6%9C%AC"><span class="nav-number">2.1.</span> <span class="nav-text">魔数与 Class 文件的版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B8%B8%E9%87%8F%E6%B1%A0"><span class="nav-number">2.2.</span> <span class="nav-text">常量池</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%BF%E9%97%AE%E6%A0%87%E5%BF%97"><span class="nav-number">2.3.</span> <span class="nav-text">访问标志</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B1%BB%E7%B4%A2%E5%BC%95%E3%80%81%E7%88%B6%E7%B1%BB%E7%B4%A2%E5%BC%95%E4%B8%8E%E6%8E%A5%E5%8F%A3%E7%B4%A2%E5%BC%95%E9%9B%86%E5%90%88"><span class="nav-number">2.4.</span> <span class="nav-text">类索引、父类索引与接口索引集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AD%97%E6%AE%B5%E8%A1%A8%E9%9B%86%E5%90%88"><span class="nav-number">2.5.</span> <span class="nav-text">字段表集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E8%A1%A8%E9%9B%86%E5%90%88"><span class="nav-number">2.6.</span> <span class="nav-text">方法表集合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E8%A1%A8%E9%9B%86%E5%90%88"><span class="nav-number">2.7.</span> <span class="nav-text">属性表集合</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Code-%E5%B1%9E%E6%80%A7"><span class="nav-number">2.7.1.</span> <span class="nav-text">Code 属性</span></a></li></ol></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2018/04/18/%E7%B1%BB%E6%96%87%E4%BB%B6%E7%BB%93%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="类文件结构 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          类文件结构
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-04-18 17:22:00" itemprop="dateCreated datePublished" datetime="2018-04-18T17:22:00+00:00">2018-04-18</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="平台无关性"><a href="#平台无关性" class="headerlink" title="平台无关性"></a>平台无关性</h1><p>由于计算机只能识别 0 和 1，所以我们写的程序需要经过编译器编译成二进制格式的本地机器码（Native Code）。本地机器码依赖于平台，不同平台编译成的机器码不同。Java 打破了这种模式，加入了 Java 虚拟机这个中间者。我们只要将写好的代码经过 Java 的编译器编译，就会生成能够被 Java 虚拟机理解的 class 文件，只要任意平台安装有 Java 虚拟机，就能够执行这个编译后的 class 文件。  </p>
+<span id="more"></span>
+
+<p>Java 虚拟机除了一个平台无关性，还有一个重要的特性就是语言无关性。不光是 Java，任意语言编写的程序，只要能够经过编译器编译成被 Java 虚拟机认可的 class 文件，就都可以在 Java 虚拟机上运行。时至今日，已经有大批能够在 JVM 上运行的语言和一些能够将某种语言程序翻译成 class 文件的解释器、编译器，如：Groovy、JRuby、Jython、Scala、Kotlin 等。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/19/2W2.png" alt="其他语言与虚拟机 "></p>
+<h1 id="Class-文件结构"><a href="#Class-文件结构" class="headerlink" title="Class 文件结构"></a>Class 文件结构</h1><p>Class 文件是一组以 8 位字节为基础单位的二进制流，各个数据项严格按照顺序紧凑排列在 Class 文件中，中间没有任何分隔符。当遇到需要占用 8 位字节以上的数据项时，使用 Big-Endian 方式分割成若干个 8 位字节存储。  </p>
+<p>根据 Java 虚拟机规范，Class 文件格式采用一种类似于 C 语言的结构体的伪结构来存储数据，这种结构只有两种数据类型：无符号数和表。  </p>
+<p>无符号数是基本的数据类型，以 <code>u1</code>、<code>u2</code>、<code>u4</code>、<code>u8</code> 分别表示 1 个字节、2 个字节、4 个字节和 8 个字节的无符号数。无符号数可以用来描述数字、索引引用、数量值或者按照 UTF-8 编码构成的字符串值。  </p>
+<p>表是由多个无符号数或者其他表作为数据项构成的复合数据类型，所有的表习惯性的以“_info”结尾。<strong>整个 Class 文件本质上就是一张表</strong>，它由以下数据项构成。  </p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>u4</td>
+<td>magic</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>minor_version</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>major_version</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>constant_pool_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>cp_info</td>
+<td>constant_pool</td>
+<td>constant_pool_count -1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>access_flags</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>this_class</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>super_class</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>interfaces_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>interfaces</td>
+<td>interfaces_count</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>fields_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>field_info</td>
+<td>fields</td>
+<td>fields_count</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>methods_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>method_info</td>
+<td>methods</td>
+<td>methods_count</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>attributes_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>attribute_info</td>
+<td>attributes</td>
+<td>attributes_count</td>
+</tr>
+</tbody></table>
+<h2 id="魔数与-Class-文件的版本"><a href="#魔数与-Class-文件的版本" class="headerlink" title="魔数与 Class 文件的版本"></a>魔数与 Class 文件的版本</h2><p>每个 Class 文件的头部都有 4 个字节称为魔数（Magic Number），值为 <code>0xCAFEBABE</code>，它的唯一作用是确定整个文件是否为一个能被虚拟机接受的 Class 文件。  </p>
+<p>紧接着魔数的是 Class 文件的版本号，第 5 个字节是 <code>Minor Version</code>（次版本号），第 6 个字节是 <code>Major Version</code>（主版本号）。Java 的版本号是从 45 开始的，JDK 1.1 之后每个 JDK 大版本发布，主版本号加 1。高版本的 JDK 能向下兼容以前版本的 Class 文件，但不能运行以后版本的 Class 文件。如：JDK 1.1 能支持版本号为 45.0 ~ 45.65535 的 Class 文件，但不能运行版本号为 46.0 以上的 Class 文件，即使文件格式并未发生变化。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/19/Vnr.png" alt="class 文件 "></p>
+<p>其中 CAFEBABE 是魔数，0000 是次版本号，0034 是主版本号（JDK 8）。  </p>
+<h2 id="常量池"><a href="#常量池" class="headerlink" title="常量池"></a>常量池</h2><p>由于常量池中常量的数量是不固定的，所以在常量池的入口需要设置一个 <code>u2</code> 类型的数据用来表示常量池的计数值 <code>constant_pool_count</code>，这个值从 1 开始计算，设计者将第 0 项空出来是为了满足后边某些指向常量池的索引值的数据在特定情况下需要表达“不引用任何一个常量池项目”的含义，这个情况就可以把索引值用 0 表示。  </p>
+<p>常量池中主要存放两大类常量：字面量（Literal）和符号引用（Symbolic Reference）。字面量类似于 Java 语言层面的常量概念，如声明为 final 的常量值等。符号引用则属于编译原理方面的概念，包含三类常量：  </p>
+<ul>
+<li>类和接口的全限定名（Fully Qualified Name）  </li>
+<li>字段的名称和描述符（Descriptor）  </li>
+<li>方法的名称和描述符</li>
+</ul>
+<p>常量池中的每一项常量都是一个表，在 JDK 7 之前共有 11 种结构不同的表，在 JDK 7 中为了更好的支持动态语言调用，又增加了 3 种。这 14 种表有一个共同的特点，表开始的第一位是一个 <code>u1</code> 类型的标志位，代表当前这个常量的类型。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/yMJ.png" alt="常量池 "></p>
+<p>其中 <code>CONSTANT_Utf8_info</code> 类型的常量，它的 <code>length</code> 值说明了这个 UTF-8 编码的字符串长度是多少字节，<code>bytes</code> 的值为长度为 <code>length</code> 字节的 UTF-8 缩略编码表示的字符串。由于 Class 文件中方法、字段等都需要引用 <code>CONSTANT_Utf8_info</code> 型常量来描述名称，所以 <code>CONSTANT_Utf8_info</code>  型常量的最大长度也就是 Java 中方法、字段名的最大长度，即 <code>u2</code> 的 65535，也就是说最大 65535 字节，即 64KB。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/zPk.png" alt="Test.class"></p>
+<p>如上 Test.class 文件，可以看到 <code>constant_pool_count</code> 的值为 <code>0x0020</code>，即 32，说明该类文件中一共有 31 个常量项。我们可以使用 JDK 提供的分析 Class 文件字节码的工具 <code>javap</code> 来查看类文件信息：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/xRg.png" alt="javap"></p>
+<h2 id="访问标志"><a href="#访问标志" class="headerlink" title="访问标志"></a>访问标志</h2><p>在常量池之后的 2 个字节代表访问标志（access_flags），这个标志用于识别一些类或者接口层次的访问信息，如一个 Class 是类还是接口；是否定义为 public 类型等等。  </p>
+<table>
+<thead>
+<tr>
+<th>标志名称</th>
+<th>标志值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACC_PUBLIC</td>
+<td>0x0001</td>
+<td>是否为 public 类型</td>
+</tr>
+<tr>
+<td>ACC_FINAL</td>
+<td>0x0010</td>
+<td>是否声明为 final，只有类可以设置</td>
+</tr>
+<tr>
+<td>ACC_SUPER</td>
+<td>0x0020</td>
+<td>是否允许使用 <code>invokespecial</code> 字节码指令的新语义。 <code>invokespecial</code> 指令的语义在 JDK 1.0.2 发生过改变，为了区别这条指令使用哪种语义，JDK 1.0.2 之后编译出来的类的这个标志都必须为真</td>
+</tr>
+<tr>
+<td>ACC_INTERFACE</td>
+<td>0x0200</td>
+<td>标识这是一个接口</td>
+</tr>
+<tr>
+<td>ACC_ABSTRACT</td>
+<td>0x0400</td>
+<td>是否为 abstract 类型，对于接口或者抽象类来说，这个标志值为真，其他为假</td>
+</tr>
+<tr>
+<td>ACC_SYNTHETIC</td>
+<td>0x1000</td>
+<td>标识这个类并非由用户代码产生</td>
+</tr>
+<tr>
+<td>ACC_ANNOTATION</td>
+<td>0x2000</td>
+<td>标识这是一个注解</td>
+</tr>
+<tr>
+<td>ACC_ENUM</td>
+<td>0x4000</td>
+<td>标识这是一个枚举</td>
+</tr>
+</tbody></table>
+<p>如上 Test.class 文件，它是一个普通的类，使用 <code>public</code> 声明，使用 JDK 8 编译，因此 <code>access_flags</code> 的值应该为 <code>0x0021</code>。  </p>
+<h2 id="类索引、父类索引与接口索引集合"><a href="#类索引、父类索引与接口索引集合" class="headerlink" title="类索引、父类索引与接口索引集合"></a>类索引、父类索引与接口索引集合</h2><p>类索引（this_class）和父类索引（super_class）都是一个 <code>u2</code> 类型的数据，接口索引集合（interfaces）是一个 <code>u2</code> 类型的数据的集合，Class 文件中这三项来确定这个类的继承关系。  </p>
+<ul>
+<li><p>类索引用于确定这个类的全限定名。  </p>
+</li>
+<li><p>父类索引用于确定这个类的父类的全限定名，由于 Java 不允许多继承，因此除了 <code>java.lang.Object</code> 外，所有的类都有父类，即所有的类的父类索引都不为 0。  </p>
+</li>
+<li><p>接口索引集合用来描述这个类实现了哪些接口，这些被实现的接口将按照 <code>implements</code>（如果类本身是接口，则为 <code>extends</code>）的顺序排列在接口索引集合中。</p>
+</li>
+</ul>
+<p>类索引和父类索引用两个 <code>u2</code> 类型的索引值表示，它们各自指向一个 <code>CONSTANT_Class_info</code> 类型的类描述符常量，通过 <code>CONSTANT_Class_info</code> 类型的常量中的索引值可以在 <code>CONSTANT_Utf8_info</code> 类型的常量中找到全限定名字符串。  </p>
+<p>索引查找过程过程如下：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/20/rRb.png" alt="索引查找过程 "></p>
+<h2 id="字段表集合"><a href="#字段表集合" class="headerlink" title="字段表集合"></a>字段表集合</h2><p>字段表（field_info）用于描述接口或类中声明的变量。字段（field）包括类变量以及实例变量（成员变量），但不包括方法内声明的局部变量。  </p>
+<p>我们可以想想 Java 中一个字段可以包含的信息：字段的作用域（public、private、protected）、是成员变量还是类变量（static）、可变性（final）、并发可见性（volatile）、是否可序列化（transient）、字段数据类型（基本类型、对象、数组）、字段名称。上述信息，字段名和字段类型是不固定的，只能用常量池中的常量表示，其他修饰符都是布尔值，很适合用标志位表示。  </p>
+<p>字段表结构：  </p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>u2</td>
+<td>access_flags</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>name_index</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>descriptor_index</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>attributes_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>attribute_info</td>
+<td>attributes</td>
+<td>attributes_count</td>
+</tr>
+</tbody></table>
+<p>access_flags 项目：  </p>
+<table>
+<thead>
+<tr>
+<th>标志名称</th>
+<th>标志值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACC_PUBLIC</td>
+<td>0x0001</td>
+<td>字段是否是 public</td>
+</tr>
+<tr>
+<td>ACC_PRIVATE</td>
+<td>0x0002</td>
+<td>字段是否是 private</td>
+</tr>
+<tr>
+<td>ACC_PROTECTED</td>
+<td>0x0004</td>
+<td>字段是否是 protected</td>
+</tr>
+<tr>
+<td>ACC_STATIC</td>
+<td>0x0008</td>
+<td>字段是否是 static</td>
+</tr>
+<tr>
+<td>ACC_FINAL</td>
+<td>0x0010</td>
+<td>字段是否是 final</td>
+</tr>
+<tr>
+<td>ACC_VOLATILE</td>
+<td>0x0040</td>
+<td>字段是否是 volatile</td>
+</tr>
+<tr>
+<td>ACC_TRANSIENT</td>
+<td>0x0080</td>
+<td>字段是否是 transient</td>
+</tr>
+<tr>
+<td>ACC_SYNTHETIC</td>
+<td>0x1000</td>
+<td>字段是否由编译器自动产生</td>
+</tr>
+<tr>
+<td>ACC_ENUM</td>
+<td>0x4000</td>
+<td>字段是否是 enum</td>
+</tr>
+</tbody></table>
+<p><code>name_index</code> 和 <code>descriptor_index</code> 分别代表字段的简单名称（没有类型和参数修饰的方法或字段名称）和字段、方法的描述符，它们都是对常量池的引用。  </p>
+<p>描述符标识字符及含义：  </p>
+<table>
+<thead>
+<tr>
+<th>标识字符</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>B</td>
+<td>基本类型 byte</td>
+</tr>
+<tr>
+<td>C</td>
+<td>基本类型 char</td>
+</tr>
+<tr>
+<td>D</td>
+<td>基本类型 double</td>
+</tr>
+<tr>
+<td>F</td>
+<td>基本类型 float</td>
+</tr>
+<tr>
+<td>I</td>
+<td>基本类型 int</td>
+</tr>
+<tr>
+<td>J</td>
+<td>基本类型 long</td>
+</tr>
+<tr>
+<td>S</td>
+<td>基本类型 short</td>
+</tr>
+<tr>
+<td>Z</td>
+<td>基本类型 boolean</td>
+</tr>
+<tr>
+<td>V</td>
+<td>特殊类型 void</td>
+</tr>
+<tr>
+<td>L</td>
+<td>对象类型，如 <code>Ljava/lang/Object</code></td>
+</tr>
+</tbody></table>
+<p>对于数组类型，每一个纬度将使用一个前置的“[”字符描述，如一个定义为 <code>java.lang.String[][]</code> 类型的数组将被记录为：<code>[[Ljava/lang/String</code>，一个整型数组 <code>int[]</code> 将被记录为 <code>[I</code>。  </p>
+<p>用描述符描述方法时，按照先参数列表后返回值的顺序。如：  </p>
+<ul>
+<li>方法 <code>void fn()</code> 的描述符为 <code>()V</code>  </li>
+<li>方法 <code>java.lang.String toString()</code> 的描述符为 <code>()Ljava/lang/String</code>  </li>
+<li>方法 <code>int indexOf(char[] source, int sourceOffset, int sourceCount, char[] target, int targetOffset, int targetCount, int fromIndex)</code> 的描述符为<code>([CII[CIII)I</code></li>
+</ul>
+<p>字段表集合中不会列出从超类或接口继承而来的字段，但有可能列出原本 Java 代码中不存在的字段，譬如在内部类中为了保持对外部类的访问性，会自动添加指向外部类实例的字段。另外，在 Java 语言中字段是无法重载的，两个字段的数据类型、修饰符不管是否相同，都必须使用不一样的名称，但是对于字节码来说，如果两个字段的描述符不一致，那么字段重名是合法的。  </p>
+<h2 id="方法表集合"><a href="#方法表集合" class="headerlink" title="方法表集合"></a>方法表集合</h2><p>方法表与字段表几乎一样。  </p>
+<p>方法表结构：  </p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>u2</td>
+<td>access_flags</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>name_index</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>descriptor_index</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>attributes_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>attribute_info</td>
+<td>attributes</td>
+<td>attributes_count</td>
+</tr>
+</tbody></table>
+<p>访问标志：  </p>
+<table>
+<thead>
+<tr>
+<th>标志名称</th>
+<th>标志值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ACC_PUBLIC</td>
+<td>0x0001</td>
+<td>方法是否是 public</td>
+</tr>
+<tr>
+<td>ACC_PRIVATE</td>
+<td>0x0002</td>
+<td>方法是否是 private</td>
+</tr>
+<tr>
+<td>ACC_PROTECTED</td>
+<td>0x0004</td>
+<td>方法是否是 protected</td>
+</tr>
+<tr>
+<td>ACC_STATIC</td>
+<td>0x0008</td>
+<td>方法是否是 static</td>
+</tr>
+<tr>
+<td>ACC_FINAL</td>
+<td>0x0010</td>
+<td>方法是否是 final</td>
+</tr>
+<tr>
+<td>ACC_SYNCHRONIZED</td>
+<td>0x0020</td>
+<td>方法是否是 synchronized</td>
+</tr>
+<tr>
+<td>ACC_BRIDGE</td>
+<td>0x0040</td>
+<td>方法是否是由编译器产生的桥接方法</td>
+</tr>
+<tr>
+<td>ACC_VARARGS</td>
+<td>0x0080</td>
+<td>方法是否接受不定参数</td>
+</tr>
+<tr>
+<td>ACC_NATIVE</td>
+<td>0x0100</td>
+<td>方法是否为 native</td>
+</tr>
+<tr>
+<td>ACC_ABSTRACT</td>
+<td>0x0400</td>
+<td>方法是否是 abstract</td>
+</tr>
+<tr>
+<td>ACC_STRICTFP</td>
+<td>0x0800</td>
+<td>方法是否是 strictfp</td>
+</tr>
+<tr>
+<td>ACC_SYNTHETIC</td>
+<td>0x1000</td>
+<td>方法是否由编译器自动产生</td>
+</tr>
+</tbody></table>
+<p>如果父类方法在子类中没有被重写（Override），方法表集合中就不会出现来自父类的方法信息。同时，方法表中也可能会出现由编译器自动添加的方法，典型的就是类构造器 <code>&lt;clinit&gt;</code> 方法和实例构造器 <code>&lt;init&gt;</code> 方法（当一个类中存在静态成员或静态代码块时才会生成类构造器 <code>&lt;clinit&gt;</code> 方法；<code>&lt;init&gt;</code> 方法是在一个类进行对象实例化时调用的。实例化一个类有四种途径：调用 new 操作符；调用 Class 或 <code>java.lang.reflect.Constructor</code> 对象的 newInstance() 方法；调用任何现有对象的 clone() 方法；通过 <code>java.io.ObjectInputStream</code> 类的 getObject() 方法反序列化）。  </p>
+<p>在 Java 语言中重载一个方法，除了方法名相同外，还需要方法的特征签名（即各个参数在常量池中的字段符号引用的集合）一致，但是在字节码中，特征签名的范围更大一些，只要描述符不完全一致的两个方法也可以共存，即如果两个方法有相同的名称和特征签名，但是返回值不同，它们也可以合法共存于一个 Class 中。  </p>
+<h2 id="属性表集合"><a href="#属性表集合" class="headerlink" title="属性表集合"></a>属性表集合</h2><p>在 Class 文件、字段表、方法表中都有属性表集合（attribute_info），用于描述某些场景的专有信息。  </p>
+<p>与 Class 文件中其他数据项目要求严格的顺序、长度和内容不同，属性表集合不再要求严格的顺序，只要不与已经存在的属性名重复，任何实现的编译器都可以向属性表中写入自定义的属性信息，虚拟机运行时会忽略掉它不认识的属性。为了能正确解析 Class 文件，虚拟机规范预定义了一些属性。  </p>
+<p>属性表结构：  </p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>u2</td>
+<td>attribute_name_index</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u4</td>
+<td>attribute_length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u1</td>
+<td>info</td>
+<td>attribute_length</td>
+</tr>
+</tbody></table>
+<p>上述是一个符合虚拟机规范的属性表，对于每个属性，它的名称要从常量池中引用 <code>CONSTANT_Utf8_info</code> 类型的常量来表示，属性值的结构则完全自定义，只通过一个 <code>u4</code> 的长度属性说明属性值所占位数。  </p>
+<p>一些常用的属性：  </p>
+<table>
+<thead>
+<tr>
+<th>属性名称</th>
+<th>使用位置</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Code</td>
+<td>方法表</td>
+<td>Java 代码编译成的字节码指令</td>
+</tr>
+<tr>
+<td>ConstantValue</td>
+<td>字段表</td>
+<td>final 关键字定义的常量值</td>
+</tr>
+<tr>
+<td>Deprecated</td>
+<td>类、方法表、字段表</td>
+<td>被声明为 <code>deprecated</code> 的方法和字段</td>
+</tr>
+<tr>
+<td>Exceptions</td>
+<td>方法表</td>
+<td>方法抛出的异常</td>
+</tr>
+<tr>
+<td>EnclosingMethod</td>
+<td>类文件</td>
+<td>仅当一个类为局部类或匿名类时才能拥有这个属性，这个属性用于标识这个类所在的外围方法</td>
+</tr>
+<tr>
+<td>InnerClasses</td>
+<td>类文件</td>
+<td>内部类列表</td>
+</tr>
+<tr>
+<td>LineNumberTable</td>
+<td>Code 属性</td>
+<td>Java 源码的行号与字节码指令的对应关系</td>
+</tr>
+<tr>
+<td>LocalVariableTable</td>
+<td>Code 属性</td>
+<td>方法的局部变量描述</td>
+</tr>
+<tr>
+<td>StackMapTable</td>
+<td>Code 属性</td>
+<td>JDK 6 新增的属性，供新的类型检查验证器（Type Checker）检查和处理目标方法的局部变量和操作数栈所需要的类型是否匹配</td>
+</tr>
+<tr>
+<td>Signature</td>
+<td>类、方法表、字段表</td>
+<td>JDK 5 新增的属性，用于支持泛型情况下的方法签名，在 Java 语言中，任何类、接口、初始化方法或成员的泛型签名如果包含了类型变量（Type Variables）或参数化类型（Parameterized Types），则 Signature 属性会为它记录泛型签名信息。由于 Java 的泛型采用擦除法实现，在为了避免类型信息被擦除后导致签名混乱，需要这个属性记录泛型中的相关信息</td>
+</tr>
+<tr>
+<td>SourceFile</td>
+<td>类文件</td>
+<td>记录源文件名称</td>
+</tr>
+<tr>
+<td>SourceDebugExtension</td>
+<td>类文件</td>
+<td>JDK 6 新增属性，用于存储额外的调试信息。譬如在进行 JSP 文件调试时，无法通过 Java 堆栈来定位到 JSP 文件的行号，JSR-45 规范为这些非 Java 语言编写，却需要编译成字节码并运行在 Java 虚拟机中的程序提供了一个进行调试的标准机制，使用该属性就可以存储这个标准所新加入的调试信息</td>
+</tr>
+<tr>
+<td>Synthetic</td>
+<td>类、方法表、字段表</td>
+<td>表示方法或字段是由编译器自动生成的</td>
+</tr>
+<tr>
+<td>LocalVariableTypeTable</td>
+<td>类</td>
+<td>JDK 5 新增属性，它使用特征签名代替描述符，为了引入泛型语法之后能描述泛型参数化类型而添加</td>
+</tr>
+<tr>
+<td>RuntimeVisibleAnnotations</td>
+<td>类、方法表、字段表</td>
+<td>JDK 5 新增属性，为动态注解提供支持。该属性指明哪些注解是运行时（实际上运行时就是进行反射调用）可见的</td>
+</tr>
+<tr>
+<td>RuntimeInvisibleAnnotations</td>
+<td>类、方法表、字段表</td>
+<td>JDK 5 新增属性，与 <code>RuntimeVisibleAnnotations</code> 作用相反，用于指明哪些注解运行时不可见</td>
+</tr>
+<tr>
+<td>RuntimeVisibleParameterAnnotations</td>
+<td>方法表</td>
+<td>JDK 5 新增属性，作用与 <code>RuntimeVisibleAnnotations</code> 作用相似，只不过作用对象为方法参数</td>
+</tr>
+<tr>
+<td>RuntimeInvisibleParameterAnnotations</td>
+<td>方法表</td>
+<td>JDK 5 新增属性，作用与 <code>RuntimeInvisibleAnnotations</code> 作用相似，只不过作用对象为方法参数</td>
+</tr>
+<tr>
+<td>AnnotationDefault</td>
+<td>方法表</td>
+<td>JDK 5 新增属性，用于记录注解类元素的默认值</td>
+</tr>
+<tr>
+<td>BootstrapMethods</td>
+<td>类文件</td>
+<td>JDK 7 新增属性，用于存储 <code>invokedynamic</code> 指令引用的引导方法限定符</td>
+</tr>
+</tbody></table>
+<h3 id="Code-属性"><a href="#Code-属性" class="headerlink" title="Code 属性"></a>Code 属性</h3><p>Java 代码经过编译后最终编程字节码指令存储在 Code 属性内，Code 属性在方法表的属性集合中，但并非所有的方法表都必须存在这个属性，譬如接口或者抽象类就不存在 Code 属性。  </p>
+<p>Code 属性表结构：  </p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>u2</td>
+<td>attribute_name_index</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u4</td>
+<td>attribute_length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>max_stack</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>max_locals</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u4</td>
+<td>code_length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u1</td>
+<td>code</td>
+<td>code_length</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>exception_table_length</td>
+<td>1</td>
+</tr>
+<tr>
+<td>exception_info</td>
+<td>exception_table</td>
+<td>exception_table_length</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>attributes_count</td>
+<td>1</td>
+</tr>
+<tr>
+<td>attribute_info</td>
+<td>attributes</td>
+<td>attributes_count</td>
+</tr>
+</tbody></table>
+<p><code>attribute_name_index</code> 是指向 <code>CONSTANT_Utf8_info</code> 型常量的索引，常量值为 <code>Code</code>  </p>
+<p><code>attribute_length</code> 为属性值的长度  </p>
+<p><code>max_stack</code> 为操作数栈的最大深度  </p>
+<p><code>max_locals</code> 代表局部变量表所需的存储空间，这里的单位是 <code>Slot</code>，是虚拟机为局部变量分配内存使用的最小单位，对于 <code>byte</code>、<code>char</code>、<code>float</code>、<code>int</code>、<code>short</code>、<code>boolean</code> 和 <code>returnAddress</code> 等长度不超过 32 位的数据类型使用一个 <code>Slot</code>，<code>double</code> 和 <code>long</code> 使用两个 <code>Slot</code>。  </p>
+<p><code>code_length</code> 是编译后字节码指令长度，<code>code</code> 则是存储的字节码指令。既然叫字节码指令，那么每个指令就是一个 <code>u1</code> 类型的单字节，一个 <code>u1</code> 类型的取值范围为 <code>0x00</code>~&#96;0xFF&#96;，对应十进制的 0 到 255，所以一共能够表示 256 条指令，Java 虚拟机已经定义了 200 多条编码值对应的指令。  </p>
+<p><code>exception_table</code> 是显式异常处理表。  </p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>名称</th>
+<th>数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>u2</td>
+<td>start_pc</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>end_pc</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>handler_pc</td>
+<td>1</td>
+</tr>
+<tr>
+<td>u2</td>
+<td>catch_type</td>
+<td>1</td>
+</tr>
+</tbody></table>
+<p>它的含义为：如果字节码在第 <code>start_pc</code> 行到第 <code>end_pc</code> 之间出现了类型为 <code>catch_type</code> 或者其子类的异常（<code>catch_type</code> 是一个指向 <code>CONSTANT_Uft8_info</code> 型常量的索引），则转到第 <code>handler_pc</code> 行继续处理。当 <code>catch_type</code> 值为 0 时，代表任意异常情况都需要转到 <code>handler_pc</code> 行进行处理。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/04/17/Java%20%E6%96%B9%E6%B3%95%E5%8C%BA/" rel="prev" title="Java 方法区">
+                  <i class="fa fa-chevron-left"></i> Java 方法区
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/04/27/Servlet%203.1%20%E8%A7%84%E8%8C%83%E5%AD%A6%E4%B9%A0/" rel="next" title="Servlet 3.1 规范学习">
+                  Servlet 3.1 规范学习 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

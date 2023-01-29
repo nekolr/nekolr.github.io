@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.14.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="本章主要讨论在 HotSpot 虚拟机的堆内存中，Java 对象的内存分配、内存布局和访问定位的全过程。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 对象的创建、布局和访问">
+<meta property="og:url" content="https://blog.nekolr.com/2018/06/09/Java%20%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E3%80%81%E5%B8%83%E5%B1%80%E5%92%8C%E8%AE%BF%E9%97%AE/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="本章主要讨论在 HotSpot 虚拟机的堆内存中，Java 对象的内存分配、内存布局和访问定位的全过程。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/ppa.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/4Vb.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/qYz.png">
+<meta property="article:published_time" content="2018-06-09T15:27:00.000Z">
+<meta property="article:modified_time" content="2023-01-29T03:16:37.323Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/ppa.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2018/06/09/Java%20%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E3%80%81%E5%B8%83%E5%B1%80%E5%92%8C%E8%AE%BF%E9%97%AE/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2018/06/09/Java%20%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E3%80%81%E5%B8%83%E5%B1%80%E5%92%8C%E8%AE%BF%E9%97%AE/","path":"2018/06/09/Java 对象的创建、布局和访问/","title":"Java 对象的创建、布局和访问"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Java 对象的创建、布局和访问 | nekolr's blog</title>
+  
+
+
+
+
+
+
+  <script async defer data-website-id="" src=""></script>
+
+  <script defer data-domain="" src=""></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA"><span class="nav-number">1.</span> <span class="nav-text">对象的创建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%86%85%E5%AD%98%E5%B8%83%E5%B1%80"><span class="nav-number">2.</span> <span class="nav-text">对象的内存布局</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%AE%BF%E9%97%AE%E5%AE%9A%E4%BD%8D"><span class="nav-number">3.</span> <span class="nav-text">对象的访问定位</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2018/06/09/Java%20%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%9B%E5%BB%BA%E3%80%81%E5%B8%83%E5%B1%80%E5%92%8C%E8%AE%BF%E9%97%AE/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Java 对象的创建、布局和访问 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Java 对象的创建、布局和访问
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-06-09 15:27:00" itemprop="dateCreated datePublished" datetime="2018-06-09T15:27:00+00:00">2018-06-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>本章主要讨论在 HotSpot 虚拟机的堆内存中，Java 对象的内存分配、内存布局和访问定位的全过程。</p>
+<span id="more"></span>
+
+<h1 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a>对象的创建</h1><p>虚拟机在遇到一条创建对象的指令（比如 new）时，首先会去检查这个指令的参数是否能在常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已被加载、解析和初始化过。如果没有，那么会先执行相应的类加载的过程。</p>
+<p>在类加载检查通过后，虚拟机将会为新生对象分配内存。对象所需的内存大小在类加载完成之后便可完全确定，为对象分配内存空间的任务相当于把一块确定大小的内存从 Java 堆中划分出来。假如 Java 堆中的内存是绝对规整的，所有的内存都放到一边，空闲的内存放在另一边，中间放着一个指针作为分界点的指示器，那么分配内存就仅仅是把指针向空闲空间那边移动一段与对象大小相等的距离。这种分配方式称为<strong>指针碰撞（Bump the Pointer）</strong>。如果堆中的内存不是规整的，那么虚拟机就必须维护一个列表，记录哪些内存块是可用的，在分配内存时从列表中寻找一块足够大的空间划分给对象实例，并更新列表，这种分配方式称为<strong>空闲列表（Free List）</strong>。选择哪种分配方式由 Java 堆是否规整决定，而 Java 堆是否规整又由所采用的垃圾收集器是否带有压缩整理功能决定。因此，在使用 Serial、ParNew 等带有 Compack 功能的收集器时，系统采用的分配算法是指针碰撞；而使用 CMS 这种基于标记-清除（Mark-Sweep）算法的收集器时，通常采用空闲列表。</p>
+<p>在虚拟机中创建对象是很频繁的行为，即使是仅仅修改一个指针所指向的位置，在并发情况下也并不是线程安全的，可能出现正在给对象 A 分配内存，指针还没来得及修改，对象 B 又同时使用了原来的指针来分配内存的情况。解决这个问题有两种方案，一种是对分配内存空间的动作进行同步处理，实际上虚拟机采用的是 CAS 配合失败重试的方式来保证更新操作的原子性。另一种是把内存分配按照线程划分在不同的空间中进行，即每个线程在 Java 堆中预先分配一小块内存，称为本地线程分配缓冲（Thread Local Allocation Buffer，TLAB）。哪个线程要分配内存，就在哪个线程的 TLAB 上分配，只有在 TLAB 用完并重新分配新的 TLAB 时，才需要同步锁定。虚拟机是否使用 TLAB，可以通过 <code>-XX:+/-UseTLAB</code> 参数来设定。</p>
+<p>内存分配完成后，虚拟机需要将分配到的内存空间都初始化为零值（不包括对象头），如果使用 TLAB 则可以将初始化的操作提前至 TLAB 分配时进行。这一步操作保证了对象的实例字段在 Java 代码中可以不赋初始值就直接使用，程序能访问到这些字段的数据类型所对应的零值。接下来虚拟机要对对象进行必要的设置，例如这个对象是哪个类的实例，对象的哈希码，对象的 GC 分代年龄等信息，这些信息被存放在对象的对象头（Object Header）中。</p>
+<p>在上面的工作都完成后，从虚拟机的角度看，一个新的对象已经产生，但从程序的角度看，对象的创建才刚刚开始，因为 <code>&lt;init&gt;</code> 方法还没有执行，所有的字段都为零。一般来说（由字节码中是否跟随 invokespecial 指令决定），执行 new 指令之后会接着执行 <code>&lt;init&gt;</code> 方法，这样一个真正可用的对象才算完全生产出来。</p>
+<p>下面是 OpenJDK 提供的 HotSpot 虚拟机的 bytecodeInterpreter.cpp 中的代码片段，这个解释器实现很少被实际使用，因为大部分平台都使用模板解释器，当代码通过 JIT 编译器执行时差异就更大了，不过通过它可以了解 HotSpot 的运作过程。</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 确保常量池中存放的是已经解释的类</span></span><br><span class="line"><span class="keyword">if</span> (!constants-&gt;<span class="built_in">tag_at</span>(index).<span class="built_in">is_unresolved_klass</span>()) &#123;</span><br><span class="line">  <span class="comment">// 断言确保是 klassOop 和 instanceKlassOop</span></span><br><span class="line">  oop entry = (klassOop) *constants-&gt;<span class="built_in">obj_at_addr</span>(index);</span><br><span class="line">  <span class="built_in">assert</span>(entry-&gt;<span class="built_in">is_klass</span>(), <span class="string">&quot;Should be resolved klass&quot;</span>);</span><br><span class="line">  klassOop k_entry = (klassOop) entry;</span><br><span class="line">  <span class="built_in">assert</span>(k_entry-&gt;<span class="built_in">klass_part</span>()-&gt;<span class="built_in">oop_is_instance</span>(), <span class="string">&quot;Should be instanceKlass&quot;</span>);</span><br><span class="line">  instanceKlass* ik = (instanceKlass*) k_entry-&gt;<span class="built_in">klass_part</span>();</span><br><span class="line">  <span class="comment">// 确保对象所属类型已经经过初始化阶段</span></span><br><span class="line">  <span class="keyword">if</span> ( ik-&gt;<span class="built_in">is_initialized</span>() &amp;&amp; ik-&gt;<span class="built_in">can_be_fastpath_allocated</span>() ) &#123;</span><br><span class="line">    <span class="comment">// 取对象长度</span></span><br><span class="line">    <span class="type">size_t</span> obj_size = ik-&gt;<span class="built_in">size_helper</span>();</span><br><span class="line">    oop result = <span class="literal">NULL</span>;</span><br><span class="line">    <span class="comment">// 记录是否需要将对象所有字段置为零值</span></span><br><span class="line">    <span class="type">bool</span> need_zero = !ZeroTLAB;</span><br><span class="line">    <span class="comment">// 是否在 TLAB 中分配对象</span></span><br><span class="line">    <span class="keyword">if</span> (UseTLAB) &#123;</span><br><span class="line">      result = (oop) THREAD-&gt;<span class="built_in">tlab</span>().<span class="built_in">allocate</span>(obj_size);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (result == <span class="literal">NULL</span>) &#123;</span><br><span class="line">      need_zero = <span class="literal">true</span>;</span><br><span class="line">      <span class="comment">// 直接在 Eden 中分配对象</span></span><br><span class="line">retry:</span><br><span class="line">      HeapWord* compare_to = *Universe::<span class="built_in">heap</span>()-&gt;<span class="built_in">top_addr</span>();</span><br><span class="line">      HeapWord* new_top = compare_to + obj_size;</span><br><span class="line">      <span class="comment">// cmpxchg 是 x86 中的 CAS 指令，这里是一个 C++ 方法，通过 CAS 方式分配空间，并发失败的话，</span></span><br><span class="line">      <span class="comment">// 转到 retry 中重试直至成功分配为止</span></span><br><span class="line">      <span class="keyword">if</span> (new_top &lt;= *Universe::<span class="built_in">heap</span>()-&gt;<span class="built_in">end_addr</span>()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (Atomic::<span class="built_in">cmpxchg_ptr</span>(new_top, Universe::<span class="built_in">heap</span>()-&gt;<span class="built_in">top_addr</span>(), compare_to) != compare_to) &#123;</span><br><span class="line">          <span class="keyword">goto</span> retry;</span><br><span class="line">        &#125;</span><br><span class="line">        result = (oop) compare_to;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (result != <span class="literal">NULL</span>) &#123;</span><br><span class="line">      <span class="comment">// 如果需要，则为对象初始化零值</span></span><br><span class="line">      <span class="keyword">if</span> (need_zero ) &#123;</span><br><span class="line">        HeapWord* to_zero = (HeapWord*) result + <span class="built_in">sizeof</span>(oopDesc) / oopSize;</span><br><span class="line">        obj_size -= <span class="built_in">sizeof</span>(oopDesc) / oopSize;</span><br><span class="line">        <span class="keyword">if</span> (obj_size &gt; <span class="number">0</span> ) &#123;</span><br><span class="line">          <span class="built_in">memset</span>(to_zero, <span class="number">0</span>, obj_size * HeapWordSize);</span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="comment">// 根据是否启用偏向锁来设置对象头信息</span></span><br><span class="line">      <span class="keyword">if</span> (UseBiasedLocking) &#123;</span><br><span class="line">        result-&gt;<span class="built_in">set_mark</span>(ik-&gt;<span class="built_in">prototype_header</span>());</span><br><span class="line">      &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        result-&gt;<span class="built_in">set_mark</span>(markOopDesc::<span class="built_in">prototype</span>());</span><br><span class="line">      &#125;</span><br><span class="line">      result-&gt;<span class="built_in">set_klass_gap</span>(<span class="number">0</span>);</span><br><span class="line">      result-&gt;<span class="built_in">set_klass</span>(k_entry);</span><br><span class="line">      <span class="comment">// 将对象引用入栈，继续执行下一条指令</span></span><br><span class="line">      <span class="built_in">SET_STACK_OBJECT</span>(result, <span class="number">0</span>);</span><br><span class="line">      <span class="built_in">UPDATE_PC_AND_TOS_AND_CONTINUE</span>(<span class="number">3</span>, <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="对象的内存布局"><a href="#对象的内存布局" class="headerlink" title="对象的内存布局"></a>对象的内存布局</h1><p>对象在内存中存储的布局分为 3 块区域：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）。</p>
+<p>对象头通常包含两部分信息，Mark Word 和类型指针。当对象是数组时，另外包含一个数组的长度。第一部分官方称为 Mark Word，用于存储对象自身的运行时数据，如哈希码（HashCode）、GC 分代年龄、锁状态标志、线程持有的锁、偏向线程 ID、偏向时间戳等，这部分数据的长度在 32 位和 64 位虚拟机（未开启压缩指针）中分别为 32bit 和 64bit。由于 Mark Word 的信息与对象自身定义的数据无关，考虑到虚拟机的空间效率，它被设计为非固定的数据结构，它会根据对象的状态复用存储空间，如在 32 位的 HotSpot 虚拟机中，如果对象处于未被锁定的状态，Mark Word 的 32bit 空间中，25bit 用于存储对象的哈希码，4bit 用于存储对象的分代年龄，2bit 用于存储锁标志位，1bit 用于存储是否是偏向锁。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/ppa.png" alt="锁状态"></p>
+<p>对象头的另一个部分是类型指针，即对象指向它的类元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例。并不是所有的虚拟机实现都必须在对象头存储类型指针（Java 程序通过栈上的 reference 数据来操作堆上的具体对象，由于虚拟机规范中只规定了一个指向对象的引用，并没有定义这个引用应该使用何种方式去定位、访问堆中的对象的具体位置，所以对象访问方式取决于虚拟机的实现，主流的访问方式有使用句柄和直接指针两种，而使用句柄的方式不需要在对象头中存储类型指针）。如果对象是数组，则对象头中还存储数组的长度。</p>
+<p>实例数据存储程序代码中定义的各种类型的字段内容，无论是从父类继承的还是在子类中定义的都会记录下来，这部分的存储顺序受到虚拟机分配策略参数（FieldsAllocationStyle）和字段在源码中定义的顺序影响。</p>
+<p>对齐填充不是必然存在的，也没有特别的含义，它仅仅起着占位符的作用。HotSpot 虚拟机自动内存管理系统要求对象的起始地址必须是 8 字节的整数倍，换句话说，就是对象的大小必须是 8 字节的整数倍。对象头正好是 8 字节的整数倍（1 倍或 2 倍），因此当对象实例数据部分没有对齐时，需要通过对齐填充来补全。  </p>
+<h1 id="对象的访问定位"><a href="#对象的访问定位" class="headerlink" title="对象的访问定位"></a>对象的访问定位</h1><p>Java 程序需要通过栈上的 reference 数据来操作堆上具体的对象。由于 reference 类型在 Java 虚拟机规范中只规定了一个指向对象的引用，并没有定义这个引用应该通过何种方式去定位和访问，所以对象访问的方式也是取决于虚拟机的实现。目前主流的访问方式有<strong>句柄</strong>和<strong>直接指针</strong>两种，HotSpot 虚拟机采用的是直接指针的方式。</p>
+<p>如果使用句柄访问，那么 Java 堆中将会划分出一块内存作为句柄池，reference 中存储的就是对象的句柄地址，句柄中包含了对象实例数据和类型数据各自具体的地址信息。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/4Vb.png" alt="句柄"></p>
+<p>如果使用直接指针，那么 Java 堆对象的内存布局中就必须考虑如何放置访问类型数据的相关信息，而 reference 中存储的直接就是对象的内存地址。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202004171532/2020/04/17/qYz.png" alt="直接指针"></p>
+<p>这两种方式各有优势，使用句柄来访问的最大好处就是 reference 中存储的是稳定的句柄地址，在对象被移动（比如垃圾收集）时只会改变句柄中实例数据的指针，而 reference 本身不需要修改。使用直接指针访问的最大好处就是速度块，它节省了一次指针定位的时间开销。由于对象的访问在 Java 中非常频繁，因此这类开销积少成多后也是一项非常可观的执行成本。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p>《深入理解 Java 虚拟机:JVM 高级特性与最佳实践》</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/05/29/%E4%B8%BA%E4%BD%95%E5%8C%BF%E5%90%8D%E5%86%85%E9%83%A8%E7%B1%BB%E7%9A%84%E5%8F%82%E6%95%B0%E5%BC%95%E7%94%A8%E8%A6%81%E7%94%A8%20final%20%E4%BF%AE%E9%A5%B0/" rel="prev" title="为何匿名内部类的参数引用要用 final 修饰">
+                  <i class="fa fa-chevron-left"></i> 为何匿名内部类的参数引用要用 final 修饰
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/07/24/Redis%20%E5%85%A5%E9%97%A8/" rel="next" title="Redis 入门">
+                  Redis 入门 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

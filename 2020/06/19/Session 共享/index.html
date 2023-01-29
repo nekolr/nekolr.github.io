@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.14.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="我们知道，Session 是由服务端生成的，在生成 Session 的同时还会生成一个唯一的 Session Id。一般的 Web 应用会在服务器内存当中开辟一部分内存用来存储 Session，同时这个 Session Id 会以 Cookie 的形式发送给浏览器，浏览器会将它保存到本地磁盘当中，在下次请求同一个域时会一并提交。然而当系统架构升级为分布式架构或者微服务架构时，作为流量入口的网关会通">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Session 共享">
+<meta property="og:url" content="https://blog.nekolr.com/2020/06/19/Session%20%E5%85%B1%E4%BA%AB/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="我们知道，Session 是由服务端生成的，在生成 Session 的同时还会生成一个唯一的 Session Id。一般的 Web 应用会在服务器内存当中开辟一部分内存用来存储 Session，同时这个 Session Id 会以 Cookie 的形式发送给浏览器，浏览器会将它保存到本地磁盘当中，在下次请求同一个域时会一并提交。然而当系统架构升级为分布式架构或者微服务架构时，作为流量入口的网关会通">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2020-06-19T12:51:00.000Z">
+<meta property="article:modified_time" content="2023-01-29T03:16:37.323Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="架构">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2020/06/19/Session%20%E5%85%B1%E4%BA%AB/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/06/19/Session%20%E5%85%B1%E4%BA%AB/","path":"2020/06/19/Session 共享/","title":"Session 共享"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Session 共享 | nekolr's blog</title>
+  
+
+
+
+
+
+
+  <script async defer data-website-id="" src=""></script>
+
+  <script defer data-domain="" src=""></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%8D%E4%BD%BF%E7%94%A8-Session"><span class="nav-number">1.</span> <span class="nav-text">不使用 Session</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Session-%E5%90%8C%E6%AD%A5"><span class="nav-number">2.</span> <span class="nav-text">Session 同步</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#IP-%E7%BB%91%E5%AE%9A"><span class="nav-number">3.</span> <span class="nav-text">IP 绑定</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9B%86%E4%B8%AD%E5%BC%8F%E5%AD%98%E5%82%A8"><span class="nav-number">4.</span> <span class="nav-text">集中式存储</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2020/06/19/Session%20%E5%85%B1%E4%BA%AB/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Session 共享 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Session 共享
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-06-19 12:51:00" itemprop="dateCreated datePublished" datetime="2020-06-19T12:51:00+00:00">2020-06-19</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%9E%B6%E6%9E%84/" itemprop="url" rel="index"><span itemprop="name">架构</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>我们知道，Session 是由服务端生成的，在生成 Session 的同时还会生成一个唯一的 Session Id。一般的 Web 应用会在服务器内存当中开辟一部分内存用来存储 Session，同时这个 Session Id 会以 Cookie 的形式发送给浏览器，浏览器会将它保存到本地磁盘当中，在下次请求同一个域时会一并提交。然而当系统架构升级为分布式架构或者微服务架构时，作为流量入口的网关会通过负载均衡策略将用户的请求转发到不同的 Web 容器当中，这就可能会出现用户登录系统后，再次发送请求则被告知没有登录的情况。此时就需要某种机制来确保所有的 Web 容器能够共享用户的 Session 信息。</p>
+<span id="more"></span>
+
+<h1 id="不使用-Session"><a href="#不使用-Session" class="headerlink" title="不使用 Session"></a>不使用 Session</h1><p>这不是随便说说，在某些场景下确实可以不使用 Session。现在的很多接口类系统中都提倡“无状态服务”，也就是说每一次的接口访问都不依赖于前一次的接口访问，这样服务端就可以很容易地进行水平扩展，也就不存在 Session 共享的问题了。比较典型的方案就是 JWT（JSON Web Tokens）。</p>
+<p><strong>在传统的 Session-Cookie 机制中，状态是由服务端负责维护的；而在 JWT 中，状态是由客户端负责维护的</strong>。JWT 的原理是，服务端在认证完成后，会将用户信息与一些 JWT 的配置信息相结合，最终通过某种算法生成一个很长的字符串。这个字符串由三部分组成，中间用 <code>.</code> 进行分隔，分别为头部（Header）、负载（Payload）和签名（Signature）。其中 Header 是一个 JSON 对象，存储的是签名使用的算法和最终生成的令牌的类型。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;alg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;HS256&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;typ&quot;</span><span class="punctuation">:</span> <span class="string">&quot;JWT&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>Payload 部分也是一个 JSON 对象，它用来存储实际需要传递的数据，JWT 规定了 7 个官方字段供我们选用：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">iss (issuer)：签发人</span><br><span class="line">exp (expiration time)：过期时间</span><br><span class="line">sub (subject)：主题</span><br><span class="line">aud (audience)：受众</span><br><span class="line">nbf (Not Before)：生效时间</span><br><span class="line">iat (Issued At)：签发时间</span><br><span class="line">jti (JWT ID)：编号</span><br></pre></td></tr></table></figure>
+
+<p>Signature 部分是对前两部分的签名，这样可以有效防止数据被篡改。在生成签名时，需要指定一个密钥（secret），这个密钥需要在服务端进行保存，不能泄露给其他人。然后使用 Header 中指定的签名算法，按照下面的公式生成签名：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HMACSHA256(base64UrlEncode(header) + &quot;.&quot; + base64UrlEncode(payload), secret)</span><br></pre></td></tr></table></figure>
+
+<p>JWT 方案最大的问题就是无法在使用过程中将某个已经签发的令牌作废，或者更改令牌的权限。也就是说，一旦 JWT 签发了一个令牌，那么在到期之前，该令牌会始终有效。因此如果令牌发生泄漏我们也无法处理，只能等待令牌到期失效。造成这个问题的根本原因是我们将状态维护的工作交给了客户端，服务端已经无法对状态进行控制。网上有很多人为了解决这个问题，选择了引入类似 Redis 这种的存储系统来负责维护签发过的令牌，我不能说这种做法有多不好，毕竟这也能实现需求，但是这种做法明显已经偏离了 JWT 的初衷（stateless 无状态），还不如直接使用更加成熟的 Session-Cookie 机制。总的来说，JWT 应该被用在 Token 有效时间短，或者一次性使用的场景中。设置较短的有效时间可以降低 Token 泄露时的危险程度。</p>
+<p>Cookie 的特性决定了它只能在浏览器中使用，现在的很多系统服务的设备类型多种多样，如果在移动设备上采用原生的方式开发 App（Native App），那么开发人员就需要自己手动模拟浏览器来维护 Cookie（手动解析 <code>Set-Cookie</code> Header 等），因此在一些系统中开发人员可能更倾向于使用 Token + Redis 的方案。用户登录后，服务端通过某种方式生成一个唯一的 Token 返回给客户端，客户端在接下来的每次请求的 Header 中都携带该 Token。而服务端则会将 Token 与用户信息以键值对的形式存储在 Redis 中，并设置过期时间。这种方案本质上还是实现了类似 Session-Cookie 的机制，它还是有状态的，只不过状态的维护由之前的 Web 容器转移到了集中式的内存服务（Redis）中。同时我们很容易地就能想到，这种将状态的维护转移并集中管理的做法同样可以应用到 Session-Cookie 机制当中。</p>
+<h1 id="Session-同步"><a href="#Session-同步" class="headerlink" title="Session 同步"></a>Session 同步</h1><p>所谓 Session 同步就是通过网络将 Web 容器的 Session 复制到其他 Web 容器上，最终实现所有的 Web 容器都保存相同的 Session。这种方案的优点就是不需要修改代码，但是缺点也很多：首先需要 Web 容器支持 Session 同步，一旦容器不支持那就无法使用了。Tomcat 有一个开源的 Session 同步组件 <a target="_blank" rel="noopener" href="https://github.com/jcoleman/tomcat-redis-session-manager">tomcat-redis-session-manager</a>，但是它不支持 Tomcat 8 及以上的版本。同时如果数据量较大时同步还有可能会出现延迟，因此这个方案一般都不会考虑。</p>
+<h1 id="IP-绑定"><a href="#IP-绑定" class="headerlink" title="IP 绑定"></a>IP 绑定</h1><p>使用 Nginx（或其他负载均衡软硬件）中的 IP 绑定策略（<code>ip_hash</code> 策略），将同一个用户（相同 IP 地址）的请求都转发到固定的一个 Web 容器中，这么做同样可以避免修改代码，但是也失去了负载均衡的意义，当一台服务器宕机的时候，会影响一批用户的使用。</p>
+<h1 id="集中式存储"><a href="#集中式存储" class="headerlink" title="集中式存储"></a>集中式存储</h1><p>将 Session 交给一个集中式的存储系统负责维护，所有的 Web 容器都通过这个存储系统实现 Session 的存取。这种方案的优点就是可靠性较高，同时水平扩展方便，缺点是系统整体的复杂度提升，同时引入新的组件也就意味着可能会产生很多新的问题。这种方案是目前比较常用的方案，典型的开源实现就是 Spring Session。当然也可以选择自己实现，其核心思想就是重写 HttpServletRequestWrapper 中的 getSession 方法。</p>
+<p>Spring Session 提供了多种存储方案的实现，比如 Redis、JDBC（关系型数据库）、MongoDB 等，我们这里使用 Spring Session Data Redis 模块来举一个例子。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.1.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.session<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-session-data-redis<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>使用 Spring Boot 可以减少很多手工配置的工作，接下来只需要使用 <code>@EnableRedisHttpSession</code> 注解就可以将 Session 的集中存储管理交给 Redis。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="meta">@EnableRedisHttpSession</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SpringSessionDemoApplication</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        SpringApplication.run(SpringSessionDemoApplication.class, args);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>@EnableRedisHttpSession</code> 注解中，使用 <code>@Import</code> 注解引入了 RedisHttpSessionConfiguration 配置类，该配置类的主要目的是在容器中注册一个 SessionRepositoryFilter 过滤器，这个过滤器会拦截所有的请求，并将 HttpServletRequest 和 HttpServletResponse 包装成 SessionRepositoryRequestWrapper 和 SessionRepositoryResponseWrapper，在 Wrapper 类中重写了 getSession 等方法。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9E%B6%E6%9E%84/" rel="tag"># 架构</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/06/18/%E5%8A%A8%E9%9D%99%E5%88%86%E7%A6%BB%E4%B8%8E%20AJP%20%E5%8D%8F%E8%AE%AE/" rel="prev" title="动静分离与 AJP 协议">
+                  <i class="fa fa-chevron-left"></i> 动静分离与 AJP 协议
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/07/03/InnoDB%20%E8%A1%8C%E8%AE%B0%E5%BD%95%E6%A0%BC%E5%BC%8F/" rel="next" title="InnoDB 行记录格式">
+                  InnoDB 行记录格式 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

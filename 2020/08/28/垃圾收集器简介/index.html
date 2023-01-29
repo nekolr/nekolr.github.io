@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.14.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="如果说垃圾收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。Java 虚拟机规范中对于垃圾收集器应该如何实现并没有规定，因此不同的厂商、不同版本的虚拟机所提供的垃圾收集器都有可能不同。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="垃圾收集器简介">
+<meta property="og:url" content="https://blog.nekolr.com/2020/08/28/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%AE%80%E4%BB%8B/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="如果说垃圾收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。Java 虚拟机规范中对于垃圾收集器应该如何实现并没有规定，因此不同的厂商、不同版本的虚拟机所提供的垃圾收集器都有可能不同。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/6E7.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/3Je.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/ooa.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/B7e.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/30/lV9.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/30/jjL.png">
+<meta property="article:published_time" content="2020-08-28T16:45:00.000Z">
+<meta property="article:modified_time" content="2023-01-29T03:16:37.327Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/6E7.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2020/08/28/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%AE%80%E4%BB%8B/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/08/28/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%AE%80%E4%BB%8B/","path":"2020/08/28/垃圾收集器简介/","title":"垃圾收集器简介"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>垃圾收集器简介 | nekolr's blog</title>
+  
+
+
+
+
+
+
+  <script async defer data-website-id="" src=""></script>
+
+  <script defer data-domain="" src=""></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Serial"><span class="nav-number">1.</span> <span class="nav-text">Serial</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Parallel-New"><span class="nav-number">2.</span> <span class="nav-text">Parallel New</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Parallel-Scavenge"><span class="nav-number">3.</span> <span class="nav-text">Parallel Scavenge</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Serial-Old"><span class="nav-number">4.</span> <span class="nav-text">Serial Old</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Parallel-Old"><span class="nav-number">5.</span> <span class="nav-text">Parallel Old</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CMS"><span class="nav-number">6.</span> <span class="nav-text">CMS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#G1"><span class="nav-number">7.</span> <span class="nav-text">G1</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ZGC-%E5%92%8C-Shenandoah"><span class="nav-number">8.</span> <span class="nav-text">ZGC 和 Shenandoah</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">9.</span> <span class="nav-text">附录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">10.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2020/08/28/%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8%E7%AE%80%E4%BB%8B/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="垃圾收集器简介 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          垃圾收集器简介
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-08-28 16:45:00" itemprop="dateCreated datePublished" datetime="2020-08-28T16:45:00+00:00">2020-08-28</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>如果说垃圾收集算法是内存回收的方法论，那么垃圾收集器就是内存回收的具体实现。Java 虚拟机规范中对于垃圾收集器应该如何实现并没有规定，因此不同的厂商、不同版本的虚拟机所提供的垃圾收集器都有可能不同。</p>
+<span id="more"></span>
+
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/6E7.png" alt="垃圾收集器汇总"></p>
+<p>图中是 HotSpot 虚拟机中的垃圾收集器，它们作用于不同分代，如果两个收集器之间存在连线，那么就代表它们可以搭配使用。在 JDK 8 中，它们常见的搭配组合如下：</p>
+<table>
+<thead>
+<tr>
+<th>新生代</th>
+<th>老年代</th>
+<th>JVM Options</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Serial</td>
+<td>Serial Old</td>
+<td>-XX:+UseSerialGC</td>
+</tr>
+<tr>
+<td>Parallel New</td>
+<td>CMS</td>
+<td>-XX:+UseParNewGC -XX:+UseConcMarkSweepGC</td>
+</tr>
+<tr>
+<td>Parallel Scavenge</td>
+<td>Parallel Old</td>
+<td>-XX:+UseParallelGC -XX:+UseParallelOldGC</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>G1</td>
+<td>-XX:+UseG1GC</td>
+</tr>
+</tbody></table>
+<h1 id="Serial"><a href="#Serial" class="headerlink" title="Serial"></a>Serial</h1><p>Serial 是最基本、发展历史最长的垃圾收集器，在 JDK 1.3.1 之前是新生代垃圾收集的唯一选择。它是一个单线程的收集器，同时它在进行垃圾收集时，必须暂停其他所有的工作线程，直到它收集结束。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/3Je.png" alt="Serial"></p>
+<p>虽然 Serial 是一个串行的收集器，但是它简单而高效（相对于其他收集器的单线程来说），对于单个 CPU 的环境来说，Serial 收集器由于没有线程切换的开销，专心做垃圾收集可以获得较高的收集效率。Serial 收集器对于运行在 Client 模式下的虚拟机来说是一个很好的选择。</p>
+<h1 id="Parallel-New"><a href="#Parallel-New" class="headerlink" title="Parallel New"></a>Parallel New</h1><p>ParNew 垃圾收集器其实就是 Serial 垃圾收集器的多线程版本，除此之外并没有太多创新之处，很多运行在 Server 模式的虚拟机选择使用它作为新生代垃圾收集器的一个很重要的原因就是，除了 Serial 收集器外，只有它能够与 CMS 收集器配合工作。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/ooa.png" alt="ParNew"></p>
+<p>ParNew 收集器在单 CPU 环境中比 Serial 收集器效果差，但是当 CPU 数量增加时，它可以在 GC 时更有效地利用系统资源。它默认开启的收集线程数与 CPU 的数量相当，当然也可以通过参数 <code>-XX:ParallelGCThreads</code> 自定义垃圾收集的线程数。</p>
+<h1 id="Parallel-Scavenge"><a href="#Parallel-Scavenge" class="headerlink" title="Parallel Scavenge"></a>Parallel Scavenge</h1><p>Parallel Scavenge 也是新生代的垃圾收集器，它同样使用的是复制算法，同时也是并行的多线程收集器，但是它的关注点与其他收集器不同，像 CMS 等收集器的关注点是尽可能地缩短垃圾收集时用户线程的停顿时间，而 Parallel Scavenge 的目的则是为了达到一个可控制的吞吐量（Throughout）。所谓吞吐量是指 CPU 用于运行用户代码的时间与 CPU 总的消耗时间的比值，即吞吐量 &#x3D; 运行用户代码的时间 &#x2F; (运行用户代码的时间 + 垃圾收集的时间)，如果虚拟机总共运行了 100 分钟，其中垃圾收集花费了 1 分钟，那么吞吐量就是 99 %。</p>
+<p>它提供了两个参数用于精确控制吞吐量，一个是用于控制最大垃圾收集停顿时间（<code>-XX:MaxGCPauseMillis</code>）的参数和一个直接设置吞吐量大小的 <code>-XX:GCTimeRatio</code> 参数。MaxGCPauseMillis 可以是一个大于 0 的毫秒数，收集器将尽可能地保证内存回收花费的时间不超过该值，但是我们需要明白 GC 停顿时间的缩短是以牺牲吞吐量和新生代空间来换取的，比如我们把新生代设置的小一点，将原先的 500 MB 设置为 300 MB，这样垃圾收集的速度肯定快了，但是这也可能导致新生代由于内存空间不足而垃圾收集更加频繁，原来 10 秒收集一次，每次停顿 100 毫秒，现在变成了 5 秒收集一次，每次停顿 70 毫秒，停顿时间是下降了，但是吞吐量也跟着下降了。</p>
+<p>GCTimeRatio 参数应当是一个大于 0 且小于 100 的整数 N，它将垃圾回收时间与应用程序运行的总时间的比率设置为 1 &#x2F; (1 + N)，所以当 N 为 19 时，表示垃圾回收的时间占总时间的比率为 5 %。N 的默认值为 99，即只有 1 % 的时间用于垃圾收集。</p>
+<p>除了这两个参数外，还有一个 <code>-XX:UseAdaptiveSizePolicy</code> 参数，当该参数开启时，就不需要手工指定新生代的大小（-Xmn）、Eden 与 Survivor 的比例（-XX:SurvivorRatio）、晋升老年代的对象年龄（-XX:PretenureSizeThreshold）等参数了，虚拟机会根据当前系统的运行情况收集性能监控信息，动态地调整这些参数，这种调节方式称为 GC 自适应的调节策略（GC Ergonomics）。</p>
+<h1 id="Serial-Old"><a href="#Serial-Old" class="headerlink" title="Serial Old"></a>Serial Old</h1><p>Serial Old 是 Serial 收集器的老年代版本，它同样是一个单线程的收集器，使用“标记-整理”算法，它对于运行在 Client 模式下的虚拟机的来说是一个很好的选择，而在 Server 模式下，它可以在 JDK 1.5 以及之前的版本中与 Parallel Scavenge 收集器搭配使用，或者作为 CMS 收集器的后备预案。</p>
+<h1 id="Parallel-Old"><a href="#Parallel-Old" class="headerlink" title="Parallel Old"></a>Parallel Old</h1><p>Parallel Old 是 Parallel Scavenge 收集器的老年代版本，使用“标记-整理”算法，在 JDK 1.6 才开始提供，在此之前，新生代的 Parallel Scavenge 收集器一直处于比较尴尬的状态，因为它除了和 Serial Old 收集器搭配外别无选择。由于老年代的 Serial Old 收集器在服务端性能上的“拖累”，使得即使是使用了 Parallel Scavenge 收集器也未必能在整体上获得吞吐量最大化的效果。</p>
+<h1 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h1><p>CMS（Concurrent Mark Sweep）是一种以获取最短回收停顿时间为目标的收集器，它基于“标记-清除”算法实现，它的运作过程相对于前面的几种收集器来说更为复杂，整个过程分为四个步骤：初始标记（CMS initial mark）、并发标记（CMS concurrent mark）、重新标记（CMS remark）和并发清除（CMS concurrent sweep），其中初始标记和重新标记都需要“Stop The World”。</p>
+<p>初始标记仅仅只是标记一下 GC Roots 能直接关联到的对象，速度很快，并发标记阶段就是进行 GC Roots Tracing 的过程，而重新标记则是为了修正并发标记期间因用户程序继续执行而导致标记产生变动的哪些对象的标记，这个阶段停顿的时间一般比初始标记要稍长，但又远比并发标记时间短。整个过程中，并发标记和并发清除阶段的收集器线程都可以与用户线程同时运行，所以总体上来说，CMS 收集器的内存回收过程几乎是与用户线程一起并发执行的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/28/B7e.png" alt="CMS"></p>
+<p>CMS 是一款优秀的垃圾收集器，它可以并发收集，能够做到低停顿，但是它有几个明显的缺点，比如对于 CPU 资源非常敏感（面向并发设计的程序对于 CPU 资源都比较敏感）。CMS 默认启动的回收线程数为(CPU 数 + 3) &#x2F; 4，在并发阶段，它虽然不会导致用户线程停顿，但是有可能会因为占用了一部分 CPU 资源而导致用户程序变慢。</p>
+<p>还有就是它无法处理浮动垃圾（Floating Garbage），可能会导致出现 Concurrent Mode Failure 从而引发一次 Full GC。由于在 CMS 在并发清除阶段用户线程还在运行，自然就会有新的垃圾不断产生，这部分垃圾出现在标记过程之后，CMS 无法在当次集中回收它们，只好等待下一次 GC。因此，CMS 收集器不能像其他收集器那样在老年代快要填满时才进行收集，它需要预留一部分空间给并发收集期间的用户线程使用。通过 <code>-XX:CMSInitiatingOccupancyFraction</code> 参数可以调整触发收集时老年代的使用比例。在 JDK 1.5 中，该阈值为 68 %，而在 JDK 1.6 中则提高到了 92 %，并且如果 CMS 运行期间预留的内存无法满足需要时，会出现 Concurrent Mode Failure 并启动预备方案：临时启动 Serial Old 重新进行老年代的垃圾收集。</p>
+<p>由于 CMS 是基于“标记-清除”算法实现的，这就意味着垃圾收集后可能会产生大量的内存空间碎片，这会给后来的大对象内存分配带来麻烦，可能老年代还有很大的内存空间剩余，但是却无法找到足够大的连续空间进行分配，从而不得不提前触发一次 Full GC。为了解决这个问题，CMS 提供了内存碎片合并整理的功能，但是整理的过程是无法并发的，碎片问题没有了，但是停顿时间也增加了。</p>
+<h1 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h1><p>G1 在 JDK 1.7 中正式发布，它的使命是替换掉 JDK 1.5 中发布的 CMS 收集器。G1（Garbage First）是一款分代、增量、并行、大部分时间并发的垃圾收集器，从整体上看它是基于“标记-整理”算法。</p>
+<p>G1 中虽然还有分代的概念，但是它进行垃圾收集的范围却是整个堆，它将堆划分为多个大小相等的独立区域（Region），每个 Region 内都是一些连续的虚拟内存。Region 是进行内存分配和回收的基本单位，在某个特定的时间点，一个 Region 可能是空闲的（图中浅灰色区域），也有可能被分配到了某个分代（generation）中，可能是新生代或者老年代。当收到内存分配的请求时，内存管理器就会将空闲的 Region 分配给某个分代，然后将它们作为可分配自身的可用空间返回给应用程序。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/30/lV9.png" alt="G1 Heap Layout"></p>
+<p>图中的红色区域和标有 S 的红色区域分别为新生代的 Eden 区和 Survivor 区，这些 Region 在内存中通常是物理上不连续的。浅蓝色的 Region 组成了老年代，标有 H 的浅蓝色区域代表的是大对象（Humongous）Region，这些对象可以横跨多个 Region。</p>
+<p>G1 进行垃圾收集的生命周期可以分为两个阶段：Young-only 阶段和 Space-reclamation 阶段。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008312103/2020/08/30/jjL.png" alt="G1 垃圾收集的生命周期"></p>
+<p>Young-only 阶段从新生代的一些 Young GC 开始。Young GC 采用复制算法，并行收集，垃圾收集时会发生 STW 暂停，活跃的对象被复制到 Survivor 区域，如果达到晋升的阈值，对象会晋升到老年代的区域。与其他垃圾收集器不同的是，G1 会根据预测的停顿时间动态地调整新生代的大小。当老年代空间的占用率达到一个阈值时（具体来说是整个堆的空间占用达到一个阈值，该阈值通过 <code>-XX:InitiatingHeapOccupancyPercent</code> 参数控制，默认为 45，即 45 %）就会开始 Young-only 阶段到 space-reclamation 阶段的转换，这个过程的第一个子阶段就是 Concurrent Start。</p>
+<p>在 Concurrent Start 阶段，G1 除了会进行 Young GC 外，还会根据新生代 Survivor 区以及老年代的 Remembered Set（记录对象的引用关系，加快活跃对象的遍历）开始并发标记的过程，此时会启动多个并发的标记线程，每个线程每次只扫描一个 Region，标记出存活对象。这个过程不需要 STW，因此用户线程可以与标记线程并发执行。</p>
+<blockquote>
+<p>这里需要说明的是，在并发标记之前的 Young GC 其实也是初始标记的过程，因为在 Young GC 的过程中，首先会查找直接可达的一些根对象（栈对象、全局对象、JNI 对象等），然后暂停用户线程进行初始标记并进行内存回收。其实混合回收（Mixed GC）就是借用了新生代回收的结果，即将新生代进行垃圾回收后的 Survivor 区作为根。</p>
+</blockquote>
+<p>接下来就是 Remark 阶段，在这个阶段中 G1 需要 STW，找出所有未被访问的存活对象，做全局的引用处理和类卸载，回收全空的 Region 并清理内部的数据结构，计算老年代可回收的空间，最终结束并发标记的过程。然后就是清理阶段（Cleanup），该阶段也需要 STW，并在该停顿中决定是否要开始 Space-reclamation 阶段。</p>
+<p>Space-reclamation 阶段由多个 Mixed GC 组成，Mixed GC 不光回收新生代的 Region，同时也会回收老年代的 Region。当 G1 发现无法回收更多的老年代内存时，该阶段就结束了，接着会重新回到 Young-only 阶段开始一个新的回收周期。同时为了以防万一，在收集存活对象的时候，如果应用内存耗尽了，G1 也会像其他收集器那样进行整个堆的 STW 压缩，即 Full GC。</p>
+<h1 id="ZGC-和-Shenandoah"><a href="#ZGC-和-Shenandoah" class="headerlink" title="ZGC 和 Shenandoah"></a>ZGC 和 Shenandoah</h1><h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><table>
+<thead>
+<tr>
+<th>JDK 版本</th>
+<th>默认的垃圾收集器</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>JDK 7</td>
+<td>Parallel Scavenge + Parallel Old</td>
+</tr>
+<tr>
+<td>JDK 8</td>
+<td>Parallel Scavenge + Parallel Old</td>
+</tr>
+<tr>
+<td>JDK 9</td>
+<td>G1</td>
+</tr>
+<tr>
+<td>JDK 11</td>
+<td>G1</td>
+</tr>
+</tbody></table>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://plumbr.io/handbook/garbage-collection-algorithms-implementations#concurrent-mark-and-sweep">GC Algorithms: Implementations</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/aspirant/p/8663872.html">G1 垃圾收集器架构和如何做到可预测的停顿</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/08/27/Java%20%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E7%81%AB%E7%84%B0%E5%9B%BE/" rel="prev" title="Java 性能分析之火焰图">
+                  <i class="fa fa-chevron-left"></i> Java 性能分析之火焰图
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/09/03/GC%20%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90/" rel="next" title="GC 日志分析">
+                  GC 日志分析 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

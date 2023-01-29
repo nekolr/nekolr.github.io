@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha256-Z1K5uhUaJXA7Ll0XrZ/0JhX4lAtZFpT6jkKrEDT0drU=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.14.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="最近在接触了一些前端模板框架后，突然觉得以前在 AJAX 操作中拼接组装大量 DOM 对象是多么笨。在了解了 underscore 库的 template 方法后，准备在公司项目中来使用它，但是公司还在用 jQuery，因此准备拿它扩展 jQuery。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="使用 underscore.template 扩展 jQuery">
+<meta property="og:url" content="https://blog.nekolr.com/2017/12/02/%E4%BD%BF%E7%94%A8%20underscore.template%20%E6%89%A9%E5%B1%95%20jQuery/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="最近在接触了一些前端模板框架后，突然觉得以前在 AJAX 操作中拼接组装大量 DOM 对象是多么笨。在了解了 underscore 库的 template 方法后，准备在公司项目中来使用它，但是公司还在用 jQuery，因此准备拿它扩展 jQuery。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2017-12-02T18:02:00.000Z">
+<meta property="article:modified_time" content="2023-01-29T03:16:37.327Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="jQuery">
+<meta property="article:tag" content="underscore.js">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2017/12/02/%E4%BD%BF%E7%94%A8%20underscore.template%20%E6%89%A9%E5%B1%95%20jQuery/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2017/12/02/%E4%BD%BF%E7%94%A8%20underscore.template%20%E6%89%A9%E5%B1%95%20jQuery/","path":"2017/12/02/使用 underscore.template 扩展 jQuery/","title":"使用 underscore.template 扩展 jQuery"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>使用 underscore.template 扩展 jQuery | nekolr's blog</title>
+  
+
+
+
+
+
+
+  <script async defer data-website-id="" src=""></script>
+
+  <script defer data-domain="" src=""></script>
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-overview-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2017/12/02/%E4%BD%BF%E7%94%A8%20underscore.template%20%E6%89%A9%E5%B1%95%20jQuery/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="使用 underscore.template 扩展 jQuery | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          使用 underscore.template 扩展 jQuery
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2017-12-02 18:02:00" itemprop="dateCreated datePublished" datetime="2017-12-02T18:02:00+00:00">2017-12-02</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/jQuery/" itemprop="url" rel="index"><span itemprop="name">jQuery</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>最近在接触了一些前端模板框架后，突然觉得以前在 AJAX 操作中拼接组装大量 DOM 对象是多么笨。在了解了 underscore 库的 template 方法后，准备在公司项目中来使用它，但是公司还在用 jQuery，因此准备拿它扩展 jQuery。</p>
+<span id="more"></span>
+
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 使用 underscore.template 扩展 jquery</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> <span class="variable">nekolr</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">;(<span class="keyword">function</span> (<span class="params">$</span>) &#123;</span><br><span class="line">    <span class="keyword">var</span> escapes = &#123;</span><br><span class="line">        <span class="string">&quot;&#x27;&quot;</span>:      <span class="string">&quot;&#x27;&quot;</span>,</span><br><span class="line">        <span class="string">&#x27;\\&#x27;</span>:     <span class="string">&#x27;\\&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;\r&#x27;</span>:     <span class="string">&#x27;r&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;\n&#x27;</span>:     <span class="string">&#x27;n&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;\u2028&#x27;</span>: <span class="string">&#x27;u2028&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;\u2029&#x27;</span>: <span class="string">&#x27;u2029&#x27;</span></span><br><span class="line">    &#125;, escapeMap = &#123;</span><br><span class="line">        <span class="string">&#x27;&amp;&#x27;</span>: <span class="string">&#x27;&amp;amp;&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;&lt;&#x27;</span>: <span class="string">&#x27;&amp;lt;&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;&gt;&#x27;</span>: <span class="string">&#x27;&amp;gt;&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;&quot;&#x27;</span>: <span class="string">&#x27;&amp;quot;&#x27;</span>,</span><br><span class="line">        <span class="string">&quot;&#x27;&quot;</span>: <span class="string">&#x27;&amp;#x27;&#x27;</span>,</span><br><span class="line">        <span class="string">&#x27;`&#x27;</span>: <span class="string">&#x27;&amp;#x60;&#x27;</span></span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">var</span> escapeChar = <span class="keyword">function</span>(<span class="params">match</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&#x27;\\&#x27;</span> + escapes[match];</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">var</span> createEscaper = <span class="keyword">function</span>(<span class="params">map</span>) &#123;</span><br><span class="line">        <span class="keyword">var</span> escaper = <span class="keyword">function</span>(<span class="params">match</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> map[match];</span><br><span class="line">        &#125;;</span><br><span class="line">        <span class="keyword">var</span> source = <span class="string">&quot;(?:&amp;|&lt;|&gt;|\&quot;|&#x27;|`)&quot;</span>;</span><br><span class="line">        <span class="keyword">var</span> testRegexp = <span class="title class_">RegExp</span>(source);</span><br><span class="line">        <span class="keyword">var</span> replaceRegexp = <span class="title class_">RegExp</span>(source, <span class="string">&#x27;g&#x27;</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">function</span>(<span class="params">string</span>) &#123;</span><br><span class="line">            string = string == <span class="literal">null</span> ? <span class="string">&#x27;&#x27;</span> : <span class="string">&#x27;&#x27;</span> + string;</span><br><span class="line">            <span class="keyword">return</span> testRegexp.<span class="title function_">test</span>(string) ? string.<span class="title function_">replace</span>(replaceRegexp, escaper) : string;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;;</span><br><span class="line">    <span class="keyword">var</span> <span class="built_in">escape</span> = <span class="title function_">createEscaper</span>(escapeMap);</span><br><span class="line">    $.<span class="title function_">extend</span>(&#123;</span><br><span class="line">        <span class="attr">templateSettings</span>: &#123;</span><br><span class="line">            <span class="attr">escape</span>: <span class="regexp">/&#123;&#123;-([\s\S]+?)&#125;&#125;/g</span>,</span><br><span class="line">            interpolate : <span class="regexp">/&#123;&#123;=([\s\S]+?)&#125;&#125;/g</span>,</span><br><span class="line">            <span class="attr">evaluate</span>: <span class="regexp">/&#123;&#123;([\s\S]+?)&#125;&#125;/g</span></span><br><span class="line">        &#125;,</span><br><span class="line">        <span class="attr">escapeHtml</span>: <span class="built_in">escape</span>,</span><br><span class="line">        <span class="attr">template</span>: <span class="keyword">function</span> (<span class="params">text, settings</span>) &#123;</span><br><span class="line">            <span class="keyword">var</span> options = $.<span class="title function_">extend</span>(<span class="literal">true</span>, &#123;&#125;, <span class="variable language_">this</span>.<span class="property">templateSettings</span>, settings);</span><br><span class="line">            <span class="keyword">var</span> matcher = <span class="title class_">RegExp</span>([options.<span class="property">escape</span>.<span class="property">source</span>,</span><br><span class="line">			options.<span class="property">interpolate</span>.<span class="property">source</span>,</span><br><span class="line">			options.<span class="property">evaluate</span>.<span class="property">source</span>].<span class="title function_">join</span>(<span class="string">&#x27;|&#x27;</span>) + <span class="string">&#x27;|$&#x27;</span>, <span class="string">&#x27;g&#x27;</span>);</span><br><span class="line">            <span class="keyword">var</span> index = <span class="number">0</span>;</span><br><span class="line">            <span class="keyword">var</span> source = <span class="string">&quot;__p+=&#x27;&quot;</span>;</span><br><span class="line">            text.<span class="title function_">replace</span>(matcher, <span class="keyword">function</span>(<span class="params">match, <span class="built_in">escape</span>, interpolate, evaluate, offset</span>) &#123;</span><br><span class="line">                source += text.<span class="title function_">slice</span>(index, offset).<span class="title function_">replace</span>(<span class="regexp">/\\|&#x27;|\r|\n|\u2028|\u2029/g</span>, escapeChar);</span><br><span class="line">                index = offset + match.<span class="property">length</span>;</span><br><span class="line">                <span class="keyword">if</span> (<span class="built_in">escape</span>) &#123;</span><br><span class="line">                    source += <span class="string">&quot;&#x27;+\n((__t=(&quot;</span> + <span class="built_in">escape</span> + <span class="string">&quot;))==null?&#x27;&#x27;:$.escapeHtml(__t))+\n&#x27;&quot;</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (interpolate) &#123;</span><br><span class="line">                    source += <span class="string">&quot;&#x27;+\n((__t=(&quot;</span> + interpolate + <span class="string">&quot;))==null?&#x27;&#x27;:__t)+\n&#x27;&quot;</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> <span class="keyword">if</span> (evaluate) &#123;</span><br><span class="line">                    source += <span class="string">&quot;&#x27;;\n&quot;</span> + evaluate + <span class="string">&quot;\n__p+=&#x27;&quot;</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">return</span> match;</span><br><span class="line">            &#125;);</span><br><span class="line">            source += <span class="string">&quot;&#x27;;\n&quot;</span>;</span><br><span class="line">            <span class="keyword">if</span> (!options.<span class="property">variable</span>) source = <span class="string">&#x27;with(obj||&#123;&#125;)&#123;\n&#x27;</span> + source + <span class="string">&#x27;&#125;\n&#x27;</span>;</span><br><span class="line">            source = <span class="string">&quot;var __t,__p=&#x27;&#x27;,__j=Array.prototype.join,&quot;</span> +</span><br><span class="line">                <span class="string">&quot;print=function()&#123;__p+=__j.call(arguments,&#x27;&#x27;);&#125;;\n&quot;</span> +</span><br><span class="line">                source + <span class="string">&#x27;return __p;\n&#x27;</span>;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">var</span> render = <span class="keyword">new</span> <span class="title class_">Function</span>(options.<span class="property">variable</span> || <span class="string">&#x27;obj&#x27;</span>, source);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">                e.<span class="property">source</span> = source;</span><br><span class="line">                <span class="keyword">throw</span> e;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">var</span> template = <span class="keyword">function</span>(<span class="params">data</span>) &#123;</span><br><span class="line">                <span class="keyword">return</span> render.<span class="title function_">call</span>(<span class="variable language_">this</span>, data);</span><br><span class="line">            &#125;;</span><br><span class="line">            <span class="keyword">var</span> argument = options.<span class="property">variable</span> || <span class="string">&#x27;obj&#x27;</span>;</span><br><span class="line">            template.<span class="property">source</span> = <span class="string">&#x27;function(&#x27;</span> + argument + <span class="string">&#x27;)&#123;\n&#x27;</span> + source + <span class="string">&#x27;&#125;&#x27;</span>;</span><br><span class="line">            <span class="keyword">return</span> template;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;)(jQuery);</span><br></pre></td></tr></table></figure>
+
+<p>简单写个栗子来看看怎么使用吧。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>test<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/template&quot;</span> <span class="attr">id</span>=<span class="string">&quot;tpl&quot;</span>&gt;</span><span class="language-handlebars"><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">    </span><span class="template-variable">&#123;&#123; <span class="name">for</span>(<span class="name">var</span> i = <span class="number">0</span>; i &lt; list.length; i++) &#123; &#125;&#125;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">        <span class="tag">&lt;<span class="name">li</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">            <span class="tag">&lt;<span class="name">a</span>&gt;</span><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;resource/img/list.jpg&quot;</span>/&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">            <span class="tag">&lt;<span class="name">h5</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">                <span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;http://www.baidu.com?tokenId=</span></span></span><span class="template-variable">&#123;&#123;= <span class="name">tokenId</span> &#125;&#125;</span><span class="language-xml"><span class="tag"><span class="string">&quot;</span>&gt;</span></span><span class="template-variable">&#123;&#123;= <span class="name">list</span>[i].subject &#125;&#125;</span><span class="language-xml"><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">            <span class="tag">&lt;/<span class="name">h5</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">            <span class="tag">&lt;<span class="name">p</span>&gt;</span></span><span class="template-variable">&#123;&#123;= <span class="name">list</span>[i].description &#125;&#125;</span><span class="language-xml"><span class="tag">&lt;/<span class="name">p</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;data&quot;</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">                <span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;supe-data&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;resource/img/data.png&quot;</span>&gt;</span></span><span class="template-variable">&#123;&#123;= <span class="name">list</span>[i].date &#125;&#125;</span><span class="language-xml"><span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">                <span class="tag">&lt;<span class="name">span</span>&gt;</span><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;resource/img/zan.png&quot;</span>&gt;</span> 赞 <span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">                <span class="tag">&lt;<span class="name">span</span>&gt;</span><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;resource/img/ly.png&quot;</span>&gt;</span> 回复 <span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">                <span class="tag">&lt;<span class="name">span</span>&gt;</span> 已阅 <span class="tag">&lt;/<span class="name">span</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">        <span class="tag">&lt;/<span class="name">li</span>&gt;</span></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars">    </span><span class="template-variable">&#123;&#123; &#125; &#125;&#125;</span><span class="language-xml"></span></span></span><br><span class="line"><span class="language-xml"><span class="language-handlebars"></span></span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;resource/js/jquery-3.0.0.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;js/template.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span></span><br><span class="line">    function loadAjax() &#123;</span><br><span class="line">        var tokenId = getQueryString(&#x27;tokenId&#x27;);</span><br><span class="line">        $.ajax(&#123;</span><br><span class="line">            url: &#x27;http://test.php&#x27;,</span><br><span class="line">            type: &quot;POST&quot;,</span><br><span class="line">            dataType: &#x27;json&#x27;,</span><br><span class="line">            async: true,</span><br><span class="line">            success: function(msg) &#123;</span><br><span class="line">                var list = msg.list;</span><br><span class="line">                var compiled = $.template($(&quot;#tpl&quot;).text());</span><br><span class="line">                if(list.length &gt; 0) &#123;</span><br><span class="line">                    var result = compiled(&#123;</span><br><span class="line">                        list:list,</span><br><span class="line">                        tokenId: tokenId</span><br><span class="line">                    &#125;);</span><br><span class="line">                    $(&quot;body&quot;).append($(result));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;,</span><br><span class="line">            error: function (jqXHR, textStatus, errorThrown) &#123;</span><br><span class="line">                if (console) &#123;</span><br><span class="line">                    console.log(&#x27; 响应状态：[&#x27; + jqXHR.status + &#x27;], </span><br><span class="line">					textStatus 状态：[&#x27; + textStatus + &quot;], 异常信息：&quot; + errorThrown);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;)</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    $(function () &#123;</span><br><span class="line">        loadAjax();</span><br><span class="line">    &#125;)</span><br><span class="line"><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/jQuery/" rel="tag"># jQuery</a>
+              <a href="/tags/underscore-js/" rel="tag"># underscore.js</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2017/11/13/%E6%B7%B1%E5%85%A5%E7%BA%BF%E7%A8%8B%E6%B1%A0/" rel="prev" title="深入线程池">
+                  <i class="fa fa-chevron-left"></i> 深入线程池
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/01/04/%E6%B7%B1%E5%85%A5%20WebSocket%20%E5%8D%8F%E8%AE%AE/" rel="next" title="深入 WebSocket 协议">
+                  深入 WebSocket 协议 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
