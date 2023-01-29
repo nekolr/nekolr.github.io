@@ -356,14 +356,14 @@ safari_rainbow: false
 custom_logo: #/uploads/custom-logo.jpg
 
 highlight:
-  enable: false
-prismjs:
   enable: true
+prismjs:
+  enable: false
 
 codeblock:
-  prism:
-    light: prism-darcula
-    dark: prism-darcula
+  theme:
+    light: darcula
+    dark: darcula
   # Add copy button on codeblock
   copy_button:
     enable: true
