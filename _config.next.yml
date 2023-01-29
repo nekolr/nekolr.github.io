@@ -361,7 +361,7 @@ prismjs:
   enable: true
 
 codeblock:
-  theme:
+  prism:
     light: prism-darcula
     dark: prism-darcula
   # Add copy button on codeblock
