@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="简单学习过 Shell 后，接下来继续学习 Shell 脚本。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Shell Script 学习">
+<meta property="og:url" content="https://blog.nekolr.com/2019/01/23/Shell%20Script%20%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="简单学习过 Shell 后，接下来继续学习 Shell 脚本。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-01-23T13:48:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.893Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="Shell">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2019/01/23/Shell%20Script%20%E5%AD%A6%E4%B9%A0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2019/01/23/Shell%20Script%20%E5%AD%A6%E4%B9%A0/","path":"2019/01/23/Shell Script 学习/","title":"Shell Script 学习"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Shell Script 学习 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%89%AF%E5%A5%BD%E9%A3%8E%E6%A0%BC"><span class="nav-number">1.</span> <span class="nav-text">良好风格</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B3%A8%E9%87%8A"><span class="nav-number">2.</span> <span class="nav-text">注释</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A4%9A%E8%A1%8C%E6%B3%A8%E9%87%8A"><span class="nav-number">2.1.</span> <span class="nav-text">多行注释</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%9D%A1%E4%BB%B6%E5%88%A4%E6%96%AD"><span class="nav-number">3.</span> <span class="nav-text">条件判断</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#test-%E5%91%BD%E4%BB%A4"><span class="nav-number">3.1.</span> <span class="nav-text">test 命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%A4%E6%96%AD%E7%AC%A6%E5%8F%B7"><span class="nav-number">3.2.</span> <span class="nav-text">判断符号</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9D%A1%E4%BB%B6%E8%AF%AD%E5%8F%A5"><span class="nav-number">3.3.</span> <span class="nav-text">条件语句</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%BD%E6%95%B0"><span class="nav-number">4.</span> <span class="nav-text">函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BE%AA%E7%8E%AF"><span class="nav-number">5.</span> <span class="nav-text">循环</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%AF%AD%E6%B3%95%E6%A3%80%E6%9F%A5"><span class="nav-number">6.</span> <span class="nav-text">语法检查</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%BF%90%E8%A1%8C-Shell-%E8%84%9A%E6%9C%AC"><span class="nav-number">7.</span> <span class="nav-text">运行 Shell 脚本</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2019/01/23/Shell%20Script%20%E5%AD%A6%E4%B9%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Shell Script 学习 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Shell Script 学习
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-01-23 13:48:00" itemprop="dateCreated datePublished" datetime="2019-01-23T13:48:00+00:00">2019-01-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Shell/" itemprop="url" rel="index"><span itemprop="name">Shell</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>简单学习过 Shell 后，接下来继续学习 Shell 脚本。  </p>
+<span id="more"></span>  
+<h1 id="良好风格"><a href="#良好风格" class="headerlink" title="良好风格"></a>良好风格</h1><ul>
+<li>在脚本的第一行，要宣告该脚本使用的 shell 名称，比如 <code>#!/bin/bash</code>。</li>
+<li>说明部分，要说明脚本的功能、版本、作者、联系方式、版权声明等。</li>
+<li>脚本运行时需要用到的环境变量要预先定义和配置。</li>
+<li>脚本正文中，比较特殊的命令使用绝对路径的方式下达。</li>
+<li>定义回传值，比如成功为 0，失败为非零整数。</li>
+</ul>
+<h1 id="注释"><a href="#注释" class="headerlink" title="注释"></a>注释</h1><p>单行注释很简单，使用 <code>#</code> 开头就代表本行注释。  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 我是注释</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="多行注释"><a href="#多行注释" class="headerlink" title="多行注释"></a>多行注释</h2><p>使用 <code>:&lt;&lt;</code> 开头，后边可以跟其他的字符，最后再以对应的字符结尾。  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">:&lt;&lt;<span class="string">EOF</span></span><br><span class="line"><span class="string">我是多行注释</span></span><br><span class="line"><span class="string">I am multi-line comment</span></span><br><span class="line"><span class="string">EOF</span></span><br><span class="line"></span><br><span class="line">:&lt;&lt;!</span><br><span class="line">我是多行注释</span><br><span class="line">I am multi-line comment</span><br><span class="line">!</span><br></pre></td></tr></table></figure>
+
+<h1 id="条件判断"><a href="#条件判断" class="headerlink" title="条件判断"></a>条件判断</h1><p>一般在编程语言中，我们通常都能够使用 if else 语句进行条件判断，bash 也不例外。但是除了条件判断语句，bash 还有一些条件判断的命令。  </p>
+<h2 id="test-命令"><a href="#test-命令" class="headerlink" title="test 命令"></a>test 命令</h2><p>test 命令可以检测系统中的文件以及相关的属性。常用的参数如下：  </p>
+<table>
+<thead>
+<tr>
+<th>标志</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-e</td>
+<td>文件是否存在</td>
+</tr>
+<tr>
+<td>-f</td>
+<td>判断是否存在且为文件</td>
+</tr>
+<tr>
+<td>-d</td>
+<td>判断是否存在且为目录</td>
+</tr>
+<tr>
+<td>-L</td>
+<td>判断文件是否存在且是链接文件（软链接或硬链接）</td>
+</tr>
+<tr>
+<td>-r</td>
+<td>判断文件是否存在且有读的权限</td>
+</tr>
+<tr>
+<td>-w</td>
+<td>判断文件是否存在且有写的权限</td>
+</tr>
+<tr>
+<td>-x</td>
+<td>判断文件是否存在且有执行的权限</td>
+</tr>
+<tr>
+<td>-nt</td>
+<td><code>test file1 -nt file2</code>，判断 file1 是否比 file2 新（newer than）</td>
+</tr>
+<tr>
+<td>-ot</td>
+<td>判断 file1 是否比 file2 旧（older than）</td>
+</tr>
+<tr>
+<td>-ef</td>
+<td>判断两个文件是否为同一个文件，主要用于判断硬链接。</td>
+</tr>
+<tr>
+<td>-eq</td>
+<td>判断两个整数是否相等（equals）</td>
+</tr>
+<tr>
+<td>-ne</td>
+<td>判断两个整数是否不相等（not equals）</td>
+</tr>
+<tr>
+<td>-gt</td>
+<td><code>test num1 -gt num2</code>，判断 num1 是否大于 num2（greater than）</td>
+</tr>
+<tr>
+<td>-lt</td>
+<td>判断 num1 是否小于 num2（less than）</td>
+</tr>
+<tr>
+<td>-ge</td>
+<td>判断 num1 是否大于等于 num2（greater than or equals）</td>
+</tr>
+<tr>
+<td>-le</td>
+<td>判断 num1 是否小于等于 num2（less than or equals）</td>
+</tr>
+<tr>
+<td>-z</td>
+<td>判断字符串是否为空</td>
+</tr>
+<tr>
+<td>-n</td>
+<td>判断字符串是否不为空</td>
+</tr>
+<tr>
+<td>&#x3D;</td>
+<td><code>test str1 = str2</code>，判断 str1 是否等于 str2</td>
+</tr>
+<tr>
+<td>!&#x3D;</td>
+<td><code>test str1 != str2</code>，判断 str1 是否不等于 str2</td>
+</tr>
+<tr>
+<td>-a</td>
+<td>相当于 and，只有都成立时才会返回 true，比如 <code>test -r file1 -a -x file2</code></td>
+</tr>
+<tr>
+<td>-o</td>
+<td>相当于 or，任何一个成立时就会返回 true</td>
+</tr>
+<tr>
+<td>!</td>
+<td>取反，比如 <code>test ! -x file1</code>，当 file1 不具有执行的权限时返回 true</td>
+</tr>
+</tbody></table>
+<p>需要注意的是，test 命令返回的值并不会直接输出到屏幕，因此需要自己控制输出，比如：  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">test</span> -r file1 &amp;&amp; <span class="built_in">echo</span> <span class="literal">true</span> || <span class="built_in">echo</span> <span class="literal">false</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="判断符号"><a href="#判断符号" class="headerlink" title="判断符号"></a>判断符号</h2><p>除了 test 命令，我们还可以使用判断符号 <code>[]</code>，也就是中括号来进行数据的判断。需要注意的是，因为中括号用在很多地方，所以在 bash 中使用中括号作为判断符号时，<strong>中括号的两端需要有空白字节来分隔，并且在中括号中的变量一定要用双引号包含，同时常量也要使用单引号或者是双引号包含</strong>。  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">$ [ -z <span class="string">&quot;<span class="variable">$HOME</span>&quot;</span> ]; <span class="built_in">echo</span> $?</span><br><span class="line">$ <span class="built_in">read</span> -p <span class="string">&quot;Please input (Y/N)&quot;</span> yn</span><br><span class="line">$ [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;Y&quot;</span> -o <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;y&quot;</span> ] &amp;&amp; <span class="built_in">echo</span> <span class="string">&quot;OK, continue.&quot;</span> &amp;&amp; <span class="built_in">exit</span> 0</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>在 bash 中使用一个等号与两个等号的意义相同，不过在程序中一般写法是，一个等号代表赋值，两个等号则代表条件判断。建议在条件判断时，使用双等号。  </p>
+</blockquote>
+<h2 id="条件语句"><a href="#条件语句" class="headerlink" title="条件语句"></a>条件语句</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">read</span> -p <span class="string">&quot;Please input (Y/N): &quot;</span> yn</span><br><span class="line"><span class="keyword">if</span> [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;Y&quot;</span> ] || [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;y&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;OK, continue.&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">elif</span> [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;N&quot;</span> ] || [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;n&quot;</span> ]; <span class="keyword">then</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Oh, interrupt!&quot;</span></span><br><span class="line">    <span class="built_in">exit</span> 0</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;I don&#x27;t know what your choice is&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">    <span class="string">&quot;open&quot;</span>)</span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;This switch is open&quot;</span></span><br><span class="line">        ;;</span><br><span class="line">    <span class="string">&quot;close&quot;</span>)</span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;This switch is close&quot;</span></span><br><span class="line">        ;;</span><br><span class="line">    <span class="string">&quot;&quot;</span>)</span><br><span class="line">        <span class="built_in">echo</span> <span class="string">&quot;You must input parameters&quot;</span></span><br><span class="line">        ;;</span><br><span class="line"><span class="keyword">esac</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="function"><span class="title">printit</span></span>() &#123;</span><br><span class="line">    <span class="built_in">echo</span> <span class="string">&quot;Your choice is <span class="variable">$1</span>&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">    <span class="string">&quot;one&quot;</span>)</span><br><span class="line">        <span class="comment"># 其中 1 是调用函数时传入的参数</span></span><br><span class="line">        printit 1</span><br><span class="line">        ;;</span><br><span class="line">    <span class="string">&quot;two&quot;</span>)</span><br><span class="line">        printit 2</span><br><span class="line">        ;;</span><br><span class="line">    <span class="string">&quot;three&quot;</span>)</span><br><span class="line">        printit 3</span><br><span class="line">        ;;</span><br><span class="line"><span class="keyword">esac</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="循环"><a href="#循环" class="headerlink" title="循环"></a>循环</h1><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">while</span> [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> != <span class="string">&quot;Y&quot;</span> ] &amp;&amp; [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> != <span class="string">&quot;y&quot;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">	<span class="built_in">read</span> -p <span class="string">&quot;Please input Y/y to stop this program: &quot;</span> yn</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;OK! you input the correct answer.&quot;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">until [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;Y&quot;</span> ] || [ <span class="string">&quot;<span class="variable">$yn</span>&quot;</span> == <span class="string">&quot;y&quot;</span> ]</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">	<span class="built_in">read</span> -p <span class="string">&quot;Please input Y/y to stop this program: &quot;</span> yn</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;OK! you input the correct answer.&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>while 循环与 until 循环的区别是，while 循环在条件满足时才会执行循环体；而 until 循环是在条件不满足时才会执行循环体。  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> animal <span class="keyword">in</span> dog <span class="built_in">cat</span> mouse rabbit</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">	<span class="built_in">echo</span> <span class="string">&quot;There are <span class="variable">$&#123;animal&#125;</span>s.... &quot;</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">read</span> -p <span class="string">&quot;Please input a number, I will count for 1+2+...+your_input: &quot;</span> num</span><br><span class="line"></span><br><span class="line"><span class="built_in">sum</span>=0</span><br><span class="line"><span class="keyword">for</span> (( i=1; i&lt;=<span class="variable">$num</span>; i=i+1 ))</span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">	<span class="built_in">sum</span>=$((<span class="variable">$sum</span>+<span class="variable">$i</span>))</span><br><span class="line"><span class="keyword">done</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;The result of &#x27;1+2+3+...+<span class="variable">$num</span>&#x27; is ==&gt; <span class="variable">$sum</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="语法检查"><a href="#语法检查" class="headerlink" title="语法检查"></a>语法检查</h1><p>使用 <code>sh -n xxx.sh</code> 来检查脚本是否存在语法错误，如果没有则不会显示任何信息。同时，可以使用 <code>sh -x xxx.sh</code> 将脚本的执行过程全部列出，这样能够方便发现和调试错误。  </p>
+<h1 id="运行-Shell-脚本"><a href="#运行-Shell-脚本" class="headerlink" title="运行 Shell 脚本"></a>运行 Shell 脚本</h1><p>在运行脚本之前，需要先确认脚本是否具有执行的权限。如果没有，则需要赋予执行的权限。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"># 以下命令需要 cd 到脚本所在目录执行</span><br><span class="line"></span><br><span class="line"># 赋予执行的权限</span><br><span class="line">chmod +x ./xxx.sh</span><br><span class="line"></span><br><span class="line"># 执行脚本</span><br><span class="line">./xxx.sh</span><br></pre></td></tr></table></figure>
+
+<p>一定要写成 <code>./xxx.sh</code>，运行其它二进制的程序也一样。如果直接写 <code>xxx.sh</code>，系统会去 PATH 里寻找，而一般 PATH 里只有 <code>/bin</code>，<code>/sbin</code>，<code>/usr/bin</code>，<code>/usr/sbin</code> 等，当前目录通常不在 PATH 里，所以写成 <code>xxx.sh</code> 是找不到命令的，要用 <code>./xxx.sh</code> 告诉系统就在当前目录找。  </p>
+<p>还有一种运行脚本的方法是直接运行解释器，传入需要运行的脚本文件名：<code>/bin/sh xxx.sh</code>。以及使用 source 命令运行脚本，比如 <code>source ./xxx.sh</code>，这种方式与前两种的区别是，使用该命令，脚本会在父程序中执行；而前两种会在子程序中运行。这也是为什么使用 source 可以使配置立即生效的原因。  </p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p>《鸟哥的Linux私房菜》</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Shell/" rel="tag"># Shell</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/01/22/%E7%94%B3%E8%AF%B7%E6%B3%9B%E5%9F%9F%E5%90%8D%E8%AF%81%E4%B9%A6/" rel="prev" title="申请泛域名证书">
+                  <i class="fa fa-chevron-left"></i> 申请泛域名证书
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/01/29/Shiro%20RESTful%20%E5%8C%96%E6%94%B9%E9%80%A0/" rel="next" title="Shiro RESTful 化改造">
+                  Shiro RESTful 化改造 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

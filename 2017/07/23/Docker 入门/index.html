@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Docker 是什么？直接贴上官网的一句介绍：  Docker is the world’s leading software container platform		  Docker 是世界领先的软件容器平台。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Docker 入门">
+<meta property="og:url" content="https://blog.nekolr.com/2017/07/23/Docker%20%E5%85%A5%E9%97%A8/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="Docker 是什么？直接贴上官网的一句介绍：  Docker is the world’s leading software container platform		  Docker 是世界领先的软件容器平台。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/zj.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/kx.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Ob.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rd.jpg">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Kl.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/07/26/Wqk.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/G7.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/0J.jpg">
+<meta property="article:published_time" content="2017-07-23T15:46:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.885Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="Docker">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/zj.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2017/07/23/Docker%20%E5%85%A5%E9%97%A8/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2017/07/23/Docker%20%E5%85%A5%E9%97%A8/","path":"2017/07/23/Docker 入门/","title":"Docker 入门"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Docker 入门 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">Docker 是什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-%E8%A7%A3%E5%86%B3%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">Docker 解决了什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%B3%E4%BA%8E-Docker-%E7%9A%84%E4%B8%80%E4%BA%9B%E6%A6%82%E5%BF%B5"><span class="nav-number">3.</span> <span class="nav-text">关于 Docker 的一些概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AE%89%E8%A3%85-Docker"><span class="nav-number">4.</span> <span class="nav-text">安装 Docker</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Ubuntu-%E4%B8%8B%E5%AE%89%E8%A3%85-Docker"><span class="nav-number">4.1.</span> <span class="nav-text">Ubuntu 下安装 Docker</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%8D-sudo-%E4%BD%BF%E7%94%A8-docker-%E5%91%BD%E4%BB%A4"><span class="nav-number">4.2.</span> <span class="nav-text">免 sudo 使用 docker 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%8A%A0%E9%80%9F%E9%95%9C%E5%83%8F"><span class="nav-number">4.3.</span> <span class="nav-text">加速镜像</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-%E6%9E%B6%E6%9E%84"><span class="nav-number">5.</span> <span class="nav-text">Docker 架构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Docker-%E4%BD%93%E9%AA%8C"><span class="nav-number">6.</span> <span class="nav-text">Docker 体验</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2017/07/23/Docker%20%E5%85%A5%E9%97%A8/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Docker 入门 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Docker 入门
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2017-07-23 15:46:00" itemprop="dateCreated datePublished" datetime="2017-07-23T15:46:00+00:00">2017-07-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Docker/" itemprop="url" rel="index"><span itemprop="name">Docker</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h2 id="Docker-是什么？"><a href="#Docker-是什么？" class="headerlink" title="Docker 是什么？"></a>Docker 是什么？</h2><p>直接贴上官网的一句介绍：</p>
+<blockquote>
+<p>Docker is the world’s leading software container platform		</p>
+</blockquote>
+<p>Docker 是世界领先的软件容器平台。</p>
+<span id="more"></span>
+
+<p>我们知道，如果想发布一个应用，需要将应用部署到服务器上。如果部署多个应用，应用依赖的环境可能会有所不同，不同的应用共用同一台服务器可能会出现冲突的现象，这个时候就需要隔离应用，最简单粗暴的方式就是使用虚拟机，但是虚拟机的开销比较大，这时 Docker 就派上用场了。</p>
+<p>Docker 与虚拟机不同，但是可以看做是一种轻量化的虚拟机。我们将在本地运行的应用和依赖的环境打包成 Docker 镜像，然后就可以在别的平台使用这个镜像的应用而不用担心环境部署等问题。但是使用虚拟机可以在一个 OS 中运行出多个不同或相同的 OS，而使用 Docker 只能在一个 OS 中模拟出多个相同的该 OS。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/zj.png" alt="virtual machines"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/kx.png" alt="docker"></p>
+<h2 id="Docker-解决了什么？"><a href="#Docker-解决了什么？" class="headerlink" title="Docker 解决了什么？"></a>Docker 解决了什么？</h2><ul>
+<li><p><strong>解决环境不一致问题</strong><br>开发一个应用，开发环境与部署环境很可能是不一致的。开发者在本地运行正常的应用，交给运维实施人员部署时，可能会出现各种错误。而使用了 Docker 后，开发人员可以将应用连同开发环境一起打包到 Docker 镜像，运维实施人员只需要直接部署 Docker 即可。  </p>
+</li>
+<li><p><strong>环境隔离</strong><br>很多时候，我们的应用很有可能是和别的应用一起运行在一台服务器上，因此不可避免的会出现应用间相互影响的情况。一个应用将内存占满，另一个应用因内存不足挂掉。Docker 的隔离虽然不如虚拟机的隔离彻底，但是能够限制容器对系统资源的使用，并使容器间环境隔离，避免了应用间的互相影响。  </p>
+</li>
+<li><p><strong>弹性伸缩、快速扩展</strong><br>Docker 的这种将应用和环境一起打包的方式使得部署应用方便快捷，不用再为应用部署到多台服务器而头疼，通过标准统一的操作，能够迅速为几十台、上百台服务器部署应用。同时容器的销毁也很方便快捷，能够更好的应对弹性需求。</p>
+</li>
+</ul>
+<p>		</p>
+<h2 id="关于-Docker-的一些概念"><a href="#关于-Docker-的一些概念" class="headerlink" title="关于 Docker 的一些概念"></a>关于 Docker 的一些概念</h2><p><strong>LXC（Linux Container）</strong><br>Linux 中的一种内核虚拟化技术，提供轻量级的虚拟化，以便隔离进程和资源。Docker 就是基于 LXC 的高级容器引擎。Docker 从 0.9 版本开始使用 libcontainer 替代 lxc。  </p>
+<p><strong>UFS（Union File System 联合文件系统）</strong><br>它是实现 Docker 镜像的技术基础，是一种轻量级的高性能分层文件系统，支持将文件系统中的修改进行提交和层层叠加，这个特性使得镜像可以通过分层实现和继承。同时支持将不同目录挂载到同一个虚拟文件系统下。  </p>
+<p><strong>AUFS（Another Union File System）</strong><br>也是一种联合文件系统，支持将不同目录挂载到同一个虚拟文件系统下（unite several directories into a single virtual filesystem）的文件系统形成一层 layer，更进一步地，AUFS 支持为每一个成员目录 (AKA branch) 设定只读 readonly，读写 readwrite 和写出 whiteout-able 权限，对 read-only 目录只能读，而写操作只能在 read-write 目录中。写操作是在 read-only 上的一种增量操作，不影响 read-only 目录。当挂载目录的时候要严格按照各目录之间的这种增量关系，将被增量操作的目录优先于在它基础上增量操作的目录挂载，待所有目录挂载结束了，继续挂载一个 read-write 目录，如此便形成了一种层次结构。  </p>
+<p>Docker 在启动容器的时候，需要创建文件系统，为 rootfs 提供挂载点。最初 Docker 仅能在支持 Aufs 文件系统的 Linux 发行版上运行，但是由于 Aufs 未能加入 Linux 内核，为了寻求兼容性、扩展性，Docker 在内部通过 graphdriver 机制这种可扩展的方式来实现对不同文件系统的支持。Docker 支持 AUFS、Device mapper、Btrfs、ZFS、ZFS 和 OverlayFS。  </p>
+<p>典型的 Linux 文件系统由 bootfs 和 rootfs 两部分组成，bootfs（boot file system）主要包含 bootloader 和 kernel，bootloader 主要是引导加载 kernel，当 kernel 被加载到内存中后 bootfs 就被 umount 了。 rootfs（root file system）包含的就是典型的 Linux 系统中的 &#x2F;dev，&#x2F;proc，&#x2F;bin，&#x2F;etc 等标准目录和文件。	</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Ob.png" alt="unionfs"></p>
+<p>对于不同的 Linux 发行版，bootfs 基本是一致的，rootfs 会有差别，因此不同的发行版可以公用 bootfs。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rd.jpg" alt="unionfs_bootjs"></p>
+<p><strong>Docker Client</strong><br>Docker 提供给用户的一个终端，用户输入 Docker 命令管理本地或者远程的服务器。  </p>
+<p><strong>Docker Daemon</strong><br>Docker 服务的守护进程。每台服务器（物理机或虚拟机）上只要安装了 Docker 的环境，基本上就跑了一个后台程序 Docker Daemon，Docker Daemon 接收 Docker Client 发过来的指令来对服务器进行具体操作。  </p>
+<p><strong>Docker Images</strong><br>Docker 镜像（Docker 容器的基础）。说白了镜像就是一系列的文件，只不过 Docker 的镜像使用的是联合文件系统。  </p>
+<p>Docker 镜像的典型结构如下图。传统的 Linux 加载 bootfs 时会先将 rootfs 设为 read-only，然后在系统自检之后将 rootfs 从 read-only 改为 read-write，然后我们就可以在 rootfs 上进行写和读的操作了。但 Docker 的镜像却不是这样，它在 bootfs 自检完毕之后并不会把 rootfs 的 read-only 改为 read-write。而是利用 union mount（UFS 的一种挂载机制）将一个或多个 read-only 的 rootfs 加载到之前的 read-only 的 rootfs 层之上。在加载了这么多层的 rootfs 之后，仍然让它看起来只像是一个文件系统，在 Docker 的体系里把 union mount 的这些 read-only 的 rootfs 叫做 Docker 的镜像。但是，此时的每一层 rootfs 都是 read-only 的，我们此时还不能对其进行操作。当我们创建一个容器，也就是将 Docker 镜像进行实例化，系统会在一层或是多层 read-only 的 rootfs 之上分配一层空的 read-write 的 rootfs。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/Kl.png" alt="docker_image"></p>
+<p>一组 Readonly 和一个 Readwrite 的结构构成一个 Container 的运行目录。得益于 AUFS 的特性，每一个对 readonly 层文件&#x2F;目录的修改都只会存在于上层的 writeable 层中。这样由于不存在竞争，多个 container 可以共享 readonly 的 layer。所以 docker 将 readonly 的层称作“image”，对于 container 而言整个 rootfs 都是 read-write 的，但事实上所有的修改都写入最上层的 writeable 层中。</p>
+<p><strong>Image 可以通过分层来继承，基于 Base Image（无父镜像）可以制作各种具体的应用镜像。Image 不保存用户状态，可以用于模板、重建和复制。</strong>  </p>
+<p><strong>Docker Registry</strong><br>Docker Registry Server 就像 git 的仓库一样，提供镜像的存储和管理服务，它提供了 Docker 镜像的上传、下载和浏览等功能，并且提供安全的账号管理可以管理只有自己可见的私人 image。  </p>
+<blockquote>
+<p>Docker Hub：<a target="_blank" rel="noopener" href="https://hub.docker.com/">https://hub.docker.com</a>（官方 Registry）</p>
+</blockquote>
+<p><strong>Docker Container</strong><br>Docker 的容器。Docker Container 是真正跑项目程序、消耗机器资源、提供服务的地方，Docker Container 通过 Docker Images 启动，在 Docker Images 的基础上运行你需要的代码。  </p>
+<p>在 Docker 中，上层的 Image 依赖下层的 Image，因此 Docker 中把下层的 Image 称作父 Image，没有父 Image 的 Image 称作 Base Image。因此，想要从一个 Image 启动一个 Container，Docker 会逐次加载其父 Image 直到 Base Image，用户的进程运行在 Writeable 的层中。所有父 Image 中的数据信息以及 ID、网络和 LXC 管理的资源限制、具体 container 的配置等，构成一个 Docker 概念上的 Container。  </p>
+<h2 id="安装-Docker"><a href="#安装-Docker" class="headerlink" title="安装 Docker"></a>安装 Docker</h2><p>Docker 提供 CE 和 EE 版本。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/07/26/Wqk.png" alt="docker_ce_ee"></p>
+<p>Docker 的安装非常简单，官方提供了详尽的安装方法，桌面系统只提供了 Docker CE 版。</p>
+<ul>
+<li>Windows<br><a target="_blank" rel="noopener" href="https://docs.docker.com/docker-for-windows/install/">https://docs.docker.com/docker-for-windows/install/</a></li>
+<li>Mac OS<br><a target="_blank" rel="noopener" href="https://docs.docker.com/docker-for-mac/install/">https://docs.docker.com/docker-for-mac/install/</a></li>
+<li>CE for Ubuntu<br><a target="_blank" rel="noopener" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/">https://docs.docker.com/install/linux/docker-ce/ubuntu/</a></li>
+<li>EE for Ubuntu<br><a target="_blank" rel="noopener" href="https://docs.docker.com/install/linux/docker-ee/ubuntu/">https://docs.docker.com/install/linux/docker-ee/ubuntu/</a></li>
+<li>其他系统和具体信息参考<br><a target="_blank" rel="noopener" href="https://docs.docker.com/install/">https://docs.docker.com/install/</a></li>
+</ul>
+<h3 id="Ubuntu-下安装-Docker"><a href="#Ubuntu-下安装-Docker" class="headerlink" title="Ubuntu 下安装 Docker"></a>Ubuntu 下安装 Docker</h3><p>以 Ubuntu 16.04 安装 Docker CE 为例：</p>
+<p>最简单的安装方式就是直接通过包管理工具安装，使用这种方式安装的是系统自带的 Docker 安装包，可能不是最新版的 Docker。</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ sudo apt-get update</span><br><span class="line">$ sudo apt-get install -y docker.io</span><br></pre></td></tr></table></figure>
+
+<p>或者使用官方提供的自动化脚本安装。  </p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ sudo curl -s https://get.docker.com | sh</span><br></pre></td></tr></table></figure>
+
+<h3 id="免-sudo-使用-docker-命令"><a href="#免-sudo-使用-docker-命令" class="headerlink" title="免 sudo 使用 docker 命令"></a>免 sudo 使用 docker 命令</h3><p>我们在安装 docker 时是使用 sudo 安装的，因此在使用普通用户使用 docker 时，会有提示：		</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Got permission denied while trying to connect to the Docker daemon socket at UNIX:///var/run/docker.sock: Get http://%2Fvar%2Frun%2Fdocker.sock/v1.30/version: dial UNIX /var/run/docker.sock: connect: permission denied</span><br></pre></td></tr></table></figure>
+
+<p>docker 守护进程绑定到 UNIX 套接字而不是 TCP 端口。默认情况下，UNIX 套接字由用户 root 拥有，其他用户只能使用 sudo 访问它。docker 守护进程始终以 root 用户身份运行。  </p>
+<p>如果不想在使用 docker 命令时使用 sudo，需要创建名为 docker 的 UNIX 组，并将用户添加到该组。当 docker 守护进程启动时，它会使 docker 组的 UNIX 套接字具有读&#x2F;写权限。  </p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">:: 创建名为 docker 的用户组</span><br><span class="line">$ sudo groupadd docker</span><br><span class="line"></span><br><span class="line">:: 添加当前用户到该组</span><br><span class="line">$ sudo usermod -aG docker $USER</span><br><span class="line"></span><br><span class="line">:: 注销登录并重启以重新评估组成员资格，如果使用虚拟机，则重启虚拟机。</span><br><span class="line"></span><br><span class="line">:: 验证不使用 sudo 使用 docker 命令</span><br><span class="line">$ docker run hello-world</span><br></pre></td></tr></table></figure>
+
+<h3 id="加速镜像"><a href="#加速镜像" class="headerlink" title="加速镜像"></a>加速镜像</h3><p>使用 Docker 在拉取官方镜像时，显然网络是个问题。因此我们可以使用一些镜像加速器或者直接从国内的镜像平台（阿里、网易等）拉取。</p>
+<blockquote>
+<p>DaoCloud 镜像加速：<a target="_blank" rel="noopener" href="https://www.daocloud.io/mirror">https://www.daocloud.io/mirror</a>		</p>
+</blockquote>
+<h2 id="Docker-架构"><a href="#Docker-架构" class="headerlink" title="Docker 架构"></a>Docker 架构</h2><p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/G7.png" alt="architecture"></p>
+<h2 id="Docker-体验"><a href="#Docker-体验" class="headerlink" title="Docker 体验"></a>Docker 体验</h2><p>首先从远程仓库拉取一个镜像，使用 <code>docker pull [OPTIONS] name[:TAG]</code>。</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">:: 从远程仓库拉取 hello-world 镜像，不加参数默认获取最新版本</span><br><span class="line">:: 相当于 docker pull hello-world:latest</span><br><span class="line">$ docker pull hello-world</span><br></pre></td></tr></table></figure>
+<p>拉取之后，可以使用 <code>docker images [OPTIONS] [REPOSITORY[:TAG]]</code> 命令查看本地仓库中的镜像。		</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:: 列出仓库中的镜像</span><br><span class="line">$ docker images</span><br></pre></td></tr></table></figure>
+<p>运行镜像使用命令 <code>docker run [OPTIONS] IMAGE [COMMAND] [ARG...]</code>。</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker run hello-world</span><br></pre></td></tr></table></figure>
+<p>运行后停止容器，使用命令 <code>docker stop [OPTIONS] CONTAINER [CONTAINER...]</code>。</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker stop hello-world</span><br></pre></td></tr></table></figure>
+
+<p>如果想删除镜像，使用命令 <code>docker rmi [OPTIONS] IMAGE [IMAGE...]</code>。</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ docker rmi hello-world</span><br></pre></td></tr></table></figure>
+<p>如果 image 被某个容器引用，则需要先销毁容器 <code>docker rm [OPTIONS] CONTAINER [CONTAINER...]</code>。</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">:: 删除某个容器，需要指定容器 ID</span><br><span class="line">$ docker rm &lt;Container ID&gt;</span><br><span class="line"></span><br><span class="line">:: 接着删除 image，指定 image 名称或 ID</span><br><span class="line">$ docker rmi &lt;Image ID or Image Name&gt;</span><br></pre></td></tr></table></figure>
+
+<p>刚才运行 hello-world 镜像是在前台运行的。如果想运行像 Nginx 这样的镜像，最好在后台运行。从后台运行 nginx，需要加一个参数，使用 <code>docker run --help 查看参数</code>。  </p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:: 后台运行 nginx，返回容器 ID</span><br><span class="line">$ docker run -d nginx</span><br></pre></td></tr></table></figure>
+
+<p>容器运行之后，我们可以使用命令 <code>docker exec</code> 进入到容器的内部，查看容器的相关信息，如日志等。		</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">:: -i 即使没有附加也保持 STDIN 打开</span><br><span class="line">:: -t 分配一个伪终端</span><br><span class="line">:: 有时容器很少，可以不用写全 ID</span><br><span class="line">:: command 为 bash，开启一个交互模式的终端</span><br><span class="line">$ docker exec -it <span class="number">0774</span>be6e1c0c bash</span><br></pre></td></tr></table></figure>
+
+<p>我们知道，Linux 通过命名空间来隔离资源，如 network namespace 就是用来隔离网络的，每一个 network namespace 都提供了一个独立的网络环境。  </p>
+<p>Docker 默认情况下会分配一个独立的 network namespace，也就是 Bridge 网络类型。由于与宿主机使用不同的网络环境，因此会涉及到<strong>端口映射</strong>，使通过宿主机能够访问 Docker 上的端口。Docker 能够将容器端口和宿主机端口做一个映射。		</p>
+<p>如果指定 Docker 的网络类型为 Host，则不会分配一个独立的 network namespace，而是与宿主机使用同一命名空间。  </p>
+<p>如果指定 Docker 的网络类型为 Null，则 Docker 不会获得网络资源。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/0J.jpg" alt="docker_network"></p>
+<p>上图中，eth0 是宿主机的网卡，在 Host 模式下，Docker 容器使用的网卡与宿主机相同。在 Bridge 模式下，Docker 首先创建一个 docker0 这样的网桥与宿主机的网卡连接，同时自己会虚拟出一个网卡（因此容器中会有自己的 IP、端口等），这个网卡与网桥相连，这样 Docker 就可以与宿主机进行通信了。		</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">:: 开放一个端口到宿主机，前一个为主机端口，后一个为容器端口</span><br><span class="line">$ docker run -d -p <span class="number">8080</span>:<span class="number">80</span> nginx</span><br></pre></td></tr></table></figure>
+
+<p>映射完之后，就可以使用浏览器访问宿主机的 8080 端口来访问容器的 80 端口了。</p>
+<p>更多 Docker 命令：<a target="_blank" rel="noopener" href="https://docs.docker.com/reference/">https://docs.docker.com/reference/</a></p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Docker/" rel="tag"># Docker</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2017/07/22/Spring%20%E6%B3%A8%E8%A7%A3%E4%B9%8B%20@Import/" rel="prev" title="Spring 注解之 @Import">
+                  <i class="fa fa-chevron-left"></i> Spring 注解之 @Import
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2017/07/26/IDEA%20%E5%AF%BC%E5%87%BA%E5%8F%AF%E6%89%A7%E8%A1%8C%20jar/" rel="next" title="IDEA 导出可执行 jar">
+                  IDEA 导出可执行 jar <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

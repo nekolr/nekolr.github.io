@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="我们可以把锁理解成门票，只有当线程拿到了门票才能进入临界区。我们可以用一个状态变量 state 表示锁，当 state 为 true 时就表示已经获取到了锁，为 false 时就表示锁已经被其他线程占用。那么当锁被占用时，应该怎么处理？基本上有两种思路，其中一种就是循环检测直到锁可用，也就是自旋锁；另一种就是让出 CPU 时间片，等待唤醒通知。这里主要讨论自旋的算法，为深入学习 AQS 做铺垫。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="自旋锁">
+<meta property="og:url" content="https://blog.nekolr.com/2020/05/22/%E8%87%AA%E6%97%8B%E9%94%81/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="我们可以把锁理解成门票，只有当线程拿到了门票才能进入临界区。我们可以用一个状态变量 state 表示锁，当 state 为 true 时就表示已经获取到了锁，为 false 时就表示锁已经被其他线程占用。那么当锁被占用时，应该怎么处理？基本上有两种思路，其中一种就是循环检测直到锁可用，也就是自旋锁；另一种就是让出 CPU 时间片，等待唤醒通知。这里主要讨论自旋的算法，为深入学习 AQS 做铺垫。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202005222243/2020/05/22/3qP.png">
+<meta property="article:published_time" content="2020-05-22T12:55:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.901Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="算法">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202005222243/2020/05/22/3qP.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2020/05/22/%E8%87%AA%E6%97%8B%E9%94%81/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/05/22/%E8%87%AA%E6%97%8B%E9%94%81/","path":"2020/05/22/自旋锁/","title":"自旋锁"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>自旋锁 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#TAS-Lock"><span class="nav-number">1.</span> <span class="nav-text">TAS Lock</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TTAS-Lock"><span class="nav-number">2.</span> <span class="nav-text">TTAS Lock</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Anderson%E2%80%99s-Lock"><span class="nav-number">3.</span> <span class="nav-text">Anderson’s Lock</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CLH-Lock"><span class="nav-number">4.</span> <span class="nav-text">CLH Lock</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2020/05/22/%E8%87%AA%E6%97%8B%E9%94%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="自旋锁 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          自旋锁
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-05-22 12:55:00" itemprop="dateCreated datePublished" datetime="2020-05-22T12:55:00+00:00">2020-05-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E7%AE%97%E6%B3%95/" itemprop="url" rel="index"><span itemprop="name">算法</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>我们可以把锁理解成门票，只有当线程拿到了门票才能进入临界区。我们可以用一个状态变量 state 表示锁，当 state 为 true 时就表示已经获取到了锁，为 false 时就表示锁已经被其他线程占用。那么当锁被占用时，应该怎么处理？基本上有两种思路，其中一种就是循环检测直到锁可用，也就是自旋锁；另一种就是让出 CPU 时间片，等待唤醒通知。这里主要讨论自旋的算法，为深入学习 AQS 做铺垫。</p>
+<span id="more"></span>
+
+<h1 id="TAS-Lock"><a href="#TAS-Lock" class="headerlink" title="TAS Lock"></a>TAS Lock</h1><p>自旋锁中最简单的一种实现就是 TAS Lock（Test And Set Lock）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TASLock</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">AtomicBoolean</span> <span class="variable">state</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicBoolean</span>(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 自旋</span></span><br><span class="line">        <span class="keyword">while</span> (<span class="built_in">this</span>.state.getAndSet(<span class="literal">true</span>)) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unlock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.state.set(<span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>其中 getAndSet 方法是通过 CAS 的方式自旋设置新值，当新值设置成功后才会返回，返回的值是之前的旧值。因此这里的 lock 方法只有在之前的值为 false 时才会返回，不然会一直自旋等待。也就是说当一个线程调用了 lock 方法后，其他线程再调用 lock 方法就会在此处自旋，直到该线程调用 unlock 方法后，其他线程才有可能退出自旋拿到锁。这种实现方式是在 CAS 操作上自旋，由于 AtomicBoolean 中维护的真实值是用 volatile 修饰的，为了可见性，该变量的修改和获取都需要通过总线与主存交互，CAS 操作一直在修改它的值，这会引发缓存一致性的流量风暴，从而占用总线资源。</p>
+<h1 id="TTAS-Lock"><a href="#TTAS-Lock" class="headerlink" title="TTAS Lock"></a>TTAS Lock</h1><p>一种针对 TAS Lock 的改进就是 TTAS Lock（Test Test And Set Lock）。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TTASLock</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">AtomicBoolean</span> <span class="variable">state</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">AtomicBoolean</span>(<span class="literal">false</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="keyword">while</span> (<span class="literal">true</span>) &#123;</span><br><span class="line">            <span class="comment">// 自旋在读操作，当 state 的值为 false 时才退出</span></span><br><span class="line">            <span class="keyword">while</span> (<span class="built_in">this</span>.state.get()) &#123;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">if</span> (!<span class="built_in">this</span>.state.getAndSet(<span class="literal">true</span>)) &#123;</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unlock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.state.set(<span class="literal">false</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种方式最大的改进就是将自旋放在了获取 state 上，这样不会引发缓存一致性的流量风暴，但是每次获取 state 值的时候还是需要到主存中去读取。</p>
+<h1 id="Anderson’s-Lock"><a href="#Anderson’s-Lock" class="headerlink" title="Anderson’s Lock"></a>Anderson’s Lock</h1><p>TAS 和 TTAS 都是基于一个状态变量来标识锁，所有的线程都需要轮询此变量的状态，这才会导致频繁占用总线流量。如果每个线程都有一个自己的状态，那么就可以大幅度的减少总线占用。Anderson’s lock 就是一个使用类似思想实现的锁，它基于数组。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ALock</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">boolean</span> flags[];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="type">int</span> size;</span><br><span class="line">    <span class="comment">// tail 本质上代表的是在数组上等待的最后一个线程</span></span><br><span class="line">    <span class="keyword">private</span> AtomicInteger tail;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> ThreadLocal&lt;Integer&gt; slot = <span class="keyword">new</span> <span class="title class_">ThreadLocal</span>&lt;&gt;();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">ALock</span><span class="params">(<span class="type">int</span> capacity)</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.size = capacity;</span><br><span class="line">        <span class="built_in">this</span>.flags = <span class="keyword">new</span> <span class="title class_">boolean</span>[<span class="built_in">this</span>.size];</span><br><span class="line">        <span class="built_in">this</span>.tail = <span class="keyword">new</span> <span class="title class_">AtomicInteger</span>(<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">this</span>.flags[<span class="number">0</span>] = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 获取当前线程状态的位置</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> <span class="built_in">this</span>.tail.getAndIncrement() % <span class="built_in">this</span>.size;</span><br><span class="line">        <span class="built_in">this</span>.slot.set(index);</span><br><span class="line">        <span class="keyword">while</span> (!<span class="built_in">this</span>.flags[index]) &#123;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unlock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// 获取当前线程状态的位置</span></span><br><span class="line">        <span class="type">int</span> <span class="variable">index</span> <span class="operator">=</span> <span class="built_in">this</span>.slot.get();</span><br><span class="line">        <span class="comment">// 复用</span></span><br><span class="line">        <span class="built_in">this</span>.flags[index] = <span class="literal">false</span>;</span><br><span class="line">        <span class="comment">// 通知下一个线程</span></span><br><span class="line">        <span class="built_in">this</span>.flags[(index + <span class="number">1</span>) % <span class="built_in">this</span>.size] = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>lock 方法会先计算出当前线程状态的位置并将它放到线程本地变量中，然后自旋判断状态，只有当前线程的状态为已经获取到锁（true）时才会退出。unlock 方法会通过线程本地变量获取当前线程状态的位置，然后修改状态为空闲（false），目的是为了其他的线程可以再次使用该位置。接着需要“唤醒”下一个等待的线程，即改变下一个线程的状态为已经获取到了锁。</p>
+<p>可以看到，这种方式使用了一个线程共享的数组来存储每个线程的状态（是否获取到了锁），每个线程在自己的工作内存中都有一份该数组的拷贝。线程在获取锁时，只会在自己副本上的特定位置自旋。与 TTAS 相比，能够减少总线的占用，同时这种方式也形成了一个类似 FIFO 的队列，可以保证线程获取锁的公平性。当然缺点也很明显，就是数组长度固定，且空间效率不高，它为每个锁都分配了大小为 size 的数组，如果需要同步 N 个不同的对象就需要分配 N * size 的内存空间，即使线程一次仅访问一个锁。在无缓存的 NUMA 架构中，该算法的性能不佳，因为 lock 可能会在远程变量上自旋。</p>
+<h1 id="CLH-Lock"><a href="#CLH-Lock" class="headerlink" title="CLH Lock"></a>CLH Lock</h1><p>CLH（Craig, Landin, and Hagersten）Lock 可以看作是 Anderson’s Lock 的改进和优化，从结构上看，它是一个虚拟的单向链表（之所以说是虚拟的，或者说是隐式的，是指节点本身并不持有下一个节点）。线程在获取锁时会在它的前驱节点上自旋，当前驱节点的锁释放，该线程就获取到了锁。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">CLHLock</span> &#123;</span><br><span class="line">    <span class="comment">// 前一个节点</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ThreadLocal&lt;Node&gt; prev;</span><br><span class="line">    <span class="comment">// 当前节点</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> ThreadLocal&lt;Node&gt; node;</span><br><span class="line">    <span class="comment">// 队列的最后一个节点</span></span><br><span class="line">    <span class="keyword">private</span> AtomicReference&lt;Node&gt; tail = <span class="keyword">new</span> <span class="title class_">AtomicReference</span>&lt;&gt;(<span class="keyword">new</span> <span class="title class_">Node</span>());</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="title function_">CLHLock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="built_in">this</span>.node = ThreadLocal.withInitial(Node::<span class="keyword">new</span>);</span><br><span class="line">        <span class="built_in">this</span>.prev = ThreadLocal.withInitial(() -&gt; <span class="literal">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">lock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="built_in">this</span>.node.get();</span><br><span class="line">        node.locked = <span class="literal">true</span>;</span><br><span class="line">        <span class="comment">// 设置当前节点为队列的最后一个节点，同时获取前一个节点</span></span><br><span class="line">        <span class="type">Node</span> <span class="variable">prev</span> <span class="operator">=</span> <span class="built_in">this</span>.tail.getAndSet(node);</span><br><span class="line">        <span class="comment">// 将当前节点的前驱节点设置为在这之前队列的最后一个节点</span></span><br><span class="line">        <span class="built_in">this</span>.prev.set(prev);</span><br><span class="line">        <span class="comment">// 在前驱节点上自旋</span></span><br><span class="line">        <span class="keyword">while</span> (prev.locked) &#123;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">unlock</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">Node</span> <span class="variable">node</span> <span class="operator">=</span> <span class="built_in">this</span>.node.get();</span><br><span class="line">        node.locked = <span class="literal">false</span>;</span><br><span class="line">        <span class="built_in">this</span>.node.set(<span class="built_in">this</span>.prev.get());</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">class</span> <span class="title class_">Node</span> &#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="type">boolean</span> locked;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202005222243/2020/05/22/3qP.png" alt="CLH"></p>
+<p>与 Anderson’s Lock 相比，它最大的优点就是空间效率高，但是同样的，它还是具有与 Anderson’s Lock 相同的缺点，那就是在 NUMA 架构中性能不佳。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.csd.uoc.gr/~hy586/material/lectures/cs586-Section3.pdf">Section 3 Practice: Spin Locks and Contention</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%AE%97%E6%B3%95/" rel="tag"># 算法</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/05/17/%E5%88%86%E5%B8%83%E5%BC%8F%E5%94%AF%E4%B8%80%20ID%20%E7%94%9F%E6%88%90/" rel="prev" title="分布式唯一 ID 生成">
+                  <i class="fa fa-chevron-left"></i> 分布式唯一 ID 生成
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/05/30/%E6%B5%85%E8%B0%88%20ConcurrentHashMap/" rel="next" title="浅谈 ConcurrentHashMap">
+                  浅谈 ConcurrentHashMap <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

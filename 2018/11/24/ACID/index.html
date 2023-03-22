@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="ACID 是指数据库管理系统（DBMS）在写入或者更新数据的过程中，为保证事务的正确可靠所具备的四个特征：原子性（atomicity）、一致性（consistency）、隔离性（isolation）和持久性（durability）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ACID">
+<meta property="og:url" content="https://blog.nekolr.com/2018/11/24/ACID/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="ACID 是指数据库管理系统（DBMS）在写入或者更新数据的过程中，为保证事务的正确可靠所具备的四个特征：原子性（atomicity）、一致性（consistency）、隔离性（isolation）和持久性（durability）。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2018-11-24T15:30:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.885Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2018/11/24/ACID/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2018/11/24/ACID/","path":"2018/11/24/ACID/","title":"ACID"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>ACID | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8E%9F%E5%AD%90%E6%80%A7%EF%BC%88atomicity%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">原子性（atomicity）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%88consistency%EF%BC%89"><span class="nav-number">2.</span> <span class="nav-text">一致性（consistency）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E6%80%A7%EF%BC%88isolation%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">隔离性（isolation）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E4%BA%8B%E5%8A%A1%E7%9A%84%E5%BD%B1%E5%93%8D"><span class="nav-number">3.1.</span> <span class="nav-text">并发事务的影响</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%8F%E8%AF%BB"><span class="nav-number">3.1.1.</span> <span class="nav-text">脏读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%8D%E5%8F%AF%E9%87%8D%E5%A4%8D%E8%AF%BB"><span class="nav-number">3.1.2.</span> <span class="nav-text">不可重复读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B9%BB%E8%AF%BB"><span class="nav-number">3.1.3.</span> <span class="nav-text">幻读</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%84%8F%E5%86%99"><span class="nav-number">3.1.4.</span> <span class="nav-text">脏写</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B8%A2%E5%A4%B1%E6%9B%B4%E6%96%B0"><span class="nav-number">3.1.5.</span> <span class="nav-text">丢失更新</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%88%91%E7%9A%84%E7%90%86%E8%A7%A3"><span class="nav-number">3.1.6.</span> <span class="nav-text">我的理解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">3.2.</span> <span class="nav-text">并发控制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%82%B2%E8%A7%82%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">3.2.1.</span> <span class="nav-text">悲观并发控制</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%94%81%E7%B1%BB%E5%9E%8B"><span class="nav-number">3.2.1.1.</span> <span class="nav-text">锁类型</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E7%B2%92%E5%BA%A6"><span class="nav-number">3.2.1.2.</span> <span class="nav-text">封锁粒度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%81%E9%94%81%E5%8D%8F%E8%AE%AE"><span class="nav-number">3.2.1.3.</span> <span class="nav-text">封锁协议</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB"><span class="nav-number">3.2.1.4.</span> <span class="nav-text">隔离级别</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%B9%90%E8%A7%82%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">3.2.2.</span> <span class="nav-text">乐观并发控制</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E7%89%88%E6%9C%AC%E5%B9%B6%E5%8F%91%E6%8E%A7%E5%88%B6"><span class="nav-number">3.2.3.</span> <span class="nav-text">多版本并发控制</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%8C%81%E4%B9%85%E6%80%A7%EF%BC%88durability%EF%BC%89"><span class="nav-number">4.</span> <span class="nav-text">持久性（durability）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2018/11/24/ACID/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="ACID | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ACID
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-11-24 15:30:00" itemprop="dateCreated datePublished" datetime="2018-11-24T15:30:00+00:00">2018-11-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>ACID 是指数据库管理系统（DBMS）在写入或者更新数据的过程中，为保证事务的正确可靠所具备的四个特征：原子性（atomicity）、一致性（consistency）、隔离性（isolation）和持久性（durability）。  </p>
+<span id="more"></span>  
+
+<h1 id="原子性（atomicity）"><a href="#原子性（atomicity）" class="headerlink" title="原子性（atomicity）"></a>原子性（atomicity）</h1><p>原子性是指，在一个事务中所有的操作，要么全部完成，要么全部不完成，不会结束在中间的某个环节。如果事务在执行过程中发生错误，会被回滚（rollback）到事务开始之前的状态，就像事务从来没有执行过一样。  </p>
+<h1 id="一致性（consistency）"><a href="#一致性（consistency）" class="headerlink" title="一致性（consistency）"></a>一致性（consistency）</h1><p>一致性是指在事务开始之前和事务结束以后，数据库的完整性没有被破坏。这表示写入的数据完全符合所有预设的约束（唯一性约束、外键约束等）、触发器等。一个经典的例子就是银行转账，不管有几个账户参与转账，也不管事务是否成功，事务结束后总金额必须保持不变。  </p>
+<h1 id="隔离性（isolation）"><a href="#隔离性（isolation）" class="headerlink" title="隔离性（isolation）"></a>隔离性（isolation）</h1><p>隔离性是指多个事务并发对数据进行读写和修改时，事务之间相互隔离，一个事务不应该影响其他事务的正确执行。隔离确保事务并发执行与按顺序执行后数据库的状态相同。SQL 标准根据事务之间影响的程度定义了四种隔离级别，不同的隔离级别下数据库事务的隔离程度不同，只有在使用最严格的隔离级别时，数据库的并发事务才不会出现任何问题，但是考虑到性能问题一般情况下不使用最高级别的隔离。  </p>
+<h2 id="并发事务的影响"><a href="#并发事务的影响" class="headerlink" title="并发事务的影响"></a>并发事务的影响</h2><p>并发事务可能出现的影响主要分为：<strong>脏读、不可重复读、幻读</strong>以及<strong>丢失更新</strong>。脏读、不可重复读和幻读都是一个事务在读取，另一个事务在做更新或者添加、删除，而丢失更新是两个事务都在做更新操作。  </p>
+<h3 id="脏读"><a href="#脏读" class="headerlink" title="脏读"></a>脏读</h3><p>脏读可能发生在并发的读和写事务中，就是一个事务读到了另一个事务未提交的数据，而这个数据后来被回滚了。</p>
+<table>
+<thead>
+<tr>
+<th>时间点</th>
+<th>事务 A</th>
+<th>事务 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td></td>
+<td>开始事务</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>开始事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T3</td>
+<td></td>
+<td>将余额改为 1500 元</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>查询余额为 1500 元（脏读）</td>
+<td></td>
+</tr>
+<tr>
+<td>T5</td>
+<td></td>
+<td>回滚事务，余额恢复为 1000 元</td>
+</tr>
+</tbody></table>
+<h3 id="不可重复读"><a href="#不可重复读" class="headerlink" title="不可重复读"></a>不可重复读</h3><p>不可重复读可能发生在并发的读和写事务中，多次执行相同的查询却得到了不同的结果，这是因为在某次查询前后，事务 B 对符合事务 A 查询条件的数据进行了修改并提交。  </p>
+<table>
+<thead>
+<tr>
+<th>时间点</th>
+<th>事务 A</th>
+<th>事务 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td></td>
+<td>开始事务</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>开始事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>查询余额为 1000 元</td>
+<td></td>
+</tr>
+<tr>
+<td>T4</td>
+<td></td>
+<td>更新余额改为 900 元</td>
+</tr>
+<tr>
+<td>T5</td>
+<td></td>
+<td>提交事务</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>查询余额为 900 元（与第一次读不一致）</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="幻读"><a href="#幻读" class="headerlink" title="幻读"></a>幻读</h3><p>幻读可能发生在并发的读和写事务中，多次执行相同的查询却得到了不同的结果，这个不同并不是列值不同，而是记录数不同。原因是在某次查询前后，事务 B <strong>添加（删除不算）</strong>了符合事务 A 查询条件的记录。这里主要参考 <a target="_blank" rel="noopener" href="http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt">ANSI SQL-92 规范中的定义</a>。</p>
+<table>
+<thead>
+<tr>
+<th>时间点</th>
+<th>事务 A</th>
+<th>事务 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td></td>
+<td>开始事务</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>开始事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T3</td>
+<td>统计所有存款超过 10000 元的用户</td>
+<td></td>
+</tr>
+<tr>
+<td>T4</td>
+<td></td>
+<td>新增一个用户，存款为 20000 元</td>
+</tr>
+<tr>
+<td>T5</td>
+<td></td>
+<td>提交事务</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>再次统计所有存款超过 10000 元的用户，发现多了（幻读）</td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="脏写"><a href="#脏写" class="headerlink" title="脏写"></a>脏写</h3><p>脏写可能发生在并发的写写事务中，一个事务修改了另一个未提交事务修改过的数据。</p>
+<table>
+<thead>
+<tr>
+<th>时间点</th>
+<th>事务 A</th>
+<th>事务 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>开始事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T2</td>
+<td></td>
+<td>开始事务</td>
+</tr>
+<tr>
+<td>T3</td>
+<td></td>
+<td>将余额改为 1100 元</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>将余额改为 900 元（修改了另一个事务未提交的数据）</td>
+<td></td>
+</tr>
+<tr>
+<td>T5</td>
+<td>提交事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T6</td>
+<td></td>
+<td>回滚事务</td>
+</tr>
+</tbody></table>
+<h3 id="丢失更新"><a href="#丢失更新" class="headerlink" title="丢失更新"></a>丢失更新</h3><p>丢失更新可能发生在并发的写写事务中，一个事务修改了另一个未提交事务修改过的数据，最终先提交的事务修改过的数据被后提交的事务覆盖了。</p>
+<table>
+<thead>
+<tr>
+<th>时间点</th>
+<th>事务 A</th>
+<th>事务 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td>开始事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T2</td>
+<td></td>
+<td>开始事务</td>
+</tr>
+<tr>
+<td>T3</td>
+<td></td>
+<td>将余额改为 1100 元</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>将余额改为 900 元（修改了另一个事务未提交的数据）</td>
+<td></td>
+</tr>
+<tr>
+<td>T5</td>
+<td>提交事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T6</td>
+<td></td>
+<td>提交事务</td>
+</tr>
+</tbody></table>
+<h3 id="我的理解"><a href="#我的理解" class="headerlink" title="我的理解"></a>我的理解</h3><p>关于脏写和丢失更新，我个人的理解是：它们都是在一个事务中修改了另一个未提交事务修改过的数据。在任何隔离级别中，都不会允许出现一个事务修改别人还未提交的数据的情况，因为在写数据的时候会加排他锁，这样该事务的修改操作会等待另一个事务提交之后才能继续进行，此时再修改数据就不叫丢失更新了，这就是正常的更新操作。但是在应用层面还是可能会出现丢失更新，这类情况一般是在更新之前先查询了数据，并且之后的更新需要依赖该查询结果。看下面的这个例子：</p>
+<table>
+<thead>
+<tr>
+<th>时间点</th>
+<th>事务 A</th>
+<th>事务 B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>T1</td>
+<td></td>
+<td>开始事务</td>
+</tr>
+<tr>
+<td>T2</td>
+<td>开始事务</td>
+<td></td>
+</tr>
+<tr>
+<td>T3</td>
+<td></td>
+<td>查询余额为 1000 元</td>
+</tr>
+<tr>
+<td>T4</td>
+<td>查询余额为 1000 元</td>
+<td></td>
+</tr>
+<tr>
+<td>T5</td>
+<td></td>
+<td>取出 100 元，余额改为 900 元</td>
+</tr>
+<tr>
+<td>T6</td>
+<td>存入 100 元，余额改为 1100 元</td>
+<td></td>
+</tr>
+<tr>
+<td>T7</td>
+<td></td>
+<td>提交事务</td>
+</tr>
+<tr>
+<td>T8</td>
+<td>提交事务</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>从结果来看，最终的余额变成了 1100 元，而实际上的余额应该是 1000 元。从逻辑上看，取出 100 元又存入了 100 元，余额的总量应该保持不变，这其实并不是数据库的问题，而是逻辑上的问题，需要我们从应用层面去解决。一般有两种解决方法，一种是在查询时加入排他锁，也就是使用 <code>SELECT ... FOR UPDATE</code> 语句；另一种就是使用乐观锁，即添加一个版本号字段，在查询数据时将版本号一同查出，在更新时通过 where 条件判断版本号与之前查询得出的是否一致，只有一致时才会更新。</p>
+<h2 id="并发控制"><a href="#并发控制" class="headerlink" title="并发控制"></a>并发控制</h2><p>数据库的并发控制用来避免或减小并发事务可能产生的影响，主要的并发控制方式有：乐观并发控制、悲观并发控制和 MVCC（多版本并发控制）。  </p>
+<h3 id="悲观并发控制"><a href="#悲观并发控制" class="headerlink" title="悲观并发控制"></a>悲观并发控制</h3><p>为了避免并发事务产生的上述影响，就需要在执行可能引发问题的操作之前通过锁将该操作阻塞，在锁释放时恢复执行。  </p>
+<h4 id="锁类型"><a href="#锁类型" class="headerlink" title="锁类型"></a>锁类型</h4><p>封锁使用的两种基本类型的锁包括：<strong>共享锁</strong>和<strong>排它锁</strong>。  </p>
+<ul>
+<li>共享锁又叫 S 锁，如果事务 T 对数据对象 R 加上了 S 锁后，其他事务只能对 R 再加共享锁，不能加排它锁。获得共享锁的事务只能读取数据，不能修改数据。  </li>
+<li>排它锁又叫 X 锁，如果事务 T 对数据对象 R 加上了 X 锁后，其他事务不能再对 R 加任何类型的锁，<strong>但是可以不加锁地去读取 R</strong>。获得排它锁的事务既能读取数据，也能修改数据。</li>
+</ul>
+<h4 id="封锁粒度"><a href="#封锁粒度" class="headerlink" title="封锁粒度"></a>封锁粒度</h4><p>封锁的对象可以很大也可以很小，大的对象可以是整个表，甚至是整个数据库，小的对象可以是某一行数据或者是某一列字段等等，封锁对象的大小称为封锁的粒度。封锁的粒度越大，并发度也就越小（冲突的可能性也就越大），但是相对的系统开销也就越小；封锁的粒度越小，并发度也就越高（冲突的可能性也就越小），但是相对的开销也就越大。  </p>
+<h4 id="封锁协议"><a href="#封锁协议" class="headerlink" title="封锁协议"></a>封锁协议</h4><p>在使用锁对数据对象加锁时，还需要定义一些规则。例如在何时申请锁，何时释放锁等。为此，数据库理论中提出了封锁协议的概念。  </p>
+<ul>
+<li><strong>一级封锁协议</strong><br>如果事务中对数据对象 R 有修改操作，则必须在该事务第一个读取数据对象 R 之前对其加 X 锁，直到事务结束才释放，事务结束包括正常结束（commit）和非正常结束（rollback）。在一级封锁协议中，如果仅仅是读取数据，并不对其进行修改，是不需要加锁的，因此它不能避免脏读和不可重复读，但是它可以避免丢失更新。  </li>
+<li><strong>二级封锁协议</strong><br>在一级封锁协议的基础上，事务在读取数据对象 R 之前必须先对其加 S 锁，读取完毕后才能释放。二级封锁协议除了能够避免丢失更新以外，还可以避免脏读。但是由于读取完数据即可释放 S 锁，所以没有办法避免不可重复读。  </li>
+<li><strong>三级封锁协议</strong><br>在一级封锁协议的基础上，事务在读取数据对象 R 之前必须先对其加 S 锁，直到事务结束才能释放。三级封锁协议除了能够避免丢失更新和脏读外，还进一步避免了不可重复读。</li>
+</ul>
+<h4 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h4><p>隔离级别可以看作是三级封锁协议的具体应用和实现。在 SQL 标准规范中定义了四种隔离级别，包括：读未提交、读提交、可重复读和串行化。    </p>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>可以避免的情况</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>READ UNCOMMITTED（读未提交）</td>
+<td>丢失更新</td>
+<td>最低级别的隔离</td>
+</tr>
+<tr>
+<td>READ COMMITTED（读提交）</td>
+<td>丢失更新、脏读</td>
+<td>只有在事务提交后，其更新的结果才能被其他事务看见</td>
+</tr>
+<tr>
+<td>REPETABLE READ（可重复读）</td>
+<td>丢失更新、脏读、不可重复读</td>
+<td>在同一个事务中，对于同一份数据的读取结果总是相同的</td>
+</tr>
+<tr>
+<td>SERIALIZABLE（串行化）</td>
+<td>丢失更新、脏读、不可重复读和幻读</td>
+<td>所有的事务串行化执行，隔离级别最高，可以解决所有的并发事务问题，但是性能最差</td>
+</tr>
+</tbody></table>
+<p>在<strong>读未提交级别</strong>下，数据库遵循一级封锁协议，只对修改数据的并发操作做限制，即一个事务不能修改其他事务正在修改的数据，但是可以读取到（不加锁的读）其他事务中尚未提交的修改，如果这些修改被回滚，将会成为脏数据。  </p>
+<p>在<strong>读提交级别</strong>下，数据库遵循二级封锁协议，只允许读取已经被提交的数据，即如果一个事务正在修改数据并且没有提交，其他事务不能读取该数据。在 MySQL 的 InnoDB 引擎中，这种操作虽然不被允许，但是 MySQL 不会阻塞这种读取操作，而是会查询出数据被修改之前的快照，这种机制被称为 MVCC（多版本并发控制）。MVCC 会在事务并发过程中对数据维护多个版本，不同的事务操作的是不同的数据版本。这种机制反映在应用中就是，在任何时候对数据的查询操作总是可以得到最近提交的数据，未被提交的数据会被隔离起来，无法查询到，从而防止脏读。  </p>
+<p>在<strong>可重复读级别</strong>下，理论上数据库遵循的是三级封锁协议，但是出于性能考虑，MySQL 的 InnoDB 引擎还是遵循的二级封锁协议，但是在读取的过程中更多的依赖 MVCC。依靠 MVCC，在同一个事务中的查询只能查到版本号（时间戳或事务 ID）不高于当前事务的数据，即在事务中只能看到该事务开始前或者被该事务影响的数据。反过来说，即不允许事务读取在该事务开始之后新提交的数据，这样也就避免了不可重复读。  </p>
+<p>依靠上面的机制，已经做到了在事务内数据的内容不变，但是不能保证多次查询得到的数据数量一致。因为在一个事务 T 执行的过程中别的事务完全可以执行数据的插入或删除，当插入或删除了刚好符合事务 T 查询条件的数据时，就会引发查询结果集的变化，导致幻读。InnoDB 提供的间隙锁机制可以在一定程度上避免幻读。  </p>
+<p>在<strong>串行化级别</strong>下，所有的事务必须一个接一个地执行，这样虽然解决了并发事务的所有问题，但是会造成大量的事务等待、阻塞，系统性能最差。  </p>
+<p>大多数的数据库管理系统默认使用的隔离级别就是 READ COMMITTED（读提交），比如 Oracle、SQL Server、PostgreSQL 和 Db2，而 MySQL 的 InnoDB 引擎默认使用的隔离级别是 REPETABLE READ（可重复读）。理论上可重复读只能避免脏读和不可重复读的问题，但是 MySQL 默认的隔离级别又通过 MVCC（多版本并发控制）避免了部分幻读的情况。至于为什么说是部分避免，可以参考<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000012669504">这篇文章</a>。  </p>
+<blockquote>
+<p>理论上，在任何隔离级别下，都不允许一个事务删除或者修改另一个事务影响但没有提交的数据。因为事务在增删或者修改数据时，会对数据对象加上排它锁，在该事务结束前，其他事务无法修改该数据，也就避免了丢失更新。  </p>
+</blockquote>
+<h3 id="乐观并发控制"><a href="#乐观并发控制" class="headerlink" title="乐观并发控制"></a>乐观并发控制</h3><p>乐观并发控制又被称为乐观锁，虽然它的名称中带有锁，但它依赖的是程序逻辑，并不依赖数据库的锁机制（**这里有的说法是乐观锁在数据检查时会加锁，但是时间会很短，具体请参考知乎的<a target="_blank" rel="noopener" href="https://www.zhihu.com/question/58687632">这篇问答</a>**）。乐观锁的一般做法是在数据库表中添加一个整型字段，通常叫做 version（版本号）。在读取数据时，连同该版本号一同读出。之后更新时，将提交数据的版本号和数据库表中的当前版本号对比，如果版本号相同，则予以更新；否则，说明已经该记录已经被其他事务更新过了，不予更新。在更新其他字段的同时，版本号字段要递增。逻辑类似如下：  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 查询记录</span></span><br><span class="line"><span class="keyword">select</span> status, version <span class="keyword">from</span> goods <span class="keyword">where</span> id <span class="operator">=</span> #&#123;id&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 更新记录</span></span><br><span class="line"><span class="keyword">update</span> goods </span><br><span class="line"><span class="keyword">set</span> status <span class="operator">=</span> <span class="number">1</span>, version <span class="operator">=</span> version <span class="operator">+</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">where</span> id <span class="operator">=</span> #&#123;id&#125; <span class="keyword">and</span> version <span class="operator">=</span> #&#123;oldVersion&#125;</span><br></pre></td></tr></table></figure>
+
+<p>乐观锁适用于读多写少的情况，即更新冲突很少发生的情况，因为如果冲突很严重，更新经常是失败的，上层应用可能就需要不断重试，这会导致很多次请求使用的资源被白白浪费。在并发冲突很严重的情况下，一般采用悲观锁，即数据库加锁的方式。  </p>
+<h3 id="多版本并发控制"><a href="#多版本并发控制" class="headerlink" title="多版本并发控制"></a>多版本并发控制</h3><p>MVCC（Multi-Version Concurrency Control，多版本并发控制）是一种并发控制的方式。并发控制最简单的方式就是加锁，但是这种方式性能很差。MVCC 使用了另一种思路，即每个数据库连接，在某个瞬间看到的数据只是数据库的一个快照，一个事务的写操作造成的影响在事务结束之前对于其他事务是不可见的。  </p>
+<p>当一个事务需要更新一条数据记录时，它不会直接用新数据覆盖旧数据，而是将旧数据标记为过时（obsolete）并在别处增加新版本的数据，这样数据库就会存储多个版本的数据，但是只有一个是最新的。这种方式允许一个事务读取在它读之前就已经存在的数据，即使在读取的过程中这个数据已经被其他事务修改或者删除过了，对当前正在读的事务也没有任何影响。  </p>
+<p>MVCC 并发控制下的读事务一般使用时间戳或者单向增长的事务 ID 去标记当前读的数据库的状态（或者叫做版本），读、写事务互相隔离，不需要加锁，写操作会根据当前数据库的版本，创建一个新的版本，并发的读事务依旧访问旧版本的数据。  </p>
+<h1 id="持久性（durability）"><a href="#持久性（durability）" class="headerlink" title="持久性（durability）"></a>持久性（durability）</h1><p>持久性是指事务结束后，对数据的修改就会永久的保存在数据库中，即使设备发生了故障，如断电等。  </p>
+<p>数据库的持久化一般都是通过 WAL（write-ahead logging）技术来实现的。在使用 WAL 技术的系统中，所有的修改在提交之前都要先写入到 log 文件中，log 文件通常包括 redo 和 undo 信息。这样我们就不用每次提交事务的时候把数据页冲刷到磁盘，因为我们知道在出现崩溃的情况下，可以通过日志来恢复数据库，任何尚未被附加到数据页的记录都将从日志记录中重做（向前滚动恢复，也叫作 redo），而那些未提交的事务做的修改都将从数据页中删除（向后滚动恢复，也叫作 undo）。在使用了 WAL 机制之后，磁盘写操作只有传统的回滚日志的一半左右，大大提高了数据库磁盘 I&#x2F;O 操作的效率，从而提高了数据库的性能。  </p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="http://www.contrib.andrew.cmu.edu/~shadow/sql/sql1992.txt">The SQL-92 standard</a>  </p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_30531261/article/details/79479895">对数据库事务、隔离级别、锁、封锁协议的理解及其关系的理解</a>  </p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/deliver/p/5730616.html">mysql 的锁–行锁，表锁，乐观锁，悲观锁</a>  </p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/27876575">乐观锁和 MVCC 的区别？</a>  </p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/YFYkuner/p/5178684.html">关于 MVCC 的基础</a>  </p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># 数据库</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/11/23/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%8F%91%E5%B1%95%E5%92%8C%E7%8E%B0%E7%8A%B6/" rel="prev" title="数据库系统的发展和现状">
+                  <i class="fa fa-chevron-left"></i> 数据库系统的发展和现状
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/11/25/CAP%20%E5%8E%9F%E5%88%99%E4%B8%8E%20BASE%20%E7%90%86%E8%AE%BA/" rel="next" title="CAP 原则与 BASE 理论">
+                  CAP 原则与 BASE 理论 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

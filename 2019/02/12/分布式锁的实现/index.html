@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="在单机多线程环境中，JDK 提供了很多线程同步的工具，包括 synchronized 和 Lock 来帮助我们解决线程间代码同步的问题。但是现在的系统多是分布式的，这意味着我们需要一种能够处理进程级别的代码同步的工具，即常说的分布式锁。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="分布式锁的实现">
+<meta property="og:url" content="https://blog.nekolr.com/2019/02/12/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="在单机多线程环境中，JDK 提供了很多线程同步的工具，包括 synchronized 和 Lock 来帮助我们解决线程间代码同步的问题。但是现在的系统多是分布式的，这意味着我们需要一种能够处理进程级别的代码同步的工具，即常说的分布式锁。">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2019-02-12T14:50:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.897Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="分布式锁">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2019/02/12/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2019/02/12/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/","path":"2019/02/12/分布式锁的实现/","title":"分布式锁的实现"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>分布式锁的实现 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="nav-number">1.</span> <span class="nav-text">基于数据库</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E%E7%BC%93%E5%AD%98"><span class="nav-number">2.</span> <span class="nav-text">基于缓存</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Redlock"><span class="nav-number">3.</span> <span class="nav-text">Redlock</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9F%BA%E4%BA%8E-ZooKeeper"><span class="nav-number">4.</span> <span class="nav-text">基于 ZooKeeper</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2019/02/12/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="分布式锁的实现 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          分布式锁的实现
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-02-12 14:50:00" itemprop="dateCreated datePublished" datetime="2019-02-12T14:50:00+00:00">2019-02-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>在单机多线程环境中，JDK 提供了很多线程同步的工具，包括 synchronized 和 Lock 来帮助我们解决线程间代码同步的问题。但是现在的系统多是分布式的，这意味着我们需要一种能够处理进程级别的代码同步的工具，即常说的分布式锁。  </p>
+<span id="more"></span>  
+
+<p>分布式锁应该满足的几个特征：  </p>
+<ul>
+<li><p>互斥性<br>在分布式环境下同一时间只有一个客户端能够获取到锁，也就是保证不同节点的不同线程的互斥。  </p>
+</li>
+<li><p>高性能、高可用<br>必须能够高性能、高可用地获取和释放锁。  </p>
+</li>
+<li><p>可重入<br>必须是可重入锁，即同一个节点同一个线程可以多次获取锁。  </p>
+</li>
+<li><p>超时<br>应该具备锁失效的机制，防止死锁的发生。  </p>
+</li>
+<li><p>阻塞或非阻塞<br>应该提供类似 ReentrantLock 的阻塞获取锁的 lock 方法和非阻塞获取锁的 tryLock 方法。</p>
+</li>
+</ul>
+<p>目前常见的实现分布式锁的方式有：基于数据库、基于缓存（Redis、Memcached）和基于 ZooKeeper。  </p>
+<h1 id="基于数据库"><a href="#基于数据库" class="headerlink" title="基于数据库"></a>基于数据库</h1><p>基于数据库的实现方式有很多种，其中比较常见的就是利用数据库的唯一约束，成功插入记录就表示获取到了锁，插入失败则表示没有获取到锁。  </p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">DROP</span> <span class="keyword">TABLE</span> IF <span class="keyword">EXISTS</span> `resource_lock`;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> `resource_lock` (</span><br><span class="line">  `id` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> AUTO_INCREMENT COMMENT <span class="string">&#x27;主键&#x27;</span>,</span><br><span class="line">  `resource_name` <span class="type">varchar</span>(<span class="number">64</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;锁定的资源&#x27;</span>,</span><br><span class="line">  `update_time` <span class="type">timestamp</span> <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="built_in">CURRENT_TIMESTAMP</span> <span class="keyword">ON</span> <span class="keyword">UPDATE</span> <span class="built_in">CURRENT_TIMESTAMP</span> COMMENT <span class="string">&#x27;默认自动生成的时间戳&#x27;</span>,</span><br><span class="line">  `count` <span class="type">int</span>(<span class="number">11</span>) <span class="keyword">NOT</span> <span class="keyword">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> COMMENT <span class="string">&#x27;统计重入的次数&#x27;</span>,</span><br><span class="line">  `node_info` <span class="type">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="keyword">NULL</span> COMMENT <span class="string">&#x27;机器和线程信息&#x27;</span>,</span><br><span class="line">  <span class="keyword">PRIMARY</span> KEY (`id`),</span><br><span class="line">  <span class="keyword">UNIQUE</span> KEY `unique_method_name` (`method_name`) <span class="keyword">USING</span> BTREE</span><br><span class="line">) ENGINE<span class="operator">=</span>InnoDB <span class="keyword">DEFAULT</span> CHARSET<span class="operator">=</span>utf8 COMMENT<span class="operator">=</span><span class="string">&#x27;锁定中的资源&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>创建类似的一张表，如果在使用某个资源时想获取锁，则向数据库中插入一条记录。因为资源名做了唯一性校验，如果有多个请求同时提交到数据库，则只会有一个成功，那么操作成功的我们就认为获取到了锁。在资源使用完后，通过删除该条记录来释放锁。同时为了实现可重入的特性，在表中增加一列用于记录获得锁的主机和线程信息，在下次获取锁时检查当前机器的主机和线程信息与表中数据是否一致，如果一致则可以直接分配锁。  </p>
+<p>这种方式的优点是实现简单，当然相对的，缺点也很多。因为该方式重度依赖数据库，所以数据库的可用性和性能将直接影响分布式锁，这时可以通过数据库双机部署、主从同步来避免单点问题。为了支持超时释放锁，可以使用定时任务，定时清理超时的锁数据。当然这些优化只是一种补救措施，实际使用中并不推荐通过数据库实现分布式锁。  </p>
+<h1 id="基于缓存"><a href="#基于缓存" class="headerlink" title="基于缓存"></a>基于缓存</h1><p>常用的缓存中间件有 Redis、Memcached 等，其中 Redis 使用较为广泛。Redis 的操作大部分都是基于内存的，所以性能很高，同时所有的单个操作都是原子性的，也支持主从同步，具备高可用性。  </p>
+<p>Redis 提供了一个命令可以很好地实现锁的功能，这个命令就是 <code>SETNX</code>（SET if Not eXists），调用该命令需要提供一个 key&#x2F;value 对，只有在 key 不存在时才会设置 value，设置成功后返回 1，失败则返回 0。  </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">redis&gt; SETNX lan <span class="string">&quot;Java&quot;</span></span><br><span class="line">(<span class="built_in">integer</span>) 1</span><br><span class="line">redis&gt; SETNX lan <span class="string">&quot;Ruby&quot;</span></span><br><span class="line">(<span class="built_in">integer</span>) 0</span><br></pre></td></tr></table></figure>
+
+<p>只有 <code>SETNX</code> 可不行，我们还需要实现超时锁失效的机制，因此就需要用到另一个命令 <code>EXPIRE</code>，用法为 <code>EXPIRE key timeout</code>。当超时时间到时，Redis 会自动删除 key。  </p>
+<p>有了这些命令，我们的思路就是在获取锁时使用 <code>SETNX</code> 命令，设置的 value 值为一个全局唯一的值（如 UUID），这么做是为了确保释放的是自己的锁。同时还要使用 <code>EXPIRE</code> 命令为锁添加一个超时时间，超时则会自动释放锁。在释放锁时使用 <code>DELETE</code> 命令，并判断 value 值是否一致，一致则进行删除。因此我们的实现可能类似这样（使用 Jedis）：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">Long</span> <span class="variable">result</span> <span class="operator">=</span> jedis.setnx(lockKey, uuid);</span><br><span class="line"><span class="keyword">if</span> (result == <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// 若在这里程序突然崩溃，则无法设置过期时间，将会发生死锁</span></span><br><span class="line">    jedis.expire(lockKey, expireTime);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但是很遗憾，这种实现在程序意外崩溃时会导致锁无法释放，引发死锁。在 Redis 2.6.12 版本之前，我们可以利用 Redis 的事务特性来处理。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 开始事务</span></span><br><span class="line"><span class="type">Transaction</span> <span class="variable">transaction</span> <span class="operator">=</span> jedis.multi();</span><br><span class="line">transaction.setnx(lockKey, uuid);</span><br><span class="line">transaction.expire(lockKey, expireTime);</span><br><span class="line"><span class="comment">// 提交事务</span></span><br><span class="line">transaction.exec();</span><br></pre></td></tr></table></figure>
+
+<p>但是这里有一个问题就是，如果有多个客户端的请求同时到达，虽然 <code>SETNX</code> 命令只会有一个客户端执行成功，但是 <code>EXPIRE</code> 命令所有的客户端都可以执行成功，这会导致锁的超时时间一直延长。在 Redis 2.6.12 版本及以后，SET 命令可以通过设置参数实现上面所有的效果并避免超时时间延长的问题。  </p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>使用</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>EX seconds</td>
+<td>SET key value EX seconds</td>
+<td>设置键的过期时间，单位秒，效果等同于 SETEX key seconds value</td>
+</tr>
+<tr>
+<td>PX milliseconds</td>
+<td>SET key value PX milliseconds</td>
+<td>设置键的过期时间，单位毫秒，效果等同于 PSETEX key milliseconds value</td>
+</tr>
+<tr>
+<td>NX</td>
+<td>SET key value NX</td>
+<td>只有在键不存在时才会设置 value 值，效果等同于 SETNX key value</td>
+</tr>
+<tr>
+<td>XX</td>
+<td>SET key value XX</td>
+<td>只有在键存在时才会设置 value 值</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 获取锁</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">String</span> <span class="variable">result</span> <span class="operator">=</span> jedis.set(lockKey, uuid, <span class="string">&quot;NX&quot;</span>, <span class="string">&quot;PX&quot;</span>, expireTime);</span><br><span class="line"><span class="keyword">if</span> (<span class="string">&quot;OK&quot;</span>.equals(result)) &#123;</span><br><span class="line">    <span class="comment">// 设置成功</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 释放锁</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="type">String</span> <span class="variable">LuaScript</span> <span class="operator">=</span> <span class="string">&quot;if redis.call(&#x27;get&#x27;, KEYS[1]) == ARGV[1] &quot;</span> + </span><br><span class="line">        <span class="string">&quot;then return redis.call(&#x27;del&#x27;, KEYS[1]) else return 0 end&quot;</span>;</span><br><span class="line"><span class="comment">// 第一个参数是脚本文本，第二个参数是一个 key 的集合，第三个参数是参数集合</span></span><br><span class="line"><span class="type">Object</span> <span class="variable">result</span> <span class="operator">=</span> jedis.eval(LuaScript, Collections.singletonList(lockKey),</span><br><span class="line">        Collections.singletonList(uuid));</span><br><span class="line"><span class="keyword">if</span> (result.equals(<span class="number">1L</span>)) &#123;</span><br><span class="line">    <span class="comment">// 删除成功</span></span><br><span class="line">    <span class="keyword">return</span> <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这里需要解释的就是释放锁，luaScript 是一段 Lua 脚本，它首先获取 key 对应的 value 值并与传入的 uuid 比较，如果相同则执行删除 key，否则返回 0。之所以使用 Lua 脚本是因为 eval 命令在执行 Lua 脚本时会把它当成一个命令去执行，并且直到 eval 执行完成后 Redis 才能执行其他命令，这就确保了整个过程的原子性。  </p>
+<h1 id="Redlock"><a href="#Redlock" class="headerlink" title="Redlock"></a>Redlock</h1><p>为了保证 Redis 服务的高可用，一般会使用主从 + 哨兵的架构，当主节点宕机能够自动进行故障切换，这个时候如果使用上面提到的分布式锁就可能存在一个问题。</p>
+<p>举个例子，假如客户端 A 在主节点拿到了锁，然后主节点在把客户端 A 创建的 key 写入到从节点之前就宕机了。此时由于故障切换，从节点变成了主节点，但是又有一个客户端 B 来申请锁，由于原来的从节点里没有客户端 A 持有的锁信息，所以客户端 B 也获取到了锁。这就违背了分布式锁在同一时间只能有一个客户端获取到锁的原则。</p>
+<p>为了解决这个问题，Redis 提出了 Redlock 算法。该算法假设我们有 N 个主节点，这些节点都是完全独立的，不使用任何复制或者其他分布式协调算法。然后继续使用上面提到的获取锁的方式分别在每个节点上获取锁和释放锁。我们假设 N 为 5，也就是说我们有五个独立的主节点，一个客户端具体需要做出以下操作来获取锁：</p>
+<ol>
+<li><p>获取当前时间（单位是毫秒）。</p>
+</li>
+<li><p>使用 SET 设置相同的过期键和唯一值的方式在 5 个节点上请求锁，超时时间的设置需要比总的锁释放时间小的多，比如如果总的锁释放时间是 10 秒钟，那么每个节点锁请求的超时时间可能是 0 到 50 毫秒的范围，这样可以防止一个客户端在某个宕掉的主节点上阻塞过长的时间，如果一个主节点不可用了，我们应该尽快尝试下一个主节点。</p>
+</li>
+<li><p>只有当客户端在超过半数的主节点上成功获取到了锁（此处为 3 个或 3 个以上），并且总共消耗的时间不超过总的锁释放时间，我们才认为该客户端真正获取到了锁。</p>
+</li>
+<li><p>从成功获取锁开始，锁自动释放的时间就是设定的总的锁释放时间减去之前获取锁消耗的时间。</p>
+</li>
+<li><p>如果锁获取失败了，不管是因为获取成功的锁没有达到半数以上，还是因为总消耗时间超过了总的锁释放时间，客户端都会到每个节点上释放锁，即便是那些它认为没有获取成功的锁。</p>
+</li>
+</ol>
+<blockquote>
+<p>从 Redlock 算法的描述中，我们可以明白为什么该算法需要 N 个独立的节点。假如采用主从架构，客户端在请求到主节点的锁后，在请求从节点的锁时，很有可能该键已经同步到从节点，因此会获取锁失败。而假如是集群架构，由于 Redis 的集群通过划分槽的方式进行数据库分片，客户端使用相同的键请求集群来获取锁时会始终被分配到某一个主节点。</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://github.com/redisson/redisson">redisson</a> 中提供了 Redlock 的 Java 实现。</p>
+<h1 id="基于-ZooKeeper"><a href="#基于-ZooKeeper" class="headerlink" title="基于 ZooKeeper"></a>基于 ZooKeeper</h1><p>ZooKeeper 是一个 CP 系统，因此天生就能够用来解决分布式一致性问题。基于 ZooKeeper 实现分布式锁的思路是：将 ZooKeeper 上的一个 ZNode 看作一把锁，通过创建临时节点来实现获取锁的操作，而没有获取到锁的客户端需要在该临时节点上通过 exists 注册 Watcher，当获取锁的客户端因为宕机或者主动删除临时节点释放锁时，其他客户端就可以收到通知，从而重新发送创建临时节点的请求来继续竞争锁。  </p>
+<p>这种实现思路有一个问题就是在释放锁后会发生惊群效应，所有客户端都会去竞争锁，这里我们使用一种更好的方式。首先需要创建一个父节点，这个节点是 PERSISTENT 类型的。然后在获取锁时在父节点下创建 EPHEMERAL_SEQUENTIAL 类型（临时的、有序的）的节点，如果有多个客户端同时请求获取锁，那么它们都能够成功创建节点。接着客户端在父节点上调用 getChildren()，但是此时不要设置监听，避免惊群效应。将获取到的所有子节点按照节点顺序排序，序号最小的节点就表示获取到了锁，客户端需要判断该节点是否是自己创建的，如果是则该客户端获取到了锁，如果不是此时客户端需要找到序号比自己小的那个<strong>相邻节点</strong>，然后对其调用 exists 同时设置监听，之后如果被监听的节点被删除，则客户端会收到通知，此时再调用 getChildren() 并排序比较序号，如果自己创建的节点是序号最小的，那么就获取到了锁，否则重复之前的步骤。  </p>
+<p>操作 ZooKeeper 最常用的第三方实现就是 Apache Curator，它与 ZooKeeper 的关系就像 Google Guava 与 Java。Curator 为我们提供了 <code>curator-recipes</code> 包，里面有很多常用的功能，包括分布式锁、分布式栅栏（Barrier）、分布式队列等。  </p>
+<p>Curator 实现的分布式锁包括：  </p>
+<ul>
+<li><p>InterProcessMutex<br>分布式可重入锁共享锁，在任意时刻只能有一个客户端获取到锁，可重入。</p>
+</li>
+<li><p>InterProcessSemaphoreMutex<br>分布式共享锁，与 InterProcessMutex 区别就是不可重入。</p>
+</li>
+<li><p>InterProcessReadWriteLock<br>分布式可重入读写锁，读写锁保持一对相关的锁，一个用于只读操作，一个用于写入操作。可以有多个客户端获取到读锁，而写锁是独占的。</p>
+</li>
+<li><p>InterProcessMultiLock<br>多共享锁，将多个锁作为单个实体进行管理的容器，acquire() 方法会获取所有的锁，release() 方法会释放所有的锁。</p>
+</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/xlgen157387/article/details/79036337">分布式锁简单入门以及三种实现方式介绍</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/austinspark-jessylu/p/8043726.html">分布式锁的几种实现方式</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" rel="tag"># 分布式锁</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/01/29/Shiro%20RESTful%20%E5%8C%96%E6%94%B9%E9%80%A0/" rel="prev" title="Shiro RESTful 化改造">
+                  <i class="fa fa-chevron-left"></i> Shiro RESTful 化改造
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/02/19/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%AD%E7%9A%84%E6%A0%91/" rel="next" title="数据结构中的树">
+                  数据结构中的树 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

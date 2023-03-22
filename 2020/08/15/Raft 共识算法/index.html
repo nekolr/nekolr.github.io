@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Paxos 算法偏向于理论，对于如何应用到工程实践上较少提及，同时 Paxos 算法较难理解且复杂性很高，目前能够真正在生产环境中独立使用的成品很少，已知的基础库，比如 Tencent 的 phxpaxos 早在 2016 年开源，并在很久之前就停止维护了。阿里的 X-Paxos 只有文章介绍，并不开源。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Raft 共识算法">
+<meta property="og:url" content="https://blog.nekolr.com/2020/08/15/Raft%20%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="Paxos 算法偏向于理论，对于如何应用到工程实践上较少提及，同时 Paxos 算法较难理解且复杂性很高，目前能够真正在生产环境中独立使用的成品很少，已知的基础库，比如 Tencent 的 phxpaxos 早在 2016 年开源，并在很久之前就停止维护了。阿里的 X-Paxos 只有文章介绍，并不开源。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008241748/2020/08/21/YNE.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008241748/2020/08/21/MPg.png">
+<meta property="article:published_time" content="2020-08-15T10:47:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.893Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="分布式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008241748/2020/08/21/YNE.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2020/08/15/Raft%20%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/08/15/Raft%20%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/","path":"2020/08/15/Raft 共识算法/","title":"Raft 共识算法"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Raft 共识算法 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Raft-%E7%AE%97%E6%B3%95%E7%9A%84%E7%9B%AE%E6%A0%87%EF%BC%9A%E6%97%A5%E5%BF%97%E5%A4%8D%E5%88%B6%E5%90%8C%E6%AD%A5"><span class="nav-number">1.</span> <span class="nav-text">Raft 算法的目标：日志复制同步</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%8A%82%E7%82%B9%E7%8A%B6%E6%80%81"><span class="nav-number">2.</span> <span class="nav-text">节点状态</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%A2%86%E5%AF%BC%E8%80%85%E4%BB%BB%E6%9C%9F%EF%BC%88term%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">领导者任期（term）</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%BF%83%E8%B7%B3%E6%A3%80%E6%B5%8B%E5%8F%8A%E8%B6%85%E6%97%B6%E5%A4%84%E7%90%86"><span class="nav-number">4.</span> <span class="nav-text">心跳检测及超时处理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%80%89%E4%B8%BE"><span class="nav-number">5.</span> <span class="nav-text">选举</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BE%E7%9A%84-safety-%E5%92%8C-liveness"><span class="nav-number">5.1.</span> <span class="nav-text">选举的 safety 和 liveness</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E5%A4%8D%E5%88%B6"><span class="nav-number">6.</span> <span class="nav-text">日志复制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%97%A5%E5%BF%97%E7%9A%84%E4%B8%80%E8%87%B4%E6%80%A7%E6%A3%80%E6%9F%A5"><span class="nav-number">6.1.</span> <span class="nav-text">日志的一致性检查</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A2%86%E5%AF%BC%E8%80%85%E5%8F%98%E6%9B%B4"><span class="nav-number">6.2.</span> <span class="nav-text">领导者变更</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%89%E5%85%A8%E6%80%A7"><span class="nav-number">7.</span> <span class="nav-text">安全性</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%89%E4%B8%BE%E9%99%90%E5%88%B6"><span class="nav-number">7.1.</span> <span class="nav-text">选举限制</span></a></li></ol></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2020/08/15/Raft%20%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Raft 共识算法 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Raft 共识算法
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-08-15 10:47:00" itemprop="dateCreated datePublished" datetime="2020-08-15T10:47:00+00:00">2020-08-15</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index"><span itemprop="name">分布式</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>Paxos 算法偏向于理论，对于如何应用到工程实践上较少提及，同时 Paxos 算法较难理解且复杂性很高，目前能够真正在生产环境中独立使用的成品很少，已知的基础库，比如 Tencent 的 <a target="_blank" rel="noopener" href="https://github.com/Tencent/phxpaxos">phxpaxos</a> 早在 2016 年开源，并在很久之前就停止维护了。阿里的 X-Paxos 只有文章介绍，并不开源。</p>
+<span id="more"></span>
+
+<p>Raft 在 2013 年提出，为了更容易理解和实施，Raft 将分布式问题分解和具化，由一个强有力（比 Paxos 的 leader 更强）的 leader 统一处理变更请求，使用 term 作为逻辑时钟来保证时序，一致性具化为保证节点间的操作日志副本（log replication）一致。</p>
+<h1 id="Raft-算法的目标：日志复制同步"><a href="#Raft-算法的目标：日志复制同步" class="headerlink" title="Raft 算法的目标：日志复制同步"></a>Raft 算法的目标：日志复制同步</h1><p>Raft 算法的目标是将日志完整地复制到集群所有的节点中，这些复制日志会被状态机（可以理解为一个函数）所使用，只要我们能够保证各个节点上的日志是相同的，那么各个节点上的状态机就能以相同的顺序执行相同的命令，得到一致的结果。</p>
+<p>Raft 算法允许服务器崩溃，不过它更希望是 fail-stop 式的崩溃，也就是说，节点只是停止工作或者停止工作又恢复了，但是要求只要节点处于运行状态，那么它们的行为就必须是正确的，这就意味着节点不能有拜占庭式的故障。同时 Raft 算法还允许网络通信中断，消息延迟或者丢失，甚至消息无序，网络分化。</p>
+<h1 id="节点状态"><a href="#节点状态" class="headerlink" title="节点状态"></a>节点状态</h1><p>任何时候，节点只会有以下三种状态或角色：</p>
+<ul>
+<li>领导者（Leader）<br>Leader 负责处理客户端的请求，同时还负责处理日志的复制同步。任何时候只会有一个 Leader。</li>
+<li>跟随者（Follower）<br>绝大多数节点在大部分时间下都是 Follower 状态，同时 Follower 不会主动发起任何 RPC 调用，它们只能被动地接收请求并响应。</li>
+<li>候选者（Candidate）<br>处于领导者和跟随者之间的状态，只会在选举新 Leader 的过程中临时出现。</li>
+</ul>
+<h1 id="领导者任期（term）"><a href="#领导者任期（term）" class="headerlink" title="领导者任期（term）"></a>领导者任期（term）</h1><p>在 Raft 中，时序被分割为领导者任期。每段领导者任期都有一个序号，这些序号随着任期数的增加会自动增长，不会重复使用。任期由选举开始（选举开始前，term 先自增），成功当选的领导者会服务至本任期结束。也有可能存在任期内没有领导者的情况，比如出现分票（Split Vote），即不存在获得大多数投票的领导者，当发生这种情况时，系统会马上进入下一个新的任期（term 增长）并尝试重新选举。在 Raft 中，所有的节点都会保持一个当前任期的值，同时该值还会被持久化到本地磁盘中，以保证节点崩溃后能够恢复。</p>
+<h1 id="心跳检测及超时处理"><a href="#心跳检测及超时处理" class="headerlink" title="心跳检测及超时处理"></a>心跳检测及超时处理</h1><p>跟随者是被动的，为了让它们一直处于跟随者状态，需要集群中有一个领导者始终与它们保持通信，如果领导者没有主动发起日志复制的请求，那么领导者就必须定时向它们发送心跳检测消息，在 Raft 中，这些心跳检测消息只是一些不含有任何数据信息的 AppendEntries 远程调用。如果在一段时间内，跟随者没有收到任何的远程调用，那么它会认为集群中没有可达或者可用的领导者，因此它就会开始发起选举，看它是否有必要称为新的领导者。这段时间被称为选举超时（election timeout），通常这个时间为 100 ms 到 500 ms。</p>
+<h1 id="选举"><a href="#选举" class="headerlink" title="选举"></a>选举</h1><p>当集群启动时，所有的节点都是跟随者，它们会等待选举超时结束后开始选举。节点在开始选举时，首先会增加当前的任期号，然后会将自己的状态转换为候选者状态，此时候选者会先给自己投票，然后再向其他所有的节点发送投票请求（Request Vote），如果该请求没有得到响应，它会持续发送重试的请求，知道获得响应为止。接下来可能会出现三种情况：</p>
+<ul>
+<li>第一种，就是大多数情况，获选者获得了大多数选票，然后它会将自己的状态改为领导者并持续向集群的其他节点发送心跳检测。</li>
+<li>第二种，可能同时还有其他候选者在运行，或许它们有可能获得大多数选票成为领导者，此时如果候选者收到来自领导者的 RPC 调用，那么它会立刻从候选者状态转换为跟随者状态。</li>
+<li>第三种，可能没有任何节点获胜，如果存在多个节点同时成为候选者，它们会导致分票，没有节点能够获得大多数投票。为了检测这种情况，随着时间的推移，如果一个候选者既没能成为领导者，也没有获得到来自领导者的请求或心跳，那么它就会假定出现了分票，此时它会简单地增加任期号，重新进行选举。</li>
+</ul>
+<h2 id="选举的-safety-和-liveness"><a href="#选举的-safety-和-liveness" class="headerlink" title="选举的 safety 和 liveness"></a>选举的 safety 和 liveness</h2><p>为了保证选举的 safety，每个节点只会给一个候选者投票，一旦它投出选票，那么它就会拒绝来自其他候选者的任何请求。为了实现这种机制，节点会将自己的投票信息持久化到磁盘。</p>
+<p>在理论上，可能会出现反复分票的情况，多个获选者在同一任期内同时开始选举，在超时时间后，新一轮的选举再次出现分票，如此循环。为了保证选举的 liveness，每个节点会随机地计算下次超时时间间隔，这个时间间隔在 [T, 2T] 之间，其中 T 代表选举的超时时间。通过将超时时间分散，可以降低两个节点同时开始选举的几率，先开始的节点有充足的时间向其他节点发送投票请求，并在其他节点参与竞争之前就完成选举过程。</p>
+<blockquote>
+<p>当选举超时时间（election timeout）远大于广播投票的时间（一个节点与其他所有节点通信所需的时间）时，Raft 的这个策略就会非常有效。</p>
+</blockquote>
+<h1 id="日志复制"><a href="#日志复制" class="headerlink" title="日志复制"></a>日志复制</h1><p>日志由有序序号（log index）标记的条目组成，每个条目都包含创建时的任期号（term）和一个状态机需要执行的指令。客户端的每一个请求都包含一条被复制状态机执行的指令，领导者会将这个指令作为一条新的日志条目附加到日志中，然后并行地向其他节点发送附加日志条目（AppendEntries）的请求，当过半的节点成功复制并响应请求后，该日志条目就是<strong>已提交</strong>的，此时领导者会将该日志条目应用到状态机中，并把状态机执行的结果返回给客户端。如果跟随者崩溃或者运行缓慢，或者网络丢包，领导者会不断重复尝试发送附加日志条目的请求（尽管已经达到了多数派并将结果返回给了客户端），直到所有的跟随者都最终存储了所有的日志条目。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008241748/2020/08/21/YNE.png" alt="日志复制"></p>
+<h2 id="日志的一致性检查"><a href="#日志的一致性检查" class="headerlink" title="日志的一致性检查"></a>日志的一致性检查</h2><p>Raft 的日志机制维护着以下特性：如果在不同的日志中，两个条目拥有相同的索引和任期号，那么它们存储了相同的指令，同时它们之前的所有日志条目也全部相同。</p>
+<p>为了维护以上特性，领导者在一个任期内，一个索引位置只会创建一个日志条目，并且日志条目一旦创建，位置就不会改变。同时在发送附加日志请求时，领导者会把新日志条目紧挨着的前一个日志条目的索引位置和任期号也一并发送，如果跟随者在它本地的日志中找不到包含相同索引位置和任期号的条目，那么它就会拒绝接受新的日志条目，这就是日志的一致性检查。</p>
+<h2 id="领导者变更"><a href="#领导者变更" class="headerlink" title="领导者变更"></a>领导者变更</h2><p>在正常的操作中，领导者和跟随者的日志保持一致，所以这种一致性检查不会失败。然而，当领导者崩溃就有可能使得日志处于不一致的状态（新的领导者可能还没有完全复制所有的日志条目），并且这种不一致会在领导者和跟随者的一系列崩溃下加剧。下图展示了跟随者的日志可能和新的领导者不同的几种方式。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202008241748/2020/08/21/MPg.png" alt="不一致"></p>
+<p>当一个领导者成功当选时，跟随者可能是任何情况，比如图中的 a 到 f。图中的每个格子代表一条日志条目，其中的数字是任期号。此时新领导者的任期号是 8，跟随者可能会缺少一些条目，比如 a 和 b。也有可能会有一些未被提交的日志条目，比如 c 和 d。还有可能两种情况都存在，比如 e 和 f。在 f 中，该机器在任期号为 2 时是领导者，同时附加了一些日志条目到自己的日志中，但是在提交之前就崩溃了，然后该机器很快就重启了，并在任期号为 3 时再次当选，同时又附加了一些日志条目到自己的日志中，而在任期号为 2 和 3 的日志被提交之前，该机器又崩溃了，并在接下来的几个任期里一直处于宕机状态。</p>
+<p><strong>在 Raft 算法中，领导者处理不一致是通过强制跟随者复制自己的日志来解决的，这就意味着在跟随者中的冲突日志条目会被领导者的日志覆盖</strong>。</p>
+<h1 id="安全性"><a href="#安全性" class="headerlink" title="安全性"></a>安全性</h1><p>前面描述了 Raft 算法是如何实现选举和日志复制的，但是通过目前描述的机制是不能充分保证每一个状态机都会按照相同的顺序执行相同的指令。比如，一个跟随者可能进入了不可用状态，而此时的领导者已经提交了若干的日志条目，如果这个跟随者在之后被选举成了领导者并覆盖了这部分日志条目，就会造成不同的状态机可能会执行不同的指令序列。因此，需要我们在进行领导者选举时增加一些限制，来保证对于任意给定的任期号，被成功选举出的领导者都拥有之前任期的所有被提交的日志条目。同时增加这条限制，也使得我们在提交时的规则更加清晰。</p>
+<h2 id="选举限制"><a href="#选举限制" class="headerlink" title="选举限制"></a>选举限制</h2><p>在选举时，候选者为了胜选必须联系集群中大部分的节点，这就意味着每一个已经提交的日志条目肯定存在于这些节点中的至少一个节点上。如果候选者的日志至少和大多数节点一样新，那么它一定持有了所有已经提交的日志条目。选举的投票请求（Request Vote）中会包含候选者最后一条日志条目的索引值和任期号，接收到该请求的投票者会比较这两个值，如果任期号不同，那么任期号大的更新；如果任期号相同，那么索引号大的日志更新。当候选者的日志没有投票者的新时，投票者会拒绝该投票请求。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/08/13/Paxos%20%E5%85%B1%E8%AF%86%E7%AE%97%E6%B3%95/" rel="prev" title="Paxos 共识算法">
+                  <i class="fa fa-chevron-left"></i> Paxos 共识算法
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/08/27/Java%20%E6%80%A7%E8%83%BD%E5%88%86%E6%9E%90%E4%B9%8B%E7%81%AB%E7%84%B0%E5%9B%BE/" rel="next" title="Java 性能分析之火焰图">
+                  Java 性能分析之火焰图 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

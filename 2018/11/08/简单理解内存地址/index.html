@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="简单整理内存地址的一些概念，方便后续深入了解，硬件平台是经典的 x86，其他平台可能存在出入。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="简单理解内存地址">
+<meta property="og:url" content="https://blog.nekolr.com/2018/11/08/%E7%AE%80%E5%8D%95%E7%90%86%E8%A7%A3%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="简单整理内存地址的一些概念，方便后续深入了解，硬件平台是经典的 x86，其他平台可能存在出入。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/zJq.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/rJ3.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/xJr.png">
+<meta property="article:published_time" content="2018-11-08T13:00:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.901Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/zJq.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2018/11/08/%E7%AE%80%E5%8D%95%E7%90%86%E8%A7%A3%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2018/11/08/%E7%AE%80%E5%8D%95%E7%90%86%E8%A7%A3%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80/","path":"2018/11/08/简单理解内存地址/","title":"简单理解内存地址"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>简单理解内存地址 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%89%A9%E7%90%86%E5%9C%B0%E5%9D%80"><span class="nav-number">1.</span> <span class="nav-text">物理地址</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%99%9A%E6%8B%9F%E5%86%85%E5%AD%98"><span class="nav-number">2.</span> <span class="nav-text">虚拟内存</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%9C%B0%E5%9D%80"><span class="nav-number">3.</span> <span class="nav-text">逻辑地址</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%BA%BF%E6%80%A7%E5%9C%B0%E5%9D%80"><span class="nav-number">4.</span> <span class="nav-text">线性地址</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AE%B5%E5%BC%8F%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86"><span class="nav-number">5.</span> <span class="nav-text">段式内存管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%80%BB%E8%BE%91%E5%9C%B0%E5%9D%80%E8%BD%AC%E7%BA%BF%E6%80%A7%E5%9C%B0%E5%9D%80"><span class="nav-number">5.1.</span> <span class="nav-text">逻辑地址转线性地址</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux-%E7%9A%84%E6%AE%B5%E5%BC%8F%E7%AE%A1%E7%90%86"><span class="nav-number">5.2.</span> <span class="nav-text">Linux 的段式管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">6.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2018/11/08/%E7%AE%80%E5%8D%95%E7%90%86%E8%A7%A3%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="简单理解内存地址 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          简单理解内存地址
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2018-11-08 13:00:00" itemprop="dateCreated datePublished" datetime="2018-11-08T13:00:00+00:00">2018-11-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>简单整理内存地址的一些概念，方便后续深入了解，硬件平台是经典的 x86，其他平台可能存在出入。  </p>
+<span id="more"></span>  
+
+<h1 id="物理地址"><a href="#物理地址" class="headerlink" title="物理地址"></a>物理地址</h1><p>物理地址是加载到内存地址寄存器中的地址，是内存单元的真正地址，与和 CPU 相连接的地址总线相对应。在前端总线（连接 CPU 与北桥，很早之前就已经被淘汰了）上传输的内存地址都是物理地址，编号从 0 开始一直到可用的物理内存的最大值，这些值被北桥（现在也被淘汰了，北桥是以前的内存控制器，现在的内存控制器都集成到了 CPU 内部）映射到实际的内存条上。实际上我们可以将物理内存看作是一个从 0 字节一直到最大容量的逐个字节编号的大数组，虽然不准确但是容易理解。  </p>
+<h1 id="虚拟内存"><a href="#虚拟内存" class="headerlink" title="虚拟内存"></a>虚拟内存</h1><p>与物理地址对应的真实内存不同，虚拟内存并不是真实存在的，现代操作系统都提供了一种内存管理的抽象，进程使用的虚拟内存的地址会由操作系统与相关硬件协作，转换成真正的物理内存地址。有了这种抽象，一个程序才可以使用比真实物理地址大得多的地址空间。  </p>
+<h1 id="逻辑地址"><a href="#逻辑地址" class="headerlink" title="逻辑地址"></a>逻辑地址</h1><p>逻辑地址指的是机器语言执行中，用来指定一个操作数或者是一条指令的地址，比如说：<code>mov 0x80495b0, %eax</code> 这条指令，其中的 <code>0x80495b0</code> 就是一个逻辑地址。在段式内存管理中比较完整说法是，逻辑地址应该由一个段选择符加上一个段内偏移量，表示为段选择符:段内偏移量，比如上面的逻辑地址应该表示为 <code>代码段选择符:0x80495b0</code>。  </p>
+<p>实模式下的逻辑地址与保护模式下的逻辑地址虽然都是使用<strong>段（segment）:偏移量（offset）</strong>表示，但是在保护模式下，段的概念发生了根本性的变化。在实模式下，段值还是可以看作最终地址的一部分，比如段值 xxxxh 表示以 xxxx0h 开始的一段内存；而在保护模式下，虽然段值仍然使用原来的 cs、ds 等寄存器存储，但此时它的值仅仅变成了一个索引，这个索引指向了一个数据结构的表项，表项中详细定义了段的起始地址、界限、属性等内容，这个数据结构就是 GDT（全局描述符表），也有可能是 LDT（局部描述符表）。  </p>
+<h1 id="线性地址"><a href="#线性地址" class="headerlink" title="线性地址"></a>线性地址</h1><p>线性地址其实就是段基址加上段内偏移量。可能你会诧异，这不就是逻辑地址吗？我的理解是，其实逻辑地址真正的值是段内偏移量部分，段选择符:段内偏移量这种只是逻辑地址的表示形式。  </p>
+<p>逻辑地址是段式内存管理中进行转换前的地址，而线性地址是页式内存管理中转换前的地址。CPU 将一个虚拟内存空间中的地址转换为物理地址，需要经过两步：首先给定的一个逻辑地址（其实是段内偏移量），CPU 利用其段式内存管理单元将逻辑地址转换成一个线性地址，接下来需要再利用其页式内存管理单元，将线性地址转换成最终的物理地址。这样转换确实很麻烦，完全可以直接将线性地址交给进程，intel 之所以这么做，完全是为了兼容以前的段式内存管理方式。  </p>
+<p>需要说明的是，如果没有开启分页功能，那么线性地址其实就是最终的物理地址；如果开启了分页，则需要再将线性地址经过页式内存管理单元转换成最终的物理地址。  </p>
+<h1 id="段式内存管理"><a href="#段式内存管理" class="headerlink" title="段式内存管理"></a>段式内存管理</h1><h2 id="逻辑地址转线性地址"><a href="#逻辑地址转线性地址" class="headerlink" title="逻辑地址转线性地址"></a>逻辑地址转线性地址</h2><p>严格意义上讲，实模式下不存在段式内存管理，段式内存管理出现在保护模式下。  </p>
+<p>一个逻辑地址由两部分组成，段选择符:段内偏移量。段选择符由一个 16 位长的字段组成，其中 13 位是一个索引号，后面 3 位包含一些硬件细节，其中 TI（Table Index）是表指示器，RPL（Requested Privilege Level）是请求特权级。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/zJq.png" alt="段选择符">  </p>
+<p>段选择符中的索引号指向的是段描述符表中的表项，这个段描述符表是一个简单的数组，数组元素长度为 8 个字节，每个元素描述一个段。  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/rJ3.png" alt="段描述符">  </p>
+<p>在这里我们可以只关心一个字段，那就是 Base 字段，它描述的是一个段的开始位置。Intel 设计的本意是，一些全局的段描述符，就放在 GDT 中，一些局部的，比如说每个进程自己的，就放在 LDT 中。这个可以通过段选择符中的 TI 字段表示。当 TI 为 0，表示用 GDT；当 TI 为 1，表示用 LDT。  </p>
+<p>GDT 在内存中的地址和大小存放在 CPU 的 GDTR 控制寄存器中，而 LDT 则保存在 LDTR 寄存器中。下面给出一张逻辑地址转线性地址的过程图解（只有 GDT 的过程，LDT 类似）：  </p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/11/09/xJr.png" alt="保护模式的分段">  </p>
+<ol>
+<li>首先需要给定一个完整的逻辑地址，包含段选择符和段内偏移地址。  </li>
+<li>然后查看段选择符的 TI 字段的值，确定当前要转换的是 GDT 中的段还是 LDT 中的段。找到对应的寄存器，从寄存器中取出 GDT 或者 LDT 的内存地址和大小。 </li>
+<li>根据段选择符的索引值查找 GDT 或者 LDT 表，找到对应的段描述符，这样就拿到基地址了。  </li>
+<li>将 Base + offset，就得到了线性地址了。</li>
+</ol>
+<h2 id="Linux-的段式管理"><a href="#Linux-的段式管理" class="headerlink" title="Linux 的段式管理"></a>Linux 的段式管理</h2><p>Intel 要求进行两次转换，这样做虽然兼容，但是却很冗余。某些硬件平台并没有二次转换的概念，因此 Linux 需要提供一个高层的抽象来提供统一的界面。  </p>
+<p>按照 Intel 的本意，全局的用 GDT，每个进程自己自己的用 LDT。但是 Linux 则对所有的进程都使用了相同的段来对指令和数据寻址，即用户代码段、用户数据段，内核中的是内核代码段、内核数据段。查看 Linux 内核关于 i386 架构的段定义（include&#x2F;asm-i386&#x2F;segment.h）：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> GDT_ENTRY_DEFAULT_USER_CS           14</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __USER_CS (GDT_ENTRY_DEFAULT_USER_CS * 8 + 3)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GDT_ENTRY_DEFAULT_USER_DS           15</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __USER_DS (GDT_ENTRY_DEFAULT_USER_DS * 8 + 3)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GDT_ENTRY_KERNEL_BASE               12</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GDT_ENTRY_KERNEL_CS                 (GDT_ENTRY_KERNEL_BASE + 0)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __KERNEL_CS (GDT_ENTRY_KERNEL_CS * 8)</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> GDT_ENTRY_KERNEL_DS                 (GDT_ENTRY_KERNEL_BASE + 1)</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __KERNEL_DS (GDT_ENTRY_KERNEL_DS * 8)</span></span><br></pre></td></tr></table></figure>
+
+<p>将其中的值计算得出：  </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">define</span> __USER_CS 115       <span class="comment">// 00000000 1110  0  11</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __USER_DS 123       <span class="comment">// 00000000 1111  0  11</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __KERNEL_CS 96      <span class="comment">// 00000000 1100  0  00</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> __KERNEL_DS 104     <span class="comment">// 00000000 1101  0  00</span></span></span><br></pre></td></tr></table></figure>
+
+<p>这样可以计算出索引值和 TI 字段的值：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">__USER_CS               index = 14   TI = 0</span><br><span class="line">__USER_DS               index = 15   TI = 0</span><br><span class="line">__KERNEL_CS             index = 12   TI = 0</span><br><span class="line">__KERNEL_DS             index = 13   TI = 0</span><br></pre></td></tr></table></figure>
+
+<p>TI 均为 0，表示都使用了 GDT，再查看初始化 GDT 的内容中对应的 12 到 15 项（arch&#x2F;i386&#x2F;head.S）：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">.quad 0x00cf9a000000ffff        /* 0x60 kernel 4GB code at 0x00000000 */</span><br><span class="line">.quad 0x00cf92000000ffff        /* 0x68 kernel 4GB data at 0x00000000 */</span><br><span class="line">.quad 0x00cffa000000ffff        /* 0x73 user 4GB code at 0x00000000 */</span><br><span class="line">.quad 0x00cff2000000ffff        /* 0x7b user 4GB data at 0x00000000 */</span><br></pre></td></tr></table></figure>
+
+<p>将它们的值展开，发现第 16 到 31 位全是 0，即这四个段的基地址都是 0。按照地址转换公式，0 + 段内偏移得到线性地址。因此可以得出一个重要的结论，<strong>在 Linux 下，逻辑地址与线性地址总是一致的（是一致，不是相同）。</strong>  </p>
+<blockquote>
+<p>在 x86 体系中，分段机制是必选的，而分页机制可由具体的操作系统选择，Linux 通过让段的基地址为 0 而巧妙的绕过了基地址，在 32 位平台上，线性地址的大小固定为 4GB，由于采用了保护机制，Linux 将这 4GB 分为了两部分，地址较高的 1GB（0xC0000000 到 0xFFFFFFFF）为共享的内核空间；而地址较低的 3GB（0x00000000 到 0xBFFFFFFF）为每个进程的用户空间。  </p>
+</blockquote>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="http://bbs.chinaunix.net/thread-2083672-1-1.html">我理解的逻辑地址、线性地址、物理地址和虚拟地址(补充完整了)</a>  </p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://www.cnblogs.com/chenwb89/p/operating_system_002.html">操作系统篇-浅谈实模式与保护模式</a>  </p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/chenwb89/p/operating_system_003.html">操作系统篇-分段机制与GDT|LDT</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2018/11/08/%E5%86%85%E5%AD%98%E5%9C%B0%E5%9D%80%E8%BD%AC%E6%8D%A2%E4%B8%8E%E5%88%86%E6%AE%B5/" rel="prev" title="转：内存地址转换与分段">
+                  <i class="fa fa-chevron-left"></i> 转：内存地址转换与分段
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2018/11/12/IO%20%E6%A8%A1%E5%9E%8B/" rel="next" title="I/O 模型">
+                  I/O 模型 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>

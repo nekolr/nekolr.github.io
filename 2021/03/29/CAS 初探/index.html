@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="CAS（中央身份认证服务，Central Authentication Service）是由耶鲁大学发起的一个企业级开源项目，目的是帮助 Web 应用系统构建一种可靠的单点登录解决方案。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CAS 初探">
+<meta property="og:url" content="https://blog.nekolr.com/2021/03/29/CAS%20%E5%88%9D%E6%8E%A2/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="CAS（中央身份认证服务，Central Authentication Service）是由耶鲁大学发起的一个企业级开源项目，目的是帮助 Web 应用系统构建一种可靠的单点登录解决方案。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104011547/2021/03/31/qNO.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104011547/2021/03/31/4w6.png">
+<meta property="article:published_time" content="2021-03-29T16:34:00.000Z">
+<meta property="article:modified_time" content="2023-03-22T07:05:26.885Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="CAS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104011547/2021/03/31/qNO.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2021/03/29/CAS%20%E5%88%9D%E6%8E%A2/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2021/03/29/CAS%20%E5%88%9D%E6%8E%A2/","path":"2021/03/29/CAS 初探/","title":"CAS 初探"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>CAS 初探 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="Searching..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%87%A0%E4%B8%AA%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">几个概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#CAS-Server"><span class="nav-number">1.1.</span> <span class="nav-text">CAS Server</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CAS-Client"><span class="nav-number">1.2.</span> <span class="nav-text">CAS Client</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TGT"><span class="nav-number">1.3.</span> <span class="nav-text">TGT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#TGC"><span class="nav-number">1.4.</span> <span class="nav-text">TGC</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ST"><span class="nav-number">1.5.</span> <span class="nav-text">ST</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E8%88%AC%E6%B5%81%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">一般流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#CAS-Server-%E9%83%A8%E7%BD%B2"><span class="nav-number">3.</span> <span class="nav-text">CAS Server 部署</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">129</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2021/03/29/CAS%20%E5%88%9D%E6%8E%A2/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="CAS 初探 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CAS 初探
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2021-03-29 16:34:00" itemprop="dateCreated datePublished" datetime="2021-03-29T16:34:00+00:00">2021-03-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">安全</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <p>CAS（中央身份认证服务，Central Authentication Service）是由耶鲁大学发起的一个企业级开源项目，目的是帮助 Web 应用系统构建一种可靠的单点登录解决方案。</p>
+<span id="more"></span>
+
+<h1 id="几个概念"><a href="#几个概念" class="headerlink" title="几个概念"></a>几个概念</h1><p>CAS 主要包含两大组件：CAS Server 和 CAS Client，它们之间可以通过各种协议进行通信。在使用 CAS 之前，除了 CAS Server 和 CAS Client，还需要了解 TGT、TGC 以及 ST。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104011547/2021/03/31/qNO.png" alt="CAS 的架构"></p>
+<h2 id="CAS-Server"><a href="#CAS-Server" class="headerlink" title="CAS Server"></a>CAS Server</h2><p>CAS Server 的主要职责就是通过签发和验证 Ticket 来认证用户并授予其对 CAS Client 的访问权限。当用户成功登录后，CAS Server 会给用户签发一个 Ticket，同时还会创建一个 SSO 会话（该 Ticket 在这里被称为 TGT，TGT 会以 Cookie 的形式保存在浏览器中）。当用户访问某个服务时，CAS Server 会根据用户提供的 TGT 来签发一个 Ticket 作为令牌（该 Ticket 在这里被称为 ST），并通过浏览器重定向的形式返回。此时，该服务会拿着重定向 URL 中携带的 Ticket，向 CAS Server 验证有效性，以判断是否放行。</p>
+<p>CAS Server 是通过 Spring Framework 搭建的一个 Java Servlet 应用，在较新的版本中，则使用了 Spring Boot 框架，因此可以直接使用内置容器。CAS Server 一般都是独立部署的。可以通过<a target="_blank" rel="noopener" href="https://github.com/apereo/cas-overlay-template">该项目</a>快速部署一个 CAS Server。</p>
+<h2 id="CAS-Client"><a href="#CAS-Client" class="headerlink" title="CAS Client"></a>CAS Client</h2><p>CAS Client 的主要职责就是保护 CAS 应用（可以理解为各种应用和服务，只不过它们都通过各种方式包装成了 CAS Client），并通过各种协议与 CAS Server 通信，以验证用户是否具有访问权限。</p>
+<p>CAS Client 支持的软件平台和产品有很多，比如 Java、.NET、PHP 等等，不过与 Java 平台相比，其他平台的活跃性一般。</p>
+<h2 id="TGT"><a href="#TGT" class="headerlink" title="TGT"></a>TGT</h2><p>TGT 全称为 Ticket-Granting Ticket，当用户登录成功后，用户的基本信息，登录有效期等信息都存储在这里。我们可以先简单地把用户登录后 CAS Server 为用户创建的 SSO 会话理解为我们之前使用的 HttpSession。在以前，我们的 Session 中会保存用户的一些信息，比如用户名。TGT 就是这些信息的一个封装。</p>
+<h2 id="TGC"><a href="#TGC" class="headerlink" title="TGC"></a>TGC</h2><p>TGC 全称为 Ticket-Granting Cookie，TGT 会以 Cookie 的形式保存在浏览器中，用来维持与用户的会话。</p>
+<h2 id="ST"><a href="#ST" class="headerlink" title="ST"></a>ST</h2><p>ST 全称为 Service Ticket，它是 CAS Sever 通过 TGT 给用户发放的一张 Ticket，用户在访问其他服务时，如果发现没有 Cookie 或者 ST ，那么就会 302 到 CAS Server 去获取 ST，然后再携带着 ST 回来，接着 CAS Client 会通过 ST 去 CAS Server 上获取用户的登录状态。</p>
+<h1 id="一般流程"><a href="#一般流程" class="headerlink" title="一般流程"></a>一般流程</h1><p>下面通过官方给出的流程图来看下 CAS 单点登录的一般流程是怎样的。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104011547/2021/03/31/4w6.png" alt="CAS 登录授权的一般过程"></p>
+<p>首先用户通过浏览器访问受保护的 APP1，APP1 发现用户没有登录，所以返回 302，让用户到 CAS Server 的地址去登录，同时地址中还会包含一个 service 参数，对应的是 APP1 的地址。</p>
+<p>接着浏览器会自动重定向到 CAS Server 的地址，由于用户没有与 CAS Server 建立 SSO 会话，所以用户需要登录。当用户登录成功后，CAS Server 会要求浏览器设置 TGC 并返回 302，让用户访问之前 service 参数指定的地址，同时地址中还会包含一个 ticket 参数，对应的就是 ST。</p>
+<p>接着浏览器自动重定向到 APP1 的地址，并带有 ticket 参数。APP1 检测到 ticket 参数，会带着该参数去 CAS Server 验证 ticket 的有效性，验证成功后，APP1 会要求浏览器设置 session cookie 并返回 302，让用户重定向到 APP1 的地址（该地址不带 ticket 参数，目的是让浏览器地址栏隐藏 ST）。此时浏览器自动重定向，并带着 session cookie 访问 APP1，APP1 只需要验证 session cookie 即可确认是否放行。如果用户再次访问 APP1，只要 APP1 的 session cookie 还在，用户就可以一直访问 APP1。</p>
+<p>当用户通过浏览器访问 APP2 时，同样 APP2 会返回 302，让用户到 CAS Server 去登录，地址中还会包含一个 service 参数，对应的是 APP2 的地址。由于用户的浏览器中带有 CAS Server 的 cookie（TGC），所以 CAS Server 会验证 TGT 的有效性，验证成功后会返回 302，让用户访问之前 service 参数指定的地址，同时地址中会包含一个 ticket 参数，对应的是 ST。接下来重复上述步骤，用户不需要再次登录就可以访问 APP2。</p>
+<h1 id="CAS-Server-部署"><a href="#CAS-Server-部署" class="headerlink" title="CAS Server 部署"></a>CAS Server 部署</h1><p>CAS Server 一般不需要从头编写并部署，使用官方提供的一个起始项目 <a target="_blank" rel="noopener" href="https://github.com/apereo/cas-overlay-template">cas-overlay-template</a>，通过少量的代码修改就可以快速部署。</p>
+<blockquote>
+<p>在写这篇文章时，CAS 的最新稳定版为 v6.3.3，它要求 JDK 的版本为 JDK 11，由于 Oracle JDK 协议的修改，我们最好安装一个 OpenJDK 11。</p>
+</blockquote>
+<p>首先将项目克隆下来，需要注意的是，该项目通过 Gradle 来构建，由于众所周知的原因，首先修改 <code>build.gradle</code> 配置文件中的 maven 地址为阿里云的镜像仓库地址 <code>maven &#123; url &quot;http://maven.aliyun.com/nexus/content/groups/public/&quot; &#125;</code>。</p>
+<p>接着我们需要通过 <code>./gradlew.bat clean build</code> 命令来清理并构建项目，第一次构建的时候比较慢。在构建完成后，会在项目中生成一个 build 目录，其中 libs 目录下的 cas.war 就是整个 CAS Server 的部署文件。接着我们使用 <code>./gradlew.bat explodeWar</code> 命令可以将该 war 文件解压，解压后的文件位于 build 目录下的 cas-resources 目录，此时我们需要在 src&#x2F;main 目录下新建一个 resources 目录，并将 cas-resources 目录下的文件复制到该目录下。</p>
+<p>CAS Server 从版本 4 开始，要求使用 HTTPS 进行通信，所以我们得提前准备 HTTPS 证书。如果是公司里的项目，可能需要购买 HTTPS 证书，自己玩的话可以申请一个免费的 HTTPS 证书，或者使用 <a target="_blank" rel="noopener" href="https://github.com/FiloSottile/mkcert">mkcert</a> 来生成一个本地的 HTTPS 证书。</p>
+<blockquote>
+<p>在本地开发中，我们经常需要模拟 HTTPS 环境，比如 PWA 应用就要求必须使用 https 访问。在传统的解决方案中，我们需要使用自签证书，然后在 http server 中使用自签证书。由于自签证书浏览器不信任，所以我们需要将自签证书使用的 CA 证书添加到系统或浏览器的可信 CA 证书中来规避这个问题。以前完成这些操作需要执行一系列繁琐的 openssl 命令，现在可以直接使用 mkcert 这个工具来简化这一过程，生成本地的 https 证书，并且信任自签 CA。</p>
+</blockquote>
+<p>这里为了方便，我们就使用 mkcert 来生成一个本地的 HTTPS 证书。首先执行 <code>mkcert -install</code> 命令将 CA 证书添加到本地可信 CA 中，以后由该 CA 签发的证书在本地都是可信的。</p>
+<p>接着使用 <code>mkcert -pkcs12 -p12-file filepath\localhost.p12 localhost 127.0.0.1</code> 命令生成一个 PKCS#12 文件格式的 HTTPS 证书（一般 PKCS#12 证书都需要一个加密口令，这里生成的默认口令是 changeit）。</p>
+<p>最后我们需要通过 keytool 工具将该证书转换成 Java 特有的证书格式（KeyStore），以便 Tomcat 等容器识别。使用 <code>keytool -importkeystore -srckeystore &#39;filepath\localhost.p12&#39; -destkeystore &#39;filepath\localhost.keystore&#39;</code> 进行转换，转换过程中需要输入密码（changeit）。</p>
+<p>我们将 keytool 转换后的证书文件放到 <code>src/main/resources</code> 目录下，然后修改 application.properties 文件内容：<code>server.ssl.key-store=classpath:localhost.keystore</code> 即可。</p>
+<p>接下来我们可以使用 <code>./gradlew.bat run</code> 命令运行项目，也可以通过 <code>./gradlew.bat clean build</code> 命令构建新的 war 包后使用 <code>java -jar cas.war</code> 命令直接运行 war 包，然后通过地址：<code>https://localhost:8443/cas/login</code> 访问。</p>
+<p>在不修改配置文件的情况下，默认的登录用户名和密码分别为：casuser 和 Mellon，这是通过 application.properties 文件配置的：<code>cas.authn.accept.users=casuser::Mellon</code>。一般后续会修改为通过数据库查询的方式验证，此时会注释掉该部分代码，并添加类似下面的代码：</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">##</span></span><br><span class="line"><span class="comment"># CAS Authentication Credentials</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"><span class="attr">cas.authn.accept.enabled</span>=<span class="literal">false</span></span><br><span class="line"><span class="comment">#cas.authn.accept.users=casuser::Mellon</span></span><br><span class="line"><span class="comment">#cas.authn.accept.name=Static Credentials</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##</span></span><br><span class="line"><span class="comment"># Common properties</span></span><br><span class="line"><span class="comment"># more info: https://apereo.github.io/cas/6.3.x/configuration/Configuration-Properties-Common.html#database-settings</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">user</span>=root</span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">password</span>=root</span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">driver-class</span>=com.mysql.jdbc.Driver</span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">url</span>=jdbc:mysql://localhost:<span class="number">3306</span>/cas?useUnicode=<span class="literal">true</span>&amp;characterEncoding=utf-<span class="number">8</span>&amp;useSSL=<span class="literal">false</span></span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">dialect</span>=org.hibernate.dialect.MySQL57Dialect</span><br><span class="line"></span><br><span class="line"><span class="comment">##</span></span><br><span class="line"><span class="comment"># Password Encoding</span></span><br><span class="line"><span class="comment"># more info: https://apereo.github.io/cas/6.3.x/configuration/Configuration-Properties-Common.html#password-encoding</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># @See PasswordEncoderProperties</span></span><br><span class="line"><span class="comment"># 使用 Bcrypt 算法，Spring Security&#x27;s BCryptPasswordEncoder</span></span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">password-encoder.type</span>=BCRYPT</span><br><span class="line"><span class="comment"># The encoding algorithm to use such as &#x27;UTF-8&#x27;. Relevant when the type used is &#x27;DEFAULT&#x27;</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].password-encoder.character-encoding=UTF-8</span></span><br><span class="line"><span class="comment"># The encoding algorithm to use such as &#x27;MD5&#x27;. Relevant when the type used is &#x27;DEFAULT&#x27; or &#x27;GLIBC_CRYPT&#x27;.</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].password-encoder.encoding-algorithm=MD5</span></span><br><span class="line"><span class="comment"># Secret to use with STANDARD, PBKDF2, BCRYPT, GLIBC_CRYPT password encoders. Secret usually is an optional setting.</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].password-encoder.secret=</span></span><br><span class="line"><span class="comment"># 表示 hash 杂凑次数，可选值为 4 到 31，数值越高越安全，默认 10 次</span></span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">password-encoder.strength</span>=<span class="number">10</span></span><br><span class="line"></span><br><span class="line"><span class="comment">##</span></span><br><span class="line"><span class="comment"># Query Database Authentication</span></span><br><span class="line"><span class="comment"># more info: https://apereo.github.io/cas/6.3.x/configuration/Configuration-Properties.html#query-database-authentication</span></span><br><span class="line"><span class="comment">#</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># @See BaseJdbcAuthenticationProperties</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].credential-criteria=</span></span><br><span class="line"><span class="comment"># Name of the authentication handler</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].name=</span></span><br><span class="line"><span class="comment"># Order of the authentication handler in the chain</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].order=</span></span><br><span class="line"><span class="comment"># 用户登录时的查询语句</span></span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">sql</span>=SELECT * FROM user WHERE username=?</span><br><span class="line"><span class="comment"># 匹配的密码属性列</span></span><br><span class="line">cas.authn.jdbc.query<span class="section">[0]</span>.<span class="attr">field-password</span>=password</span><br><span class="line"><span class="comment"># 指定过期字段，tinyint(1) 类型，字段值为 1 表示过期，过期账号需要修改密码；值为 0 表示没有过期</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].field-expired=expired</span></span><br><span class="line"><span class="comment"># 指定禁用字段，tinyint(1) 类型，字段值为 1 表示禁用；值为 0 表示没有正常</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].field-disabled=disabled</span></span><br><span class="line"><span class="comment"># List of column names to fetch as user attributes</span></span><br><span class="line"><span class="comment">#cas.authn.jdbc.query[0].principal-attribute-list=uid,cn:commonName,age,id_card_num:idcardnum</span></span><br></pre></td></tr></table></figure>
+
+<p>由于开启 Database Authentication 需要依赖 <code>cas-server-support-jdbc</code> 库，因此修改 build.gradle 文件：</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">dependencies &#123;</span><br><span class="line">    <span class="comment">// Add modules in format compatible with overlay casModules property</span></span><br><span class="line">    <span class="keyword">if</span> (project.hasProperty(<span class="string">&quot;casModules&quot;</span>)) &#123;</span><br><span class="line">        <span class="keyword">def</span> dependencies = project.getProperty(<span class="string">&quot;casModules&quot;</span>).split(<span class="string">&quot;,&quot;</span>)</span><br><span class="line">        dependencies.each &#123;</span><br><span class="line">            <span class="keyword">def</span> projectsToAdd = rootProject.subprojects.findAll &#123;project -&gt;</span><br><span class="line">                project.name == <span class="string">&quot;cas-server-core-$&#123;it&#125;&quot;</span> || project.name == <span class="string">&quot;cas-server-support-$&#123;it&#125;&quot;</span></span><br><span class="line">            &#125;</span><br><span class="line">            projectsToAdd.each &#123;implementation it&#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// CAS dependencies/modules may be listed here statically...</span></span><br><span class="line">    implementation <span class="string">&quot;org.apereo.cas:cas-server-webapp-init:$&#123;casServerVersion&#125;&quot;</span></span><br><span class="line">    <span class="comment">// 由于该库依赖的 MySQL 驱动版本过高，所以需要排除掉后自行设置</span></span><br><span class="line">    implementation (<span class="string">&quot;org.apereo.cas:cas-server-support-jdbc:$&#123;casServerVersion&#125;&quot;</span>) &#123;</span><br><span class="line">        exclude <span class="attr">group:</span> <span class="string">&quot;mysql&quot;</span>, <span class="attr">module:</span> <span class="string">&quot;mysql-connector-java&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">    implementation <span class="string">&quot;mysql:mysql-connector-java:5.1.49&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CAS/" rel="tag"># CAS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/02/24/HTTP%20%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%8F%91%E5%B1%95%E6%A6%82%E8%BF%B0/" rel="prev" title="HTTP 协议的发展概述">
+                  <i class="fa fa-chevron-left"></i> HTTP 协议的发展概述
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2021/06/10/Git%20%E5%86%85%E9%83%A8%E5%8E%9F%E7%90%86/" rel="next" title="Git 内部原理">
+                  Git 内部原理 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2023</span>
+  <span class="with-love">
+    <i class="user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">nekolr</span>
+</div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+  <script src="/js/third-party/fancybox.js"></script>
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js"></script>
+
+
+
+</body>
+</html>
