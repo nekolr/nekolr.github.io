@@ -39,8 +39,8 @@ DOM 是与平台和编程语言无关的 W3C 的标准，基于 DOM 文档树，
 		
 常用的节点：
 
-| 节点类型 | 描述 | NodeType | nodeName | nodeValue |
-| ------------ | ------------ |	------------ | ------------ | ------------ |
+节点类型 | 描述 | NodeType | nodeName | nodeValue
+---|---|---|---|---
 | Document | 表示整个文档（DOM 树的根节点） | 9 | #document | null |
 | Element | 表示 element（元素）元素 |	1 | element name | null |
 | Attr | 属性名称 |	2 | 属性名称 | 属性值 |
