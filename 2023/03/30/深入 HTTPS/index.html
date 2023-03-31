@@ -27,11 +27,13 @@
 <meta property="og:site_name" content="nekolr&#39;s blog">
 <meta property="og:description" content="一直以来对于 HTTPS 的运行机制一知半解，平常的工作和生活中也只是使用它，很少有机会深入了解它。最近 ChatGPT 大火，在体验了一段时间之后，反而意外地想静下心来学习和整理一番。">
 <meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202303311750/2023/03/31/yvK.png">
 <meta property="article:published_time" content="2023-03-30T11:35:00.000Z">
-<meta property="article:modified_time" content="2023-03-30T09:51:18.285Z">
+<meta property="article:modified_time" content="2023-03-31T09:54:37.176Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="HTTPS">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202303311750/2023/03/31/yvK.png">
 
 
 <link rel="canonical" href="https://blog.nekolr.com/2023/03/30/%E6%B7%B1%E5%85%A5%20HTTPS/">
@@ -142,7 +144,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%AE%89%E5%85%A8"><span class="nav-number">1.</span> <span class="nav-text">HTTP 为什么不安全</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">2.</span> <span class="nav-text">使用对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">3.</span> <span class="nav-text">使用非对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%94%B9%E8%89%AF%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">4.</span> <span class="nav-text">改良非对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86-%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">5.</span> <span class="nav-text">非对称加密+对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB"><span class="nav-number">6.</span> <span class="nav-text">中间人攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E8%AF%81%E6%98%8E%E5%85%AC%E9%92%A5%E5%8F%AF%E4%BF%A1"><span class="nav-number">7.</span> <span class="nav-text">如何证明公钥可信</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%AE%89%E5%85%A8"><span class="nav-number">1.</span> <span class="nav-text">HTTP 为什么不安全</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">2.</span> <span class="nav-text">使用对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">3.</span> <span class="nav-text">使用非对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%94%B9%E8%89%AF%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">4.</span> <span class="nav-text">改良非对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86-%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">5.</span> <span class="nav-text">非对称加密+对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB"><span class="nav-number">6.</span> <span class="nav-text">中间人攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%85%AC%E9%92%A5%E5%8F%AF%E4%BF%A1"><span class="nav-number">7.</span> <span class="nav-text">如何保证公钥可信</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E5%AF%86-HTTPS-%E6%B5%81%E9%87%8F"><span class="nav-number">8.</span> <span class="nav-text">解密 HTTPS 流量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">9.</span> <span class="nav-text">参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -256,7 +258,7 @@
 <span id="more"></span>
 
 <h1 id="HTTP-为什么不安全"><a href="#HTTP-为什么不安全" class="headerlink" title="HTTP 为什么不安全"></a>HTTP 为什么不安全</h1><p>由于 HTTP 采用明文传输，明文数据经过中间代理服务器、路由器、运营商等多个网络节点，如果信息在传输过程中被劫持，传输的内容就完全暴露了。劫持者可以<strong>窃听</strong>、<strong>篡改</strong>传输的内容，甚至<strong>冒充</strong>通信双方的身份且不被双方察觉，也就是所谓的中间人攻击（MITM）。</p>
-<h1 id="使用对称加密"><a href="#使用对称加密" class="headerlink" title="使用对称加密"></a>使用对称加密</h1><p>既然传输内容是明文的，那我们很容易就能想到对传输内容进行加密。对称加密速度快，性能好，如果通信双方都知道该密钥，且没有任何第三方知道，那么通信当然是安全的。但是如何让通信的双方都知道该密钥呢？浏览器预存所有网站的密钥？这不现实。服务器通过网络传输密钥给浏览器？如果传输过程中被第三方劫持获取到了该密钥，那么之后双方所有的通信内容都能被解密。</p>
+<h1 id="使用对称加密"><a href="#使用对称加密" class="headerlink" title="使用对称加密"></a>使用对称加密</h1><p>既然传输内容是明文的，那我们很容易就能想到对传输内容进行加密。对称加密速度快，性能好，如果通信双方都知道对称加密的密钥，且没有任何第三方知道，那么通信当然是安全的。但是如何让通信的双方都知道该密钥呢？浏览器预存所有网站的密钥？这不现实。服务器通过网络传输密钥给浏览器？如果传输过程中被第三方劫持获取到了该密钥，那么之后双方所有的通信内容都能被解密。</p>
 <h1 id="使用非对称加密"><a href="#使用非对称加密" class="headerlink" title="使用非对称加密"></a>使用非对称加密</h1><p>既然对称加密行不通，那么非对称加密呢？由于非对称加密的机制，我们可能会有以下思路：服务器明文传输公钥给浏览器，之后浏览器向服务器传输数据之前都会先用该公钥加密后再传输，只有服务器的私钥能解密该数据。但是反过来，服务器向浏览器传输数据，只能用私钥加密数据，浏览器可以用公钥解密，然而该公钥是服务器一开始通过明文传输给浏览器的，中间人一样可以获取到该公钥来解密服务器传输的数据。这个方案似乎只能保证浏览器向服务器传输数据的安全性（其实仍有问题）。</p>
 <h1 id="改良非对称加密"><a href="#改良非对称加密" class="headerlink" title="改良非对称加密"></a>改良非对称加密</h1><p>基于以上方案，我们很快就能发现既然一对公私钥只能保证一侧的安全，那么我们使用两对公私钥，不就能保证双方通信的安全了吗？</p>
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">服务器持有公钥 A 和私钥 A，浏览器持有公钥 B 和私钥 B</span><br><span class="line">双方通过明文传输各自的公钥</span><br><span class="line">之后浏览器向服务器传输数据都用公钥 A 加密，服务器使用私钥 A 解密</span><br><span class="line">同理服务器向浏览器传输数据都用公钥 B 加密，浏览器使用私钥 B 解密</span><br></pre></td></tr></table></figure>
@@ -269,9 +271,32 @@
 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">服务器有一对公钥 A 和私钥 A</span><br><span class="line">服务器通过明文传输公钥 A 给浏览器</span><br><span class="line">中间人劫持到了公钥 A，保存下来，并把数据包中的公钥 A 替换成自己伪造的公钥 B（它自然有对应的私钥 B）</span><br><span class="line">浏览器随机生成一个用于对称加密的密钥 X，使用公钥 B（浏览器不知道公钥被替换了）加密后传输给服务器</span><br><span class="line">中间人劫持后用私钥 B 解密得到密钥 X，再用公钥 A 加密后传给服务器</span><br><span class="line">服务器使用私钥 A 解密得到密钥 X</span><br></pre></td></tr></table></figure>
 
 <p>这样在双方都没有发现的情况下，中间人已经获取到了双方用于通信加密的密钥 X。究其根本，是因为<strong>浏览器无法确认它接收到的公钥是不是服务器自己的</strong>。我们总不能再对公钥进行加密吧，那么又得进行密钥交换，重复之前的步骤并且永远没有尽头。</p>
-<h1 id="如何证明公钥可信"><a href="#如何证明公钥可信" class="headerlink" title="如何证明公钥可信"></a>如何证明公钥可信</h1><p>很多时候证明的源头都是一条条不证自明的“公理”。现实生活中如果想证明某个身份证号一定是某个人的，可以让他出示身份证，我们观察身份证上的照片确实是本人，身份证号也匹配，即可断定身份证号的归属（抛开一些特殊情况，比如伪造证件邢啊、整容哈哈）。在这里，身份证由政府做担保，“公理”也就是“政府机构可信”。</p>
-<p>互联网世界也有一个类似的“公理”存在，那就是 CA 机构，CA 机构颁发的“身份证”就是数字证书。网站在使用 HTTPS 之前，需要向 CA 机构申请一个数字证书，数字证书中包含证书持有者的相关信息（国家或地区、组织名称、域名、公钥等），服务器把证书传输给浏览器，浏览器从证书中获取网站的公钥。</p>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/43789231">彻底搞懂 HTTPS 的加密原理</a></p>
+<h1 id="如何保证公钥可信"><a href="#如何保证公钥可信" class="headerlink" title="如何保证公钥可信"></a>如何保证公钥可信</h1><p>很多时候证明的源头都是一条条不证自明的“公理”。现实生活中，员工入职时需要向企业提供学历证明，这个学历证明必须是由教育部颁发的学历证书。在这里，学历证书由教育部做担保，“公理”也就是“教育部可信”。</p>
+<p>互联网世界也有一个类似的“公理”存在，那就是 CA 机构（Certificate Authority），CA 机构颁发的证书叫数字证书。网站在使用 HTTPS 之前，需要向 CA 机构申请一个数字证书，数字证书中包含证书持有者和颁发者的相关信息（组织、DNS 主机名、公钥等），服务器把证书传输给浏览器，浏览器从证书中获取网站的公钥。</p>
+<p>由于证书也是通过网络传输的，那么如何确保证书的真实性，防止证书被篡改呢？答案是使用<strong>数字签名</strong>。CA 机构在颁发证书时，会使用某种散列函数（比如 MD5、SHA-1 等）计算公开的明文信息的信息摘要，然后使用 CA 的私钥对信息摘要进行加密，形成的密文即数字签名，最后将证书中的明文信息和数字签名一起组成数字证书。</p>
+<blockquote>
+<p>为什么要先生成摘要再加密，而不是直接加密呢？因为非对称加密比较耗时，证书明文一般较长，采用直接加密会导致客户端验签时同样耗时，而采用摘要算法可以将明文内容压缩到很短的固定长度字符串，客户端验签时会快很多。当然还有一方面是出于安全考虑，这里比较复杂，可以参考：<a target="_blank" rel="noopener" href="https://crypto.stackexchange.com/questions/12768/why-hash-the-message-before-signing-it-with-rsa/">Why hash the message before signing it with RSA?</a></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">浏览器拿到数字证书之后，得到证书明文的 T 和数字签名 S</span><br><span class="line">使用 CA 机构的公钥解密数字签名得到信息摘要 S&#x27;，使用证书中指明的摘要算法对明文 T 进行 hash 得到 T&#x27;</span><br><span class="line">接下来只要对比 S&#x27; 和 T&#x27; 是否一致即可，如果不一致则代表明文 T 或者数字签名 S 被篡改</span><br></pre></td></tr></table></figure>
+
+<p>上面提到浏览器使用 CA 机构的公钥来解密数字签名，那么浏览器是怎么得到这个公钥的呢？换句话说，如何确保 CA 机构的公钥是可信的呢？我们回想一下数字证书是用来解决什么问题的？没错，为了证明某个公钥可信，即该公钥对应该网站，那么 CA 机构的公钥理所应当的也可以使用数字证书来证明。一般的，操作系统、浏览器都会预装一些他们信任的根证书，其中会有 CA 机构的根证书，这样客户端就可以拿到 CA 机构的公钥了。</p>
+<p>我们提到的 CA 机构的根证书，是根证书机构（Root CA）颁发的公钥证书，它是互联网安全中信任链的起点，由于根证书没有上层机构为其签名，所以根证书都是自签证书，即使用者和颁发者都是它自己。实际上，证书之间的认证也不止一层，如果 A 信任 B，B 信任 C，那么这里的 B 就作为中间证书颁发机构。这一连串的数字证书，以根证书为起点，通过层层信任，使得数字证书的持有者可以获得转授的信任来证明其身份。</p>
+<blockquote>
+<p>增加中间证书有哪些好处？首先能够减少根证书机构的管理工作，提高证书审核和签发的效率。其次根证书一般内置，私钥一般离线存储，一旦私钥泄漏，吊销过程会比较困难，可能无法及时补救，而中间证书的私钥泄漏，则可以快速在线吊销并重新生成。</p>
+</blockquote>
+<p>现在我们已经能够保证证书内容不被篡改了，那么证书有没有可能被第三方掉包呢？因为实际上任何站点都可以向 CA 申请证书，中间人可以在客户端获取证书时劫持，返回自己向 CA 机构申请的有效的数字证书。针对这种情况，应对方法也很简单，只需要客户端在验签的同时，再验证一下证书上的域名与自己请求的域名是否一致即可。</p>
+<h1 id="解密-HTTPS-流量"><a href="#解密-HTTPS-流量" class="headerlink" title="解密 HTTPS 流量"></a>解密 HTTPS 流量</h1><p>我们知道，一些常见的 HTTP&#x2F;HTTPS 抓包工具（比如 <a target="_blank" rel="noopener" href="https://www.telerik.com/fiddler">Fiddler</a>、<a target="_blank" rel="noopener" href="https://www.charlesproxy.com/">Charles</a>、<a target="_blank" rel="noopener" href="https://github.com/avwo/whistle/">whistle</a>），都是通过创建本地代理服务，再修改浏览器的代理设置来达到流量拦截的目的的，他们的工作原理与中间人攻击一致。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Server &lt;---&gt; Local Proxy &lt;---&gt; Browser</span><br></pre></td></tr></table></figure>
+
+<p>在服务端与中间人之间，中间人冒充客户端，由于任何客户端都可以与服务端建立连接，所以这部分一般没有问题。而对于客户端与中间人之间，中间人想要冒充服务端，就必须拿到对应域名的证书私钥，中间人可以通过这几种手段获取或替换私钥：入侵网站服务器，利用漏洞从 CA 处重签发该域名的证书，以及自己签发证书。</p>
+<p>为了防范以上风险，我们要对服务器和网站做好安全防护，避免网站私钥被盗。同时保证域名解析安全，避免攻击者获取到域名管理的相关权限从而重签证书。对于攻击者自签发的证书，由于系统和浏览器内置有根证书校验，因此我们只需要注意不要随便信任第三方的证书，不向浏览器和系统中导入不明证书。</p>
+<p>对于 Fiddler 这类工具来说，能够解密 HTTPS 流量的关键在于他们会往系统受信任的根证书列表中导入自己的证书，这样他们自签发的证书就能被浏览器所信任。在勾选了相关配置之后，Fiddler 会在浏览器中设置对应的代理地址，接下来浏览器在浏览 HTTPS 的网站时，Fiddler 会根据网站自动生成站点的数字证书。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202303311750/2023/03/31/yvK.png" alt="Fiddler"></p>
+<p>由于该证书是由 Fiddler 生成的，所以它肯定知道该证书的私钥，通过这种方式，Fiddler 完成了证书的掉包（证书域名与客户端请求的域名一致）。</p>
+<p>而像 Wireshark 这类工具的抓包原理则是直接读取并分析网卡的数据，要想让它解密 HTTPS 流量，有两种方法：一种是知道网站的证书私钥，在工具中配置该私钥来解密；另一种需要浏览器支持，一些浏览器可以将 TLS 会话中使用的对称加密密钥保存到外部文件中，Wireshark 可以使用它们来解密数据。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/43789231">彻底搞懂 HTTPS 的加密原理</a></p>
+</blockquote>
 
     </div>
 
