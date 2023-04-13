@@ -32,7 +32,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202303311750/2023/03/31/yvK.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/04/pPr.png">
 <meta property="article:published_time" content="2023-03-30T11:35:00.000Z">
-<meta property="article:modified_time" content="2023-04-13T07:20:08.072Z">
+<meta property="article:modified_time" content="2023-04-13T09:38:45.720Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="HTTPS">
 <meta name="twitter:card" content="summary">
@@ -356,9 +356,9 @@
 <p>在实际应用中，服务端与客户端协商出要使用的大素数 P 及其原根 G，它俩是公开的参数。然后服务端生成私钥 a，经过幂模运算得到公钥 A。客户端生成私钥 b，经过幂模运算得到公钥 B。服务端将自己计算得出的公钥 A 传递给客户端，为了防止篡改，加上签名参数。客户端将自己计算得出的公钥 B 使用服务端的证书公钥加密后传递给服务端。此时客户端拥有参数 A、b、G、P，服务端拥有参数 B、a、G、P，它俩都可以计算得出共享密钥 K。如果中间人拦截到了公开的参数和公钥 A 和加密后的公钥 B，甚至中间人已经拿到了服务端的证书私钥，也就是说中间人获取到了 A、B、G、P 这几个参数，但是因为没有私钥 a 和 b，一样计算不出最终的共享密钥 K，也就无法破解历史的数据。</p>
 <h2 id="DHE-算法"><a href="#DHE-算法" class="headerlink" title="DHE 算法"></a>DHE 算法</h2><p>根据私钥生成的方式，DH 算法分为 static DH 算法和 DHE（Ephemeral）算法。static DH 算法里有一方的私钥是静态的，也就说每次密钥协商的时候有一方的私钥每次都是一样的，一般是服务器方固定，客户端的私钥则是随机生成的。那么随着时间延长，黑客就会截获海量的密钥协商过程的数据，因为密钥协商过程中，有些数据是公开的，黑客可以依据这些数据暴力破解出服务器的私钥，然后就可以计算出会话密钥了，于是之前截获的加密数据会被破解，所以 static DH 算法不具备前向安全性。</p>
 <h2 id="ECDHE-算法"><a href="#ECDHE-算法" class="headerlink" title="ECDHE 算法"></a>ECDHE 算法</h2><p>DHE 算法由于性能不佳，所以 ECDHE 算法在 DHE 算法的基础上引入了 ECC 椭圆曲线特性，可以使用更少的计算量算出公钥，以及最终的共享密钥。</p>
-<p>椭圆曲线（Elliptic Curve）针对密码学进行了简化，公式为：$y^2 &#x3D; x^3 + ax + b$，例如对于椭圆曲线 <code>secp256k1</code>，<a target="_blank" rel="noopener" href="https://www.secg.org/">SECG</a> 组织给出了推荐的参数：<code>a = 0, b = 7</code>，即该曲线的公式为：$y^2 &#x3D; x^3 + 7$。</p>
+<p>椭圆曲线（Elliptic Curve）针对密码学进行了简化，公式为：$y^2 &#x3D; x^3 + ax + b$，例如对于椭圆曲线 <code>secp256k1</code>，<a target="_blank" rel="noopener" href="https://www.secg.org/">SECG</a> 组织给出了推荐的参数：<code>a = 0, b = 7</code>，即该椭圆曲线的公式为：$y^2 &#x3D; x^3 + 7$。</p>
 <p>在椭圆曲线加密（Elliptic Curve Cryptography, ECC）中，则使用了某种特殊形式的椭圆曲线，即定义在有限域上的椭圆曲线。针对具体的椭圆曲线，存在着一个确定的点 G（基点），乘以一个确定的整数 K（私钥），得到椭圆曲线的公钥 P，即 $P &#x3D; KG$。已知 K 和 G，算出公钥很容易，而已知 G 和 P，算出私钥 K 在目前则几乎不可能。</p>
-<p>在实际应用中，选择了指定的椭圆曲线实际上也就确定了基点的值（同样是 SECG 推荐的）。服务端随机生成一个私钥 Ks，同时计算出椭圆曲线的公钥 Ps，客户端随机生成一个私钥 Kc，同时计算出公钥 Pc。同时由于椭圆曲线满足乘法交换律和结合律，所以 KsPc &#x3D; KsKcG &#x3D; KcKsG &#x3D; KcPs。也就是说，服务端和客户端只需要知道对方的椭圆曲线公钥，即可通过各自的私钥算出最终的共享密钥。</p>
+<p>在实际应用中，服务端会在 ServerKeyExchange 消息中包含一个名为 <code>Named Curve</code> 的参数，它的值就是选定的椭圆曲线，指定了椭圆曲线实际上也就确定了基点的值（SECG 推荐的）。服务端随机生成私钥 Ks 并算出对应的公钥 Ps，客户端随机生成私钥 Kc 并算出公钥 Pc。由于椭圆曲线满足乘法交换律和结合律，所以 $KsPc &#x3D; KsKcG &#x3D; KcKsG &#x3D; KcPs$。也就是说，服务端和客户端只需要知道对方的椭圆曲线公钥，即可通过各自的私钥算出最终的共享密钥。</p>
 <p>通过上面的推算过程也能够看出，在密钥交换阶段如果只使用 DH 系列的算法，中间人可以通过伪造双方的 DH 公钥参数来实施 MITM 攻击，因此使用 DH 算法进行密钥交换时，服务端发送的 DH 公钥参数需要加上数字签名，而客户端发送的 DH 公钥参数则可以使用服务端证书公钥加密后发送。</p>
 <h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/43789231">彻底搞懂 HTTPS 的加密原理</a></p>
