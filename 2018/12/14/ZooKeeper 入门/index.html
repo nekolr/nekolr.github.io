@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="ZooKeeper 是由雅虎开源的一个分布式协调服务，它是 Google Chubby 的开源实现，它对外提供一组简单的原语，分布式应用可以通过使用这些原语来实现一些更高级的服务，比如：数据发布与订阅（配置中心）、负载均衡、命名服务、分布式协调与通知、集群管理、Master 选举、分布式锁和分布式队列等。">
 <meta property="og:type" content="article">
@@ -30,7 +30,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/12/14/0g2.jpg">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/12/14/2z0.jpg">
 <meta property="article:published_time" content="2018-12-14T09:23:00.000Z">
-<meta property="article:modified_time" content="2023-04-20T09:51:11.110Z">
+<meta property="article:modified_time" content="2024-01-24T08:38:01.995Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="分布式">
 <meta name="twitter:card" content="summary">
@@ -254,8 +254,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <p>ZooKeeper 是由雅虎开源的一个分布式协调服务，它是 Google Chubby 的开源实现，它对外提供一组简单的原语，分布式应用可以通过使用这些原语来实现一些更高级的服务，比如：数据发布与订阅（配置中心）、负载均衡、命名服务、分布式协调与通知、集群管理、Master 选举、分布式锁和分布式队列等。  </p>
+    <div class="post-body" itemprop="articleBody"><p>ZooKeeper 是由雅虎开源的一个分布式协调服务，它是 Google Chubby 的开源实现，它对外提供一组简单的原语，分布式应用可以通过使用这些原语来实现一些更高级的服务，比如：数据发布与订阅（配置中心）、负载均衡、命名服务、分布式协调与通知、集群管理、Master 选举、分布式锁和分布式队列等。  </p>
 <span id="more"></span>  
 
 <h1 id="ZooKeeper-的基本概念"><a href="#ZooKeeper-的基本概念" class="headerlink" title="ZooKeeper 的基本概念"></a>ZooKeeper 的基本概念</h1><h2 id="集群角色"><a href="#集群角色" class="headerlink" title="集群角色"></a>集群角色</h2><p>ZooKeeper 集群有三种角色，Leader、Follower 和 Observer。一个 ZooKeeper 集群在同一时刻只有一个 Leader。Leader 会在一次选举中产生，为客户端提供读和写服务。其他的节点都是 Follower 或 Observer，它们只提供读服务，并负责把写请求转发给 Leader。  </p>
@@ -433,12 +432,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2018/11/25/CAP%20%E5%8E%9F%E5%88%99%E4%B8%8E%20BASE%20%E7%90%86%E8%AE%BA/" rel="prev" title="CAP 原则与 BASE 理论">
-                  <i class="fa fa-chevron-left"></i> CAP 原则与 BASE 理论
+                  <i class="fa fa-angle-left"></i> CAP 原则与 BASE 理论
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2018/12/27/Java%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86/" rel="next" title="Java 垃圾收集">
-                  Java 垃圾收集 <i class="fa fa-chevron-right"></i>
+                  Java 垃圾收集 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -457,15 +456,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">nekolr</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
@@ -491,8 +489,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
@@ -500,7 +497,9 @@
 
 
 
+
   <script src="/js/third-party/fancybox.js"></script>
+
 
 
   

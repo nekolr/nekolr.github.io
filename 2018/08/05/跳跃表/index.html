@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="一个有大量元素的有序（从小到大）集合，使用怎样的数据结构存储，才能实现很高的插入和删除效率？">
 <meta property="og:type" content="article">
@@ -33,7 +33,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/05/v7n.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/08/05/M84.png">
 <meta property="article:published_time" content="2018-08-05T18:13:00.000Z">
-<meta property="article:modified_time" content="2023-04-20T09:51:11.114Z">
+<meta property="article:modified_time" content="2024-01-24T08:38:01.999Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="数据结构">
 <meta name="twitter:card" content="summary">
@@ -257,8 +257,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <p>一个有大量元素的有序（从小到大）集合，使用怎样的数据结构存储，才能实现很高的插入和删除效率？</p>
+    <div class="post-body" itemprop="articleBody"><p>一个有大量元素的有序（从小到大）集合，使用怎样的数据结构存储，才能实现很高的插入和删除效率？</p>
 <span id="more"></span>
 
 <p>如果使用数组，插入元素首先需要查找插入的位置，因为是元素是有序的，可以使用二分查找，这个过程的时间复杂度为 O(logN)。找到插入的位置后，还需要通过移动元素腾出位置，至于是左移还是右移，可以根据插入的位置来优化，从而减少移动的次数，这个过程的时间复杂度可以简单看作 O(N)。删除的操作一样，也是需要先查找再移动元素。</p>
@@ -300,12 +299,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2018/07/29/%E5%8D%95%E4%BE%8B%E6%A8%A1%E5%BC%8F/" rel="prev" title="单例模式">
-                  <i class="fa fa-chevron-left"></i> 单例模式
+                  <i class="fa fa-angle-left"></i> 单例模式
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2018/09/14/%E4%B8%80%E6%AC%A1%20Git%20%E8%B8%A9%E5%9D%91%E8%AE%B0%E5%BD%95/" rel="next" title="一次 Git 踩坑记录">
-                  一次 Git 踩坑记录 <i class="fa fa-chevron-right"></i>
+                  一次 Git 踩坑记录 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -324,15 +323,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">nekolr</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
@@ -358,8 +356,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
@@ -367,7 +364,9 @@
 
 
 
+
   <script src="/js/third-party/fancybox.js"></script>
+
 
 
   

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="我们知道，HashMap 是非线程安全的，在多线程环境下我们可能需要使用线程安全的 Map 容器，可选的有 HashTable 和 ConcurrentHashMap。HashTable 将所有可能出现线程安全问题的方法都使用 synchronized 来修饰，这种做法虽然简单粗暴，但是由于锁的粒度较大（所有访问 HashTable 的线程都在竞争同一把锁），导致它的并发性能较差。而 Concur">
 <meta property="og:type" content="article">
@@ -29,7 +29,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202006011913/2020/06/01/oPL.png">
 <meta property="article:published_time" content="2020-05-30T23:41:00.000Z">
-<meta property="article:modified_time" content="2023-04-20T09:51:11.110Z">
+<meta property="article:modified_time" content="2024-01-24T08:38:01.995Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="Java">
 <meta property="article:tag" content="Java 集合框架">
@@ -254,8 +254,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <p>我们知道，HashMap 是非线程安全的，在多线程环境下我们可能需要使用线程安全的 Map 容器，可选的有 HashTable 和 ConcurrentHashMap。HashTable 将所有可能出现线程安全问题的方法都使用 synchronized 来修饰，这种做法虽然简单粗暴，但是由于锁的粒度较大（所有访问 HashTable 的线程都在竞争同一把锁），导致它的并发性能较差。而 ConcurrentHashMap 则不同，在 JDK 7 中，它将锁细化为多把锁，每一把锁只用于锁定容器中的一部分数据，那么当多线程访问容器中不同数据段的数据时，线程之间是不存在锁竞争的，这就是我们常说的锁分段技术。但是到了 JDK 8，ConcurrentHashMap 又出现了很大的变化，最大的变化就是不再使用锁分段技术，转而使用 CAS 和 synchronized，这在文章中会具体介绍。</p>
+    <div class="post-body" itemprop="articleBody"><p>我们知道，HashMap 是非线程安全的，在多线程环境下我们可能需要使用线程安全的 Map 容器，可选的有 HashTable 和 ConcurrentHashMap。HashTable 将所有可能出现线程安全问题的方法都使用 synchronized 来修饰，这种做法虽然简单粗暴，但是由于锁的粒度较大（所有访问 HashTable 的线程都在竞争同一把锁），导致它的并发性能较差。而 ConcurrentHashMap 则不同，在 JDK 7 中，它将锁细化为多把锁，每一把锁只用于锁定容器中的一部分数据，那么当多线程访问容器中不同数据段的数据时，线程之间是不存在锁竞争的，这就是我们常说的锁分段技术。但是到了 JDK 8，ConcurrentHashMap 又出现了很大的变化，最大的变化就是不再使用锁分段技术，转而使用 CAS 和 synchronized，这在文章中会具体介绍。</p>
 <span id="more"></span>
 
 <h1 id="JDK-7"><a href="#JDK-7" class="headerlink" title="JDK 7"></a>JDK 7</h1><p>在 JDK 7 中，ConcurrentHashMap 主要是由 Segment 数组和 HashEntry 数组构成。Segment 继承自 ReentrantLock，因此它扮演的是独占锁的角色。HashEntry 类似于 HashMap 中的 <code>HashMap$Entry&lt;K,V&gt;</code>，用于存储键值对数据。一个 ConcurrentHashMap 包含一个 Segment 数组，这个数组可以理解成类似 HashMap 中的 table 数组，同时一个 Segment 又包含一个 HashEntry 数组，每个 HashEntry 不仅存储键值对数据，同时还维护着指向下一节点的引用，从而形成一个链表。每个 Segment 都守护着各自的 HashEntry 数组元素，当需要对数组元素进行修改时，必须首先获得与之对应的 Segment 锁。</p>
@@ -295,12 +294,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2020/05/22/%E8%87%AA%E6%97%8B%E9%94%81/" rel="prev" title="自旋锁">
-                  <i class="fa fa-chevron-left"></i> 自旋锁
+                  <i class="fa fa-angle-left"></i> 自旋锁
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2020/06/02/%E6%B5%85%E8%B0%88%20JDBC/" rel="next" title="浅谈 JDBC">
-                  浅谈 JDBC <i class="fa fa-chevron-right"></i>
+                  浅谈 JDBC <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -319,15 +318,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">nekolr</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
@@ -353,8 +351,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
@@ -362,7 +359,9 @@
 
 
 
+
   <script src="/js/third-party/fancybox.js"></script>
+
 
 
   

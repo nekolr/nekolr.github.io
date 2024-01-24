@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="在 Java 中，运行时内存区域可以分为：程序计数器、虚拟机栈、本地方法栈、堆和方法区，其中程序计数器、虚拟机栈和本地方法栈是线程私有的，因此这部分划分的内存与线程的生命周期相同：栈中的栈帧随着方法的进入和退出而有条不紊地执行着出栈和入栈操作，每一个栈帧中分配多少的内存基本上在类结构确定之后就已知了（在概念模型中可以暂时忽略 JIT 编译器的优化），因此这几个区域的内存分配和回收都具有确定性。">
 <meta property="og:type" content="article">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/07/12/DBg.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/07/12/Jra.jpeg">
 <meta property="article:published_time" content="2018-12-27T16:44:00.000Z">
-<meta property="article:modified_time" content="2023-04-20T09:51:11.106Z">
+<meta property="article:modified_time" content="2024-01-24T08:38:01.987Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="JVM">
 <meta property="article:tag" content="Java">
@@ -261,8 +261,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <p>在 Java 中，运行时内存区域可以分为：程序计数器、虚拟机栈、本地方法栈、堆和方法区，其中程序计数器、虚拟机栈和本地方法栈是线程私有的，因此这部分划分的内存与线程的生命周期相同：栈中的栈帧随着方法的进入和退出而有条不紊地执行着出栈和入栈操作，每一个栈帧中分配多少的内存基本上在类结构确定之后就已知了（在概念模型中可以暂时忽略 JIT 编译器的优化），因此这几个区域的内存分配和回收都具有确定性。<span id="more"></span>而 Java 堆和方法区则不一样，一个接口的多个实现类需要的内存可能不一样，一个方法中多个分支需要的内存也可能不一样，只有在代码处于运行期间才能知道会创建哪些内存，这部分内存的分配和回收都是动态的，Java 的 GC 关注的就是这部分内存。  </p>
+    <div class="post-body" itemprop="articleBody"><p>在 Java 中，运行时内存区域可以分为：程序计数器、虚拟机栈、本地方法栈、堆和方法区，其中程序计数器、虚拟机栈和本地方法栈是线程私有的，因此这部分划分的内存与线程的生命周期相同：栈中的栈帧随着方法的进入和退出而有条不紊地执行着出栈和入栈操作，每一个栈帧中分配多少的内存基本上在类结构确定之后就已知了（在概念模型中可以暂时忽略 JIT 编译器的优化），因此这几个区域的内存分配和回收都具有确定性。<span id="more"></span>而 Java 堆和方法区则不一样，一个接口的多个实现类需要的内存可能不一样，一个方法中多个分支需要的内存也可能不一样，只有在代码处于运行期间才能知道会创建哪些内存，这部分内存的分配和回收都是动态的，Java 的 GC 关注的就是这部分内存。  </p>
 <p>垃圾收集需要完成三件事情：<strong>首先需要确定哪些内存需要回收，然后是何时回收以及怎样回收。</strong>  </p>
 <h1 id="对象存活判断"><a href="#对象存活判断" class="headerlink" title="对象存活判断"></a>对象存活判断</h1><p>垃圾收集器在对堆进行回收之前，需要先确认哪些对象还“存活”着，哪些已经“死去”。而判断对象是否存活的关键就是引用。  </p>
 <h2 id="对象的引用"><a href="#对象的引用" class="headerlink" title="对象的引用"></a>对象的引用</h2><p>在 JDK 1.2 以前，引用的定义很传统，如果变量中存储的是另外一块内存的起始地址，那么这块内存就代表着一个引用。在 JDK 1.2 之后，Java 对引用的概念进行了扩充，将引用分为强引用（StrongReference）、软引用（SoftReference）、弱引用（WeakReference）和虚引用（PhantomReference）。</p>
@@ -341,12 +340,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2018/12/14/ZooKeeper%20%E5%85%A5%E9%97%A8/" rel="prev" title="ZooKeeper 入门">
-                  <i class="fa fa-chevron-left"></i> ZooKeeper 入门
+                  <i class="fa fa-angle-left"></i> ZooKeeper 入门
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2019/01/16/Shell%20%E5%AD%A6%E4%B9%A0/" rel="next" title="Shell 学习">
-                  Shell 学习 <i class="fa fa-chevron-right"></i>
+                  Shell 学习 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -365,15 +364,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">nekolr</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
@@ -399,8 +397,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
@@ -408,7 +405,9 @@
 
 
 
+
   <script src="/js/third-party/fancybox.js"></script>
+
 
 
   

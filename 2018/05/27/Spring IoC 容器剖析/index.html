@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="使用 spring 5.1.19.RELEASE 分析  整个 IoC 容器都是围绕着 BeanFactory 和 ApplicationContext 来设计的。BeanFactory 提供了容器的基本功能。ApplicationContext 继承自 BeanFactory，不光实现了容器的基本功能，还实现了一些更高级的容器特性。">
 <meta property="og:type" content="article">
@@ -38,7 +38,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104211444/2021/04/21/P3q.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202104211444/2021/04/21/9vo.png">
 <meta property="article:published_time" content="2018-05-27T19:08:00.000Z">
-<meta property="article:modified_time" content="2023-04-20T09:51:11.110Z">
+<meta property="article:modified_time" content="2024-01-24T08:38:01.991Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="Spring">
 <meta name="twitter:card" content="summary">
@@ -262,8 +262,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <blockquote>
+    <div class="post-body" itemprop="articleBody"><blockquote>
 <p>使用 spring 5.1.19.RELEASE 分析</p>
 </blockquote>
 <p>整个 IoC 容器都是围绕着 <code>BeanFactory</code> 和 <code>ApplicationContext</code> 来设计的。<code>BeanFactory</code> 提供了容器的基本功能。<code>ApplicationContext</code> 继承自 <code>BeanFactory</code>，不光实现了容器的基本功能，还实现了一些更高级的容器特性。  </p>
@@ -557,12 +556,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2018/05/07/%E5%AD%A6%E4%B9%A0%20Dubbo%20%E4%B9%8B%E5%89%8D%EF%BC%9A%E5%BA%94%E7%94%A8%E6%9E%B6%E6%9E%84%E6%BC%94%E5%8F%98/" rel="prev" title="学习 Dubbo 之前：应用架构演变">
-                  <i class="fa fa-chevron-left"></i> 学习 Dubbo 之前：应用架构演变
+                  <i class="fa fa-angle-left"></i> 学习 Dubbo 之前：应用架构演变
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2018/05/29/%E4%B8%BA%E4%BD%95%E5%8C%BF%E5%90%8D%E5%86%85%E9%83%A8%E7%B1%BB%E7%9A%84%E5%8F%82%E6%95%B0%E5%BC%95%E7%94%A8%E8%A6%81%E7%94%A8%20final%20%E4%BF%AE%E9%A5%B0/" rel="next" title="为何匿名内部类的参数引用要用 final 修饰">
-                  为何匿名内部类的参数引用要用 final 修饰 <i class="fa fa-chevron-right"></i>
+                  为何匿名内部类的参数引用要用 final 修饰 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -581,15 +580,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">nekolr</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
@@ -615,8 +613,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
@@ -624,7 +621,9 @@
 
 
 
+
   <script src="/js/third-party/fancybox.js"></script>
+
 
 
   

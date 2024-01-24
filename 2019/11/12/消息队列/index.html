@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 6.3.0">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" integrity="sha256-/4UQcSmErDzPCMAiuOiWPVVsNN2s3ZY/NsmXNcj0IFc=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.15.0","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"prism":false,"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
 
     <meta name="description" content="从命名上看，消息队列可以简单理解为存放消息的队列（Queue），而队列是一种常见的数据结构，在 Java 中的 java.util.Queue 接口下就有大量的队列实现。在一些业务场景中，我们可以使用 JDK 以及第三方包提供的队列实现，但是有些场景我们就不得不引入独立的队列组件，这有点类似 java.util.HashMap 与 Redis 的关系，它们都是以 key&#x2F;value 的形">
 <meta property="og:type" content="article">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912131556/2019/12/13/Ywy.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912171721/2019/12/17/v1j.png">
 <meta property="article:published_time" content="2019-11-12T15:17:00.000Z">
-<meta property="article:modified_time" content="2023-04-20T09:51:11.110Z">
+<meta property="article:modified_time" content="2024-01-24T08:38:01.995Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="消息队列">
 <meta name="twitter:card" content="summary">
@@ -151,7 +151,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97"><span class="nav-number">1.</span> <span class="nav-text">为什么要使用消息队列</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5"><span class="nav-number">1.1.</span> <span class="nav-text">异步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8A%E5%B3%B0-x2F-%E6%B5%81%E6%8E%A7"><span class="nav-number">1.2.</span> <span class="nav-text">削峰&#x2F;流控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E8%80%A6"><span class="nav-number">1.3.</span> <span class="nav-text">解耦</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-number">2.</span> <span class="nav-text">消息队列的本质</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E5%8D%8F%E8%AE%AE"><span class="nav-number">3.</span> <span class="nav-text">常见的消息队列协议</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#STOMP"><span class="nav-number">3.1.</span> <span class="nav-text">STOMP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMQP"><span class="nav-number">3.2.</span> <span class="nav-text">AMQP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JMS"><span class="nav-number">3.3.</span> <span class="nav-text">JMS</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">使用消息队列带来的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%A1%AE%E4%BF%9D%E6%B6%88%E6%81%AF%E4%B8%8D%E4%B8%A2%E5%A4%B1"><span class="nav-number">4.1.</span> <span class="nav-text">如何确保消息不丢失</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%A1%AE%E4%BF%9D%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9"><span class="nav-number">4.2.</span> <span class="nav-text">如何确保顺序消费</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9"><span class="nav-number">4.3.</span> <span class="nav-text">如何避免重复消费</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-number">4.4.</span> <span class="nav-text">消息异常处理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97"><span class="nav-number">1.</span> <span class="nav-text">为什么要使用消息队列</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BC%82%E6%AD%A5"><span class="nav-number">1.1.</span> <span class="nav-text">异步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%89%8A%E5%B3%B0-%E6%B5%81%E6%8E%A7"><span class="nav-number">1.2.</span> <span class="nav-text">削峰&#x2F;流控</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E8%80%A6"><span class="nav-number">1.3.</span> <span class="nav-text">解耦</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-number">2.</span> <span class="nav-text">消息队列的本质</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E7%9A%84%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E5%8D%8F%E8%AE%AE"><span class="nav-number">3.</span> <span class="nav-text">常见的消息队列协议</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#STOMP"><span class="nav-number">3.1.</span> <span class="nav-text">STOMP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#AMQP"><span class="nav-number">3.2.</span> <span class="nav-text">AMQP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#JMS"><span class="nav-number">3.3.</span> <span class="nav-text">JMS</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E5%B8%A6%E6%9D%A5%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">4.</span> <span class="nav-text">使用消息队列带来的问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%A1%AE%E4%BF%9D%E6%B6%88%E6%81%AF%E4%B8%8D%E4%B8%A2%E5%A4%B1"><span class="nav-number">4.1.</span> <span class="nav-text">如何确保消息不丢失</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E7%A1%AE%E4%BF%9D%E9%A1%BA%E5%BA%8F%E6%B6%88%E8%B4%B9"><span class="nav-number">4.2.</span> <span class="nav-text">如何确保顺序消费</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E9%81%BF%E5%85%8D%E9%87%8D%E5%A4%8D%E6%B6%88%E8%B4%B9"><span class="nav-number">4.3.</span> <span class="nav-text">如何避免重复消费</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%B6%88%E6%81%AF%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="nav-number">4.4.</span> <span class="nav-text">消息异常处理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">5.</span> <span class="nav-text">参考</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -260,8 +260,7 @@
     
     
     
-    <div class="post-body" itemprop="articleBody">
-        <p>从命名上看，消息队列可以简单理解为存放消息的队列（Queue），而队列是一种常见的数据结构，在 Java 中的 <code>java.util.Queue</code> 接口下就有大量的队列实现。在一些业务场景中，我们可以使用 JDK 以及第三方包提供的队列实现，但是有些场景我们就不得不引入独立的队列组件，这有点类似 <code>java.util.HashMap</code> 与 Redis 的关系，它们都是以 key&#x2F;value 的形式将数据存储到内存，但是在很多场景中我们需要使用 Redis 来替换 HashMap。</p>
+    <div class="post-body" itemprop="articleBody"><p>从命名上看，消息队列可以简单理解为存放消息的队列（Queue），而队列是一种常见的数据结构，在 Java 中的 <code>java.util.Queue</code> 接口下就有大量的队列实现。在一些业务场景中，我们可以使用 JDK 以及第三方包提供的队列实现，但是有些场景我们就不得不引入独立的队列组件，这有点类似 <code>java.util.HashMap</code> 与 Redis 的关系，它们都是以 key&#x2F;value 的形式将数据存储到内存，但是在很多场景中我们需要使用 Redis 来替换 HashMap。</p>
 <span id="more"></span>
 
 <blockquote>
@@ -270,7 +269,7 @@
 <h1 id="为什么要使用消息队列"><a href="#为什么要使用消息队列" class="headerlink" title="为什么要使用消息队列"></a>为什么要使用消息队列</h1><p>使用消息队列可以实现异步、解耦、削峰和流控等，同时分布式系统中也可以使用消息队列来实现最终一致性。</p>
 <h2 id="异步"><a href="#异步" class="headerlink" title="异步"></a>异步</h2><p>我们可以根据传递方式的不同将消息划分为同步消息和异步消息。同步消息中比较有代表性的就是 RPC 调用，而异步消息中比较有代表性的就是使用消息队列。异步消息一般不怎么关心消息执行的结果，如果希望了解异步消息的执行情况，通常有<strong>轮询和通知</strong>两种方式。轮询具体是指在消息执行完毕后向其他设备（比如一个阻塞队列等）刷新执行结果，由主调方轮询查看结果；而通知则可以通过注册回调的方式实现。</p>
 <p>假如系统中有一个耗时操作，我们正常调用该操作时，需要等待该操作结束后才能得到返回结果并继续向下执行，如果此时我们在系统中引入消息队列，将耗时操作需要的参数发送给消息队列，由队列代为执行，则可以不用等待耗时操作结束就可以直接返回。</p>
-<h2 id="削峰-x2F-流控"><a href="#削峰-x2F-流控" class="headerlink" title="削峰&#x2F;流控"></a>削峰&#x2F;流控</h2><p>使用消息队列实现的异步处理可以延伸出一个比较常用的功能，那就是削峰和流控。比如一个系统，在不使用消息队列的时候，用户的请求数据经过处理后直接写入到数据库中，在请求量突然增大的情况下，数据库的压力也会骤然增大，使得整个系统的响应速度变慢。在使用了消息队列之后，用户的请求数据会直接发送给消息队列后立即返回，消息队列的消费者进程会从消息队列中获取数据并写入到数据库中。由于消息队列的消息处理能力一般高于数据库，同时消息队列的伸缩性也优于数据库，因此整个系统的响应速度会得到大幅提升。</p>
+<h2 id="削峰-流控"><a href="#削峰-流控" class="headerlink" title="削峰&#x2F;流控"></a>削峰&#x2F;流控</h2><p>使用消息队列实现的异步处理可以延伸出一个比较常用的功能，那就是削峰和流控。比如一个系统，在不使用消息队列的时候，用户的请求数据经过处理后直接写入到数据库中，在请求量突然增大的情况下，数据库的压力也会骤然增大，使得整个系统的响应速度变慢。在使用了消息队列之后，用户的请求数据会直接发送给消息队列后立即返回，消息队列的消费者进程会从消息队列中获取数据并写入到数据库中。由于消息队列的消息处理能力一般高于数据库，同时消息队列的伸缩性也优于数据库，因此整个系统的响应速度会得到大幅提升。</p>
 <p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912031751/2019/12/03/5Qe.png" alt="削峰"></p>
 <h2 id="解耦"><a href="#解耦" class="headerlink" title="解耦"></a>解耦</h2><p>有一个比较常见的业务场景，比如一个模块或系统，我们称为 A。A 需要将产生的数据传递给其他模块或系统，因此我们在 A 中直接调用其他模块或系统的方法来传递数据，而当其中的某个模块或系统不再需要该数据时，我们还需要再去修改 A 的逻辑，去掉向该模块或系统传递数据的方法。在这种场景下，如果业务频繁变更，我们需要不断修改 A 的逻辑，系统的可扩展性较差。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SystemA</span> &#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="type">SystemB</span> <span class="variable">systemB</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SystemB</span>();</span><br><span class="line">    <span class="keyword">private</span> <span class="type">SystemC</span> <span class="variable">systemC</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">SystemC</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">void</span> <span class="title function_">doSomething</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="comment">// execute A&#x27;s logic</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">deliverData</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">var</span> <span class="variable">data</span> <span class="operator">=</span> <span class="built_in">this</span>.doSomething();</span><br><span class="line">        systemB.needToDo(data);</span><br><span class="line">        systemC.needToDo(data);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
@@ -341,12 +340,12 @@
           <div class="post-nav">
             <div class="post-nav-item">
                 <a href="/2019/10/15/Spring%20%E4%BA%8B%E5%8A%A1/" rel="prev" title="Spring 事务">
-                  <i class="fa fa-chevron-left"></i> Spring 事务
+                  <i class="fa fa-angle-left"></i> Spring 事务
                 </a>
             </div>
             <div class="post-nav-item">
                 <a href="/2019/11/13/RPC%20%E6%A6%82%E8%BF%B0/" rel="next" title="RPC 概述">
-                  RPC 概述 <i class="fa fa-chevron-right"></i>
+                  RPC 概述 <i class="fa fa-angle-right"></i>
                 </a>
             </div>
           </div>
@@ -365,15 +364,14 @@
   <footer class="footer">
     <div class="footer-inner">
 
-
-<div class="copyright">
-  &copy; 
-  <span itemprop="copyrightYear">2023</span>
-  <span class="with-love">
-    <i class="user"></i>
-  </span>
-  <span class="author" itemprop="copyrightHolder">nekolr</span>
-</div>
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2024</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
   <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
   </div>
 
@@ -399,8 +397,7 @@
 
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js" integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
 <script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
@@ -408,7 +405,9 @@
 
 
 
+
   <script src="/js/third-party/fancybox.js"></script>
+
 
 
   
