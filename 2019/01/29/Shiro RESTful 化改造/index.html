@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="实际上 Shiro 是支持 RESTful 风格的权限校验的，默认提供的 HttpMethodPermissionFilter 过滤器可以将 HTTP 请求的方法转化为相应的动词，并使用该动词构造对应的权限。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Shiro RESTful 化改造">
+<meta property="og:url" content="https://blog.nekolr.com/2019/01/29/Shiro%20RESTful%20%E5%8C%96%E6%94%B9%E9%80%A0/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="实际上 Shiro 是支持 RESTful 风格的权限校验的，默认提供的 HttpMethodPermissionFilter 过滤器可以将 HTTP 请求的方法转化为相应的动词，并使用该动词构造对应的权限。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rzG.png">
+<meta property="article:published_time" content="2019-01-29T13:58:00.000Z">
+<meta property="article:modified_time" content="2025-08-22T02:24:31.988Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="Shiro">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rzG.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2019/01/29/Shiro%20RESTful%20%E5%8C%96%E6%94%B9%E9%80%A0/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2019/01/29/Shiro%20RESTful%20%E5%8C%96%E6%94%B9%E9%80%A0/","path":"2019/01/29/Shiro RESTful 化改造/","title":"Shiro RESTful 化改造"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Shiro RESTful 化改造 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Shiro-%E6%9E%B6%E6%9E%84"><span class="nav-number">1.</span> <span class="nav-text">Shiro 架构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%A5%E5%8F%A3%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">入口分析</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">130</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2019/01/29/Shiro%20RESTful%20%E5%8C%96%E6%94%B9%E9%80%A0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Shiro RESTful 化改造 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Shiro RESTful 化改造
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2019-01-29 13:58:00" itemprop="dateCreated datePublished" datetime="2019-01-29T13:58:00+00:00">2019-01-29</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/Shiro/" itemprop="url" rel="index"><span itemprop="name">Shiro</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>实际上 Shiro 是支持 RESTful 风格的权限校验的，默认提供的 <code>HttpMethodPermissionFilter</code> 过滤器可以将 HTTP 请求的方法转化为相应的动词，并使用该动词构造对应的权限。  </p>
+<span id="more"></span>  
+
+<p>在使用该过滤器时，默认情况下一个 <code>/api/user/123</code> 的 GET 请求将被映射为 <code>user:read</code> 权限，然后通过 <code>Subject.isPermitted(&quot;user:read&quot;)</code> 来校验用户是否具有该权限。而一个 <code>/api/user</code> 的 POST 请求将被映射为 <code>user:create</code> 权限来进行校验。  </p>
+<p>这里有一个 ini 配置文件，在 urls 中配置使用了 RESTful 风格的过滤器。  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[main]</span><br><span class="line"></span><br><span class="line">[users]</span><br><span class="line"># 用户名 = 密码, 角色1, 角色2,...</span><br><span class="line">saber = saber, employee</span><br><span class="line"></span><br><span class="line">[roles]</span><br><span class="line"># 角色 = 权限1, 权限2,...</span><br><span class="line">admin = *</span><br><span class="line">employee = user:read:*</span><br><span class="line"></span><br><span class="line">[urls]</span><br><span class="line"># 所有的 /user/** 请求都经过 RESTful 风格的过滤器，映射成对应的权限后校验</span><br><span class="line">/user/** = rest[user]</span><br></pre></td></tr></table></figure>
+
+<p>使用上述配置，在 saber 用户登录后，通过 GET 方法访问 <code>/user/123</code> 是可以通过的；而使用其他方法访问 <code>/user</code> 则会返回错误码 401。  </p>
+<p>其实总的来看，Shiro 默认的过滤器已经能够满足基本的需求了，但是缺点是不够灵活，所以对其进行改造。在改造之前，先简单研究一下 Shiro 的设计。  </p>
+<h1 id="Shiro-架构"><a href="#Shiro-架构" class="headerlink" title="Shiro 架构"></a>Shiro 架构</h1><p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242020/2018/04/14/rzG.png" alt="Shiro 架构">  </p>
+<ul>
+<li><strong>Subject</strong><br>主体，代表当前用户。这个主体不一定是一个人，和当前应用交互的都是主体。在使用 Shiro 的过程中更多的是与 Subject 交互，所有的 Subject 都绑定到 Security Manager 中，与 Subject 的交互最终都会由 Security Manager 来执行。  </li>
+<li><strong>SecurityManager</strong><br>安全管理器，是 Shiro 架构的核心，协调绑定在其上的所有的 Subject 和其它组件的工作。有点类似 Spring MVC 的 DispatcherServlet 前端控制器。  </li>
+<li><strong>Authenticator</strong><br>身份认证器，负责用户登录的一个组件。当用户尝试登录时，Authenticator 知道如何协调一个或多个存储用户相关信息的 Realm（域），从这些 Realms 获取数据来验证用户身份。如果默认的 Authenticator 不能满足需求则可以自定义实现。如果配置了多个 Realm，则需要设置<strong>认证策略（Authentication Strategy）</strong>，即何种情况算作认证通过，如：必须所有的域都成功，只有一个成功等等。  </li>
+<li><strong>Authorizer</strong><br>授权器，负责用户权限控制的一个组件。和 Authenticator 一样，Authorizer 知道如何协调一个或多个后端数据源来访问角色和权限信息，Authorizer 根据这些信息来确定用户是否具有该权限。  </li>
+<li><strong>SessionManager</strong><br>会话管理器，负责创建和管理用户会话的生命周期。默认情况下，Shiro 将使用现有的会话机制，比如 Servlet 容器默认的会话机制，如果没有提供 Web&#x2F;Servlet 或 EJB 容器，Shiro 也可以使用其内置的会话管理。  </li>
+<li><strong>SessionDAO</strong><br>Session 持久化，使用它可以进行 Session 的 CRUD，可以将 Session 持久化到关系型或非关系型数据库中，我们只要实现对应的 SessionDAO 即可，同时还可以使用缓存来提高效率。  </li>
+<li><strong>Realm</strong><br>域，允许有一个或多个域。可以把它看做是连接 Shiro 与安全数据（用户、角色、权限等）之间的“桥”或“连接器”，它封装了连接数据源的细节，Shiro 通过它们来获取安全数据，这些安全数据源可以是关系型数据库（JDBC）、LDAP、文本配置（INI 或属性文件等）等。<strong>Shiro 不会去维护用户角色、权限，需要我们提供实现后通过相应的接口注入给 Shiro</strong>。  </li>
+<li><strong>CacheManager</strong><br>缓存管理，由于 Shiro 抽象了 Realm 这个概念，类似数据源，因此可以通过缓存这些域来提高效率，几乎所有的现代开源或企业级缓存产品都能够使用到 Shiro 中来。  </li>
+<li><strong>Cryptography</strong><br>密码模块，提供了简单易用的加密和解密组件。</li>
+</ul>
+<h1 id="入口分析"><a href="#入口分析" class="headerlink" title="入口分析"></a>入口分析</h1><p>常见的使用 Shiro 的应用有三种。第一种就是普通的应用程序，不使用 Web 容器。第二种就是使用 Web 容器提供服务的应用，通过 Shiro 的过滤器实现用户的身份认证、权限校验等。最后一种就是在第二种的基础上集成了 Spring 容器。  </p>
+<p>首先观察第一种应用使用 Shiro 的例子。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">App</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="type">Logger</span> <span class="variable">log</span> <span class="operator">=</span> LoggerFactory.getLogger(App.class);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="comment">// 创建 SecurityManager 工厂类，加载 ini 配置文件</span></span><br><span class="line">        Factory&lt;SecurityManager&gt; factory = <span class="keyword">new</span> <span class="title class_">IniSecurityManagerFactory</span>(<span class="string">&quot;classpath:shiro.ini&quot;</span>);</span><br><span class="line">        <span class="comment">// 获取 SecurityManager 实例</span></span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">securityManager</span> <span class="operator">=</span> factory.getInstance();</span><br><span class="line">        <span class="comment">// 设置一次即可</span></span><br><span class="line">        SecurityUtils.setSecurityManager(securityManager);</span><br><span class="line">        <span class="comment">// 获取 Subject</span></span><br><span class="line">        <span class="type">Subject</span> <span class="variable">subject</span> <span class="operator">=</span> SecurityUtils.getSubject();</span><br><span class="line">        <span class="comment">// 创建 Token</span></span><br><span class="line">        <span class="type">UsernamePasswordToken</span> <span class="variable">token</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">UsernamePasswordToken</span>(<span class="string">&quot;saber&quot;</span>, <span class="string">&quot;saber&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!subject.isAuthenticated()) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="comment">// 执行登录</span></span><br><span class="line">                subject.login(token);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (UnknownAccountException uae) &#123;</span><br><span class="line">                <span class="comment">// 账号不存在，给用户返回一个提示</span></span><br><span class="line">                log.info(<span class="string">&quot;账号：&quot;</span> + token.getPrincipal() + <span class="string">&quot;不存在&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IncorrectCredentialsException ice) &#123;</span><br><span class="line">                <span class="comment">// 错误的密码，给用户返回一个提示</span></span><br><span class="line">                log.info(<span class="string">&quot;账号：&quot;</span> + token.getPrincipal() + <span class="string">&quot;密码错误&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (LockedAccountException lae) &#123;</span><br><span class="line">                <span class="comment">// 账号被锁定，给用户返回一个提示</span></span><br><span class="line">                log.info(<span class="string">&quot;账号：&quot;</span> + token.getPrincipal() + <span class="string">&quot;被锁定&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (AuthenticationException e) &#123;</span><br><span class="line">                log.info(<span class="string">&quot;其他错误&quot;</span>);</span><br><span class="line">                <span class="keyword">return</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        log.info(<span class="string">&quot;账号：&quot;</span> + subject.getPrincipal() + <span class="string">&quot; 登录成功&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * Session 测试</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="type">Session</span> <span class="variable">session</span> <span class="operator">=</span> subject.getSession();</span><br><span class="line">        session.setAttribute(<span class="string">&quot;someKey&quot;</span>, <span class="string">&quot;aValue&quot;</span>);</span><br><span class="line">        <span class="type">String</span> <span class="variable">value</span> <span class="operator">=</span> (String) session.getAttribute(<span class="string">&quot;someKey&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span> (value.equals(<span class="string">&quot;aValue&quot;</span>)) &#123;</span><br><span class="line">            log.info(<span class="string">&quot;Session 值正确&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 角色测试</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">if</span> (subject.hasRole(<span class="string">&quot;admin&quot;</span>)) &#123;</span><br><span class="line">            log.info(<span class="string">&quot;具有 admin 角色&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            log.info(<span class="string">&quot;不具有 admin 角色&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/**</span></span><br><span class="line"><span class="comment">         * 权限测试</span></span><br><span class="line"><span class="comment">         */</span></span><br><span class="line">        <span class="keyword">if</span> (subject.isPermitted(<span class="string">&quot;user:read&quot;</span>)) &#123;</span><br><span class="line">            log.info(<span class="string">&quot;具有查看的权限&quot;</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            log.info(<span class="string">&quot;不具有查看的权限&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在需要使用 Web 容器的应用中，一般会在 <code>web.xml</code> 中配置监听器和过滤器。我们知道，在 Servlet 容器启动的过程中，会先调用 Listener 的初始化方法，然后调用 Filter 的初始化方法。  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">listener</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">listener-class</span>&gt;</span>org.apache.shiro.web.env.EnvironmentLoaderListener<span class="tag">&lt;/<span class="name">listener-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">listener</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">context-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>shiroEnvironmentClass<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>org.apache.shiro.web.env.IniWebEnvironment<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">context-param</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">context-param</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>shiroConfigLocations<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>classpath:shiro-web.ini<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">context-param</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>shiroFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.apache.shiro.web.servlet.ShiroFilter<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>shiroFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>REQUEST<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>FORWARD<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>INCLUDE<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dispatcher</span>&gt;</span>ERROR<span class="tag">&lt;/<span class="name">dispatcher</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>其中，在调用监听器的初始化方法时会创建一个 <code>WebEnvironment</code> 放入 <code>ServletContext</code> 的全局属性中，它封装了 Shiro 运行时所需要的所有对象，比如 <code>SecurityManager</code>、<code>FilterChainResolver</code> 等。在 Web 容器启动时，<code>ShiroFilter</code> 的初始化方法中会从 Web 容器上下文的全局属性中获取 <code>WebEnvironment</code>，并将 <code>SecurityManager</code> 等值注入到过滤器中备用。  </p>
+<p>在集成了 Spring 之后，就需要将 Shiro 纳入容器管理。Spring 提供了 <code>DelegatingFilterProxy</code> 类，它的作用就是代理 Filter。简单来说，它就是一个过滤器，因为它实现了 Filter 接口。在 web.xml 中配置它之后，就可以在 Web 容器启动时执行它的初始化方法，在初始化方法中会从 Spring 容器中寻找它代理的过滤器，然后注入到 <code>delegate</code> 属性中。同时它实现了 <code>DisposableBean</code> 接口，因此在需要销毁时，会调用 destroy 方法完成销毁。这样 Spring 就可以通过它间接管理过滤器的生命周期。  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">filter</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>shiroFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-class</span>&gt;</span>org.springframework.web.filter.DelegatingFilterProxy<span class="tag">&lt;/<span class="name">filter-class</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">init-param</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">param-name</span>&gt;</span>targetFilterLifecycle<span class="tag">&lt;/<span class="name">param-name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">param-value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">param-value</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">init-param</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">filter-mapping</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">filter-name</span>&gt;</span>shiroFilter<span class="tag">&lt;/<span class="name">filter-name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url-pattern</span>&gt;</span>/*<span class="tag">&lt;/<span class="name">url-pattern</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">filter-mapping</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在 applicationContext.xml 中配置的 shiroFilter 是 <code>ShiroFilterFactoryBean</code>。我们知道，FactoryBean 是一种特殊的 bean，通过 getBean 方法从容器中获取实例时，其实获取到的是该实例的 getObject 方法返回的对象。  </p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;shiroFilter&quot;</span> <span class="attr">class</span>=<span class="string">&quot;org.apache.shiro.spring.web.ShiroFilterFactoryBean&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;securityManager&quot;</span> <span class="attr">ref</span>=<span class="string">&quot;securityManager&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;securityManager&quot;</span> <span class="attr">class</span>=<span class="string">&quot;org.apache.shiro.web.mgt.DefaultWebSecurityManager&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;realm&quot;</span> <span class="attr">ref</span>=<span class="string">&quot;myRealm&quot;</span>/&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">bean</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">bean</span> <span class="attr">id</span>=<span class="string">&quot;lifecycleBeanPostProcessor&quot;</span> <span class="attr">class</span>=<span class="string">&quot;org.apache.shiro.spring.LifecycleBeanPostProcessor&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>在查看了 <code>ShiroFilterFactoryBean</code> 后会发现，它的 getObject 方法里会创建 <code>PathMatchingFilterChainResolver</code>，而它并不能满足我们的需求，因此都需要重写。首先重写 <code>PathMatchingFilterChainResolver</code> 的 getChain 方法，我们约定配置的过滤链的 path 应包含请求路径和请求方法，格式为 <code>uri==httpMethod</code>，比如 <code>/user/nekolr==GET</code>。只有请求路径和请求方法同时匹配，才会认为真正匹配，并将请求交由过滤器处理。  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RestPathMatchingFilterChainResolver</span> <span class="keyword">extends</span> <span class="title class_">PathMatchingFilterChainResolver</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">public</span> FilterChain <span class="title function_">getChain</span><span class="params">(ServletRequest request, ServletResponse response, FilterChain originalChain)</span> &#123;</span><br><span class="line">        <span class="type">FilterChainManager</span> <span class="variable">filterChainManager</span> <span class="operator">=</span> getFilterChainManager();</span><br><span class="line">        <span class="keyword">if</span> (!filterChainManager.hasChains()) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="type">String</span> <span class="variable">requestURI</span> <span class="operator">=</span> getPathWithinApplication(request);</span><br><span class="line">        <span class="type">boolean</span> isMatch;</span><br><span class="line">        Iterator&lt;String&gt; iterator = filterChainManager.getChainNames().iterator();</span><br><span class="line">        String pathPattern;</span><br><span class="line">        String[] strings;</span><br><span class="line">        <span class="keyword">do</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (!iterator.hasNext()) &#123;</span><br><span class="line">                <span class="keyword">return</span> <span class="literal">null</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            pathPattern = iterator.next();</span><br><span class="line">            strings = pathPattern.split(<span class="string">&quot;==&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span> (strings.length == <span class="number">2</span>) &#123;</span><br><span class="line">                <span class="comment">// 比较 HTTP METHOD 是否一致，不一致就不匹配</span></span><br><span class="line">                <span class="keyword">if</span> (WebUtils.toHttp(request).getMethod().toUpperCase().equals(strings[<span class="number">1</span>].toUpperCase())) &#123;</span><br><span class="line">                    isMatch = <span class="literal">true</span>;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    isMatch = <span class="literal">false</span>;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                isMatch = <span class="literal">false</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 重新赋值</span></span><br><span class="line">            pathPattern = strings[<span class="number">0</span>];</span><br><span class="line">        &#125; <span class="keyword">while</span> (!<span class="built_in">this</span>.pathMatches(pathPattern, requestURI) || !isMatch);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (log.isTraceEnabled()) &#123;</span><br><span class="line">            log.trace(<span class="string">&quot;Matched path pattern [&quot;</span> + pathPattern + <span class="string">&quot;] for requestURI [&quot;</span> + requestURI + <span class="string">&quot;].  &quot;</span> +</span><br><span class="line">                    <span class="string">&quot;Utilizing corresponding filter chain...&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (strings.length == <span class="number">2</span>) &#123;</span><br><span class="line">            pathPattern = pathPattern.concat(<span class="string">&quot;==&quot;</span>).concat(WebUtils.toHttp(request).getMethod().toUpperCase());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> filterChainManager.proxy(originalChain, pathPattern);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RestShiroFilterFactoryBean</span> <span class="keyword">extends</span> <span class="title class_">ShiroFilterFactoryBean</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="keyword">protected</span> AbstractShiroFilter <span class="title function_">createInstance</span><span class="params">()</span> <span class="keyword">throws</span> Exception &#123;</span><br><span class="line">        log.debug(<span class="string">&quot;Creating Shiro Filter instance.&quot;</span>);</span><br><span class="line">        <span class="type">SecurityManager</span> <span class="variable">securityManager</span> <span class="operator">=</span> <span class="built_in">this</span>.getSecurityManager();</span><br><span class="line">        String msg;</span><br><span class="line">        <span class="keyword">if</span> (securityManager == <span class="literal">null</span>) &#123;</span><br><span class="line">            msg = <span class="string">&quot;SecurityManager property must be set.&quot;</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!(securityManager <span class="keyword">instanceof</span> WebSecurityManager)) &#123;</span><br><span class="line">            msg = <span class="string">&quot;The security manager does not implement the WebSecurityManager interface.&quot;</span>;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">BeanInitializationException</span>(msg);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="type">FilterChainManager</span> <span class="variable">manager</span> <span class="operator">=</span> <span class="built_in">this</span>.createFilterChainManager();</span><br><span class="line">            <span class="comment">// RestPathMatchingFilterChainResolver</span></span><br><span class="line">            <span class="type">RestPathMatchingFilterChainResolver</span> <span class="variable">chainResolver</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">RestPathMatchingFilterChainResolver</span>();</span><br><span class="line">            chainResolver.setFilterChainManager(manager);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RestShiroFilterFactoryBean</span>.SpringShiroFilter((WebSecurityManager) securityManager, chainResolver);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">class</span> <span class="title class_">SpringShiroFilter</span> <span class="keyword">extends</span> <span class="title class_">AbstractShiroFilter</span> &#123;</span><br><span class="line">        <span class="keyword">protected</span> <span class="title function_">SpringShiroFilter</span><span class="params">(WebSecurityManager webSecurityManager, FilterChainResolver resolver)</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (webSecurityManager == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">IllegalArgumentException</span>(<span class="string">&quot;WebSecurityManager property cannot be null.&quot;</span>);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                <span class="built_in">this</span>.setSecurityManager(webSecurityManager);</span><br><span class="line">                <span class="keyword">if</span> (resolver != <span class="literal">null</span>) &#123;</span><br><span class="line">                    <span class="built_in">this</span>.setFilterChainResolver(resolver);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Shiro/" rel="tag"># Shiro</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2019/01/23/Shell%20Script%20%E5%AD%A6%E4%B9%A0/" rel="prev" title="Shell Script 学习">
+                  <i class="fa fa-angle-left"></i> Shell Script 学习
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2019/02/12/%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81%E7%9A%84%E5%AE%9E%E7%8E%B0/" rel="next" title="分布式锁的实现">
+                  分布式锁的实现 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

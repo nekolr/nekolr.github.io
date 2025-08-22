@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="在计算机中，存储体系是一个典型的金字塔结构，按照速度排列从上到下依次是：CPU 寄存器、CPU Cache（L1&#x2F;L2&#x2F;L3）、内存、SSD 固态硬盘以及 HDD 传统机械硬盘。越上层的存储设备速度越快，当然价格也更贵，容量也越小。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CPU Cache 与缓存一致性">
+<meta property="og:url" content="https://blog.nekolr.com/2022/02/07/CPU%20Cache%20%E4%B8%8E%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="在计算机中，存储体系是一个典型的金字塔结构，按照速度排列从上到下依次是：CPU 寄存器、CPU Cache（L1&#x2F;L2&#x2F;L3）、内存、SSD 固态硬盘以及 HDD 传统机械硬盘。越上层的存储设备速度越快，当然价格也更贵，容量也越小。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/07/wEP.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/mgx.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/nOA.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/677.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/31e.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202203041757/2022/03/04/ova.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202203041757/2022/03/04/Bwe.png">
+<meta property="article:published_time" content="2022-02-07T10:33:00.000Z">
+<meta property="article:modified_time" content="2025-08-22T02:24:31.983Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/07/wEP.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2022/02/07/CPU%20Cache%20%E4%B8%8E%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2022/02/07/CPU%20Cache%20%E4%B8%8E%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/","path":"2022/02/07/CPU Cache 与缓存一致性/","title":"CPU Cache 与缓存一致性"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>CPU Cache 与缓存一致性 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#CPU-Cache-%E6%98%A0%E5%B0%84%E7%AD%96%E7%95%A5"><span class="nav-number">1.</span> <span class="nav-text">CPU Cache 映射策略</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%9B%B4%E6%8E%A5%E6%98%A0%E5%B0%84"><span class="nav-number">1.1.</span> <span class="nav-text">直接映射</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%84%E7%9B%B8%E8%81%94"><span class="nav-number">1.2.</span> <span class="nav-text">组相联</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%A8%E7%9B%B8%E8%81%94"><span class="nav-number">1.3.</span> <span class="nav-text">全相联</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">1.4.</span> <span class="nav-text">小结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%99%E5%9B%9E%E5%92%8C%E5%86%99%E7%9B%B4%E8%BE%BE"><span class="nav-number">2.</span> <span class="nav-text">写回和写直达</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MESI-%E5%8D%8F%E8%AE%AE"><span class="nav-number">3.</span> <span class="nav-text">MESI 协议</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Store-Buffer"><span class="nav-number">4.</span> <span class="nav-text">Store Buffer</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Store-Forwarding"><span class="nav-number">5.</span> <span class="nav-text">Store Forwarding</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Invalid-Queue"><span class="nav-number">6.</span> <span class="nav-text">Invalid Queue</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%86%85%E5%AD%98%E5%B1%8F%E9%9A%9C"><span class="nav-number">7.</span> <span class="nav-text">内存屏障</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">8.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">130</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2022/02/07/CPU%20Cache%20%E4%B8%8E%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="CPU Cache 与缓存一致性 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          CPU Cache 与缓存一致性
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2022-02-07 10:33:00" itemprop="dateCreated datePublished" datetime="2022-02-07T10:33:00+00:00">2022-02-07</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">操作系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在计算机中，存储体系是一个典型的金字塔结构，按照速度排列从上到下依次是：CPU 寄存器、CPU Cache（L1&#x2F;L2&#x2F;L3）、内存、SSD 固态硬盘以及 HDD 传统机械硬盘。越上层的存储设备速度越快，当然价格也更贵，容量也越小。</p>
+<span id="more"></span>
+
+<p>从广义上讲，上一级的存储器都是下一级存储器的缓存。当然这里我们只关注 CPU Cache。现代 CPU 缓存通常都有三个等级，分为 L1、L2 和 L3，其中 L1 和 L2 在每个 CPU 核心中都有，而 L3 则是所有核心共享的。在 L1 高速缓存中，指令和数据是分开存储的；而在 L2 和 L3 中则不区分，称为统一缓存（unified cache）。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/07/wEP.png" alt="CPU Cache"></p>
+<p>在 Linux 系统中，我们可以通过以下命令来查看 L1&#x2F;L2&#x2F;L3 的大小：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># L1 数据缓存</span></span><br><span class="line">$ <span class="built_in">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/size</span><br><span class="line">32K</span><br><span class="line"></span><br><span class="line"><span class="comment"># L1 指令缓存</span></span><br><span class="line">$ <span class="built_in">cat</span> /sys/devices/system/cpu/cpu0/cache/index1/size</span><br><span class="line">32K</span><br><span class="line"></span><br><span class="line"><span class="comment"># L2</span></span><br><span class="line">$ <span class="built_in">cat</span> /sys/devices/system/cpu/cpu0/cache/index2/size</span><br><span class="line">256K</span><br><span class="line"></span><br><span class="line"><span class="comment"># L3</span></span><br><span class="line">$ <span class="built_in">cat</span> /sys/devices/system/cpu/cpu0/cache/index3/size</span><br><span class="line">3072K</span><br></pre></td></tr></table></figure>
+
+<h1 id="CPU-Cache-映射策略"><a href="#CPU-Cache-映射策略" class="headerlink" title="CPU Cache 映射策略"></a>CPU Cache 映射策略</h1><p>CPU Cache 从内存读取到的数据是一块一块存储的，这一块可以理解为 CPU Cache 的最小缓存单位，它有一个专门的名字：Cache Line，一般它的大小为 64 Byte。在 Linux 中可以通过以下命令来查看它的大小：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ <span class="built_in">cat</span> /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size</span><br><span class="line">64</span><br></pre></td></tr></table></figure>
+
+<p>由于 CPU Cache 与内存容量上的差异，必然需要某种映射规则，来确定 Cache Line 与内存地址的关系，这种关系就是我们所说的映射策略，一般常见的策略有：直接映射、全相联和组相联。</p>
+<h2 id="直接映射"><a href="#直接映射" class="headerlink" title="直接映射"></a>直接映射</h2><p>直接映射是一种多对一的映射，这种方式下，主存中的每个内存块只能有一个 Cache Line 与之对应，因此它也叫做“单路组相联”。具体来说就是使用内存块地址对 Cache Line 的个数取模。比如内存共被划分了 32 个内存块，而 CPU Cache 共有 8 个 Cache Line，假如 CPU 想要访问第 15 号内存块，如果该内存块的数据已经缓存在了 Cache Line 中，那么一定是映射在了 7 号 Cache Line 中。一般来说，缓存的索引号可以通过以下公式计算：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">I = (Am / B) mod N</span><br></pre></td></tr></table></figure>
+
+<p>其中 I 为缓存索引，Am 为内存地址，B 为 Cache Line 的大小，N 为 Cache Line 的个数。Am 除以 B 是内存块的个数。</p>
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/mgx.png" alt="直接映射" style="width: 60%" />
+
+<p>直接映射的优点就是结构简单，易于实现，但是存在显著的冲突问题。由于多个不同的内存块会共享同一个缓存块，一旦缓存失效则必须将缓存块当前的数据清除，这在频繁更换缓存内容时会造成大量的延迟，并且也无法有效利用程序运行期间所具有的时间局部性特征（近期访问的地址在不久的将来很有可能被再次访问）。</p>
+<h2 id="组相联"><a href="#组相联" class="headerlink" title="组相联"></a>组相联</h2><p>组相联是把缓存划分为多个组，每个组有若干个 Cache Line。用一句话来概括就是：组间直接映射，组内全相联。以下是一个 2 路组相联的例子：</p>
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/nOA.png" alt="2 路组相联" style="width: 60%" />
+
+<p>上图将缓存分成了 s 组，每组 2 个 Cache Line，即 2 路（2 ways），主存中的每个数据块只能位于分组中的某一个，但是可以在指定分组中的任意一个 Cache Line 中。一般来说，组相联的缓存索引可以通过以下公式计算：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">I = (Am / Nw / Na) mod N</span><br></pre></td></tr></table></figure>
+
+<p>其中，I 为缓存索引，Am 为内存地址，Nw 为缓存块内字数（也可以认为是 Cache Line 的大小），Na 为相联路数，N 为分组个数。</p>
+<h2 id="全相联"><a href="#全相联" class="headerlink" title="全相联"></a>全相联</h2><p>全相联是指主存中的数据块可能出现在任意一个 Cache Line 中，这种方式使得替换具有最大的灵活性（可以使用 LFU 或者 LRU 等算法），同时也意味着有最低的 miss 率。但是由于没有索引可以使用，检查一个 cache 是否命中需要在整个 cache 范围内搜索，这带来了查找电路的大量延时。因此只有在缓存极小的情况才有可能使用这种方式。</p>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>其实上面的三种映射方式，其实都可以看作是组相联，直接映射是单路组相联，而全映射则只有一个分组。因此，一个主存地址映射到高速缓存大体上有三个步骤：组选择（查找 Cache Set），行匹配（查找 Cache Line）和字抽取（查找 Cache Line 中一个字的起始字节）。</p>
+<p>比如一个 32 位系统的内存地址映射到 4 MB 高速缓存中。首先是组选择，对于直接映射来说，分组数等于 Cache Line 的个数：65536，也就意味着需要中间 16 bit 来表示 Cache Line 的编号。接下来是行匹配，对于直接映射来说，一个分组只有一个 Cache Line，不用选择。最后是字抽取，由于一般 Cache Line 的大小是 64 Byte，同时现代处理器中，存储单元一般是以字节为单位的，也是最小的寻址单元，这也就意味着一个 Cache Line 可以存储 64 个存储单元，因此内存地址的低位 6 个 bit 用于表示在 Cache Line 中的偏移量（数据从第几个字节开始）。剩余的高位 10 bit 作为内存地址的一部分，同样也会映射到 Cache Line 中，作为标记位。</p>
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/677.png" alt="组映射" style="width: 90%" />
+
+<p>上图是组映射的一般表示，对于一个 E 路组相联来说，缓存被划分为了 2^s 组，即通过内存地址的中间 s 位即可找到目标 Cache Line 的对应分组。找到分组后，遍历分组中所有的 Cache Line，检查 Cache Line 中的有效位，以及对比 Cache Line 中的标记位与内存地址的高位 t bit 是否一致。当 tag 和 valid 校验成功，我们称为缓存命中，此时只需要根据内存地址的低位 b bit 计算出 Cache Line 中数据的起始字节，向后读取一个字放入 CPU 寄存器即可。</p>
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202202081621/2022/02/08/31e.png" alt="内存地址的一般表示" style="width: 90%" />
+
+<blockquote>
+<p>计算机各个硬件之间进行信息传递是通过贯穿整个系统的一组电子管道，称做总线，它携带信息字节并负责在各个部件间传递。硬件之间进行信息交流需要有一个统一的标准，也就是二进制信息传递规则，为了高效考虑，通常总线被设计成传送定长的字节块，也就是字（word）。字中的字节数（即字长）是一个基本的系统参数，在各个系统中的情况都不尽相同。操作系统中的 32 位（4 个字节）或 64 （8 个字节）位就叫总线的字长单位。</p>
+</blockquote>
+<h1 id="写回和写直达"><a href="#写回和写直达" class="headerlink" title="写回和写直达"></a>写回和写直达</h1><p>既然有缓存，那必然会出现缓存与主存数据不一致的情况，此时就需要将最新的数据更新到对应的内存当中。通常有两种更新方式：写直达（Write Through）和写回（Write Back）。写直达要求 CPU 在写数据的时候，同时更新缓存和内存，这样缓存和内存的数据就会始终保持一致，但是对性能影响较大。而写回则要求 CPU 在写数据的时候，仅修改缓存，只有当缓存需要被替换时才会去更新内存，这样就大大减少了写内存的操作，提高了性能。关于写回，我们详细展开描述。</p>
+<p>如果发生写操作时，数据已经在 CPU Cache 里的话，则把数据更新到 CPU Cache 里，同时标记 CPU Cache 里的这个 Cache Block 为脏（Dirty）的，这个标记代表 CPU Cache 里的这个 Cache Block 的数据和内存是不一致的，此时不需要把数据写到内存里。</p>
+<p>如果发生写操作时，数据对应的 Cache Block 里存放的是「别的内存地址的数据」的话，就要检查这个 Cache Block 里的数据有没有被标记为脏的，如果是脏的话，就要把这个 Cache Block 里的数据写回到内存，然后再把当前要写入的数据，写入到这个 Cache Block 里，同时也把它标记为脏的；如果 Cache Block 里面的数据没有被标记为脏，则直接将数据写入到这个 Cache Block 里，然后再把这个 Cache Block 标记为脏的即可。</p>
+<h1 id="MESI-协议"><a href="#MESI-协议" class="headerlink" title="MESI 协议"></a>MESI 协议</h1><p>在多核 CPU 中，由于每个核心都有自己的 L1 和 L2 缓存，因此必然存在核心之间的缓存一致性问题，MESI 协议就是为解决这个问题而存在的。在 MESI 协议中，Cache Line 有 4 种不同的状态：</p>
+<p>已修改（Modified），表示缓存行是脏的，与主存的值不一致，如果别的 CPU 核心要读取主存中的这块数据，该缓存行必须写回主存，然后缓存行的状态变为共享。</p>
+<p>独占的（Exclusive），表示缓存行只在当前缓存中，与已修改不同的是，该缓存行是干净的，即没有发生修改。CPU 可以直接对其进行修改，然后状态变为已修改。</p>
+<p>共享的（Shared），表示缓存行也存在于其他缓存中且都是干净的。处于该状态的缓存行不能直接被修改，需要该 CPU 核心向其他核心广播一个消息，要求其他拥有相同数据的核心把各自对应的缓存行标记为无效。</p>
+<p>无效的（Invalid），表示缓存行是无效的，不可以再读取该状态的缓存行数据。另外，一般的 Cache 会优先填充 Invalid 状态的缓存行。</p>
+<p>缓存行的状态转换可以通过一个有限状态机来描述，触发状态转换的场景有两种：缓存所在处理器的读写，其他处理器的读写。有时一个处理器对于缓存的请求可能需要通过总线来发送，而总线请求会被总线窥探器监听。以下是<strong>某个 CPU 操作时，当前缓存行的状态转换表：</strong></p>
+<table>
+<thead>
+<tr>
+<th>初始状态</th>
+<th>操作</th>
+<th>响应</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Invalid</td>
+<td>读</td>
+<td>此时向总线发送读缓存的请求，其他处理器监听到该请求后，会检查自己是否有有效的数据副本。如果有，则通过总线发送该数据副本，此时该缓存行状态变为 Shared；如果没有，则会请求主存获取数据，缓存行状态变为 Exclusive</td>
+</tr>
+<tr>
+<td>Invalid</td>
+<td>写</td>
+<td>此时向总线发送写缓存的请求，其他处理器监听到该请求后，会检查自己是否有有效的数据副本。如果有，则其中一个通过总线发送该数据副本，同时这些拥有有效副本的缓存都将设置为 Invalid；如果没有，则会请求主存获取数据。为什么要获取最新的值？答案是因为此前没有该缓存，获取是为了独占缓存。之后该处理器会向缓存块中写入修改后的值</td>
+</tr>
+<tr>
+<td>Exclusive</td>
+<td>读</td>
+<td>只有当前处理器拥有该缓存，因此不会发送总线请求，状态保持不变</td>
+</tr>
+<tr>
+<td>Exclusive</td>
+<td>写</td>
+<td>只有当前处理器拥有该缓存，因此不会发送总线请求，此时直接写入修改后的值，缓存行状态变为 Modified</td>
+</tr>
+<tr>
+<td>Shared</td>
+<td>读</td>
+<td>没有总线请求产生，状态保持不变</td>
+</tr>
+<tr>
+<td>Shared</td>
+<td>写</td>
+<td>其他处理器拥有该缓存，因此需要发送总线请求，其他处理器监听到该请求后，会将自己的有效副本标记为 Invalid，然后当前缓存行的状态变为 Modified</td>
+</tr>
+<tr>
+<td>Modified</td>
+<td>读</td>
+<td>此时没有总线请求产生，直接读取缓存，状态保持不变</td>
+</tr>
+<tr>
+<td>Modified</td>
+<td>写</td>
+<td>同样没有总线请求产生，同时状态保持不变，直接修改缓存为新值即可</td>
+</tr>
+</tbody></table>
+<p>写操作仅在缓存行是已修改或者独占状态时可以自由执行，如果在共享状态，其他处理器的缓存都需要先设置为无效，这种广播操作称为 RFO（Request For Ownership）。对于已修改状态的缓存行，要监听各处理器对其的读请求，发送其数据到总线的同时还要写回主存。对于共享状态的缓存行，要监听使其无效或请求拥有的广播，当匹配时把该缓存行置为无效。</p>
+<h1 id="Store-Buffer"><a href="#Store-Buffer" class="headerlink" title="Store Buffer"></a>Store Buffer</h1><p>当某个处理器尝试修改其他处理器的 Cache Line 中的数据时，MESI 的广播操作带来的延迟对于处理器来说是难以忍受的。为了解决这个问题，在 CPU 和 Cache 中间又引入了 Store Buffer。这是一个容量比高速缓存还小的私有部件，当处理器需要修改数据时，会先将数据写入写缓冲器中，然后继续处理其他事情，当收到其他处理器的响应时，才将数据从写缓冲器转移到 Cache Line 中。</p>
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202203041757/2022/03/04/ova.png" alt="Store Buffer" style="width: 70%" />
+
+<h1 id="Store-Forwarding"><a href="#Store-Forwarding" class="headerlink" title="Store Forwarding"></a>Store Forwarding</h1><p>在同一个处理器中，写缓冲器的引入必然会带来一个问题，即异步操作引发的数据滞后性。自处理器的写操作将最新的数据放入写缓冲器时起，高速缓存中的数据就已经过时，此后所有的加载操作看到的都是旧的数据，直到写缓冲器将数据同步到高速缓存。</p>
+<p>为了解决这个问题，硬件工程师实现了 Store Forwarding 技术，这个技术可以使 CPU 直接从 Store Buffer 加载数据，即支持将 CPU 放入 Store Buffer 的数据传递给后续的加载操作而不经过高速缓存。</p>
+<img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202203041757/2022/03/04/Bwe.png" alt="Store Forwarding" style="width: 70%" />
+
+<p>需要注意的是，虽然处理器可以直接读取其 Store Buffer 中自己以前的写操作，但是在将这些操作从写缓冲区刷新到高速缓存之前，其他处理器是无法看到这些写操作的。这就意味着，Store Forwarding 技术只能解决单个处理器中的缓存滞后问题，无法解决多核处理器的此类问题。</p>
+<h1 id="Invalid-Queue"><a href="#Invalid-Queue" class="headerlink" title="Invalid Queue"></a>Invalid Queue</h1><p>由于 Store Buffer 的容量很小，因此它很容易就会被填满，此时处理器必须等待它发出的使缓存无效的广播请求得到响应，才可以将 Store Buffer 中的数据转移到高速缓存，从而释放空间。</p>
+<p>为了解决这个同步操作带来的延迟问题，硬件工程师又为每个处理器添加了一个无效队列。处理器在监听到使缓存无效的消息后，直接将消息放入无效队列中排队，然后立即发送回复消息，这就大大降低了响应的延迟。</p>
+<blockquote>
+<p>有些处理器并没有实现 Invalid Queue。</p>
+</blockquote>
+<h1 id="内存屏障"><a href="#内存屏障" class="headerlink" title="内存屏障"></a>内存屏障</h1><p>内存屏障（memory barrier）又叫内存栅栏（memory fence），其目的是用来阻止 CPU 对指令的重排序（有些编译器也会对指令进行重排序）。根据 CPU 对于变量的操作读（load）和写（store），两两组合可以有四种内存屏障：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LoadLoad 屏障</td>
+<td>保证屏障前的 load 操作一定在屏障后的 load 操作之前完成</td>
+</tr>
+<tr>
+<td>StoreStore 屏障</td>
+<td>保证屏障前的 store 操作一定在屏障后的 store 操作之前完成</td>
+</tr>
+<tr>
+<td>LoadStore 屏障</td>
+<td>保证屏障前的 load 操作一定在屏障后的 store 操作之前完成</td>
+</tr>
+<tr>
+<td>StoreLoad 屏障</td>
+<td>保证屏障前的 store 操作一定在屏障后的 load 操作之前完成</td>
+</tr>
+</tbody></table>
+<p>内存屏障除了有阻止指令重排序的作用，还与 MESI 协议有关。我们知道 MESI 为了优化性能，引入了 Store Buffer 和 Invalid Queue，因此写类型的内存屏障还能触发内存的强制更新，让 Store Buffer 中的数据立刻写回到高速缓存中。读类型的内存屏障会让 Invalid Queue 中的缓存行在后面的 load 操作之前全部标记为失效。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="http://cenalulu.github.io/linux/all-about-cpu-cache/">关于CPU Cache – 程序猿需要知道的那些事</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/296949412/answer/760347883">既然 CPU 有缓存一致性协议（MESI），为什么 JMM 还需要 volatile 关键字？</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/" rel="tag"># 操作系统</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2021/08/15/Java%20Agent/" rel="prev" title="Java Agent">
+                  <i class="fa fa-angle-left"></i> Java Agent
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2022/04/26/Kafka%20%E5%88%86%E5%8C%BA/" rel="next" title="Kafka 分区">
+                  Kafka 分区 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

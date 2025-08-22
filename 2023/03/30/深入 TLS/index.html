@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="一直以来对于 TLS 的运行机制一知半解，平常的工作和生活中也只是使用它，很少有机会深入了解它。最近 ChatGPT 大火，在体验了一段时间之后，反而意外地想静下心来学习和整理一番。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="深入 TLS">
+<meta property="og:url" content="https://blog.nekolr.com/2023/03/30/%E6%B7%B1%E5%85%A5%20TLS/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="一直以来对于 TLS 的运行机制一知半解，平常的工作和生活中也只是使用它，很少有机会深入了解它。最近 ChatGPT 大火，在体验了一段时间之后，反而意外地想静下心来学习和整理一番。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/05/q4j.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/05/4vV.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202303311750/2023/03/31/yvK.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/04/pPr.png">
+<meta property="article:published_time" content="2023-03-30T11:35:00.000Z">
+<meta property="article:modified_time" content="2025-08-22T02:24:31.992Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="HTTPS">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/05/q4j.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2023/03/30/%E6%B7%B1%E5%85%A5%20TLS/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2023/03/30/%E6%B7%B1%E5%85%A5%20TLS/","path":"2023/03/30/深入 TLS/","title":"深入 TLS"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>深入 TLS | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#HTTP-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E5%AE%89%E5%85%A8"><span class="nav-number">1.</span> <span class="nav-text">HTTP 为什么不安全</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">2.</span> <span class="nav-text">使用对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BD%BF%E7%94%A8%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">3.</span> <span class="nav-text">使用非对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%94%B9%E8%89%AF%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">4.</span> <span class="nav-text">改良非对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%9D%9E%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86-%E5%AF%B9%E7%A7%B0%E5%8A%A0%E5%AF%86"><span class="nav-number">5.</span> <span class="nav-text">非对称加密+对称加密</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%AD%E9%97%B4%E4%BA%BA%E6%94%BB%E5%87%BB"><span class="nav-number">6.</span> <span class="nav-text">中间人攻击</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E5%85%AC%E9%92%A5%E5%8F%AF%E4%BF%A1"><span class="nav-number">7.</span> <span class="nav-text">如何保证公钥可信</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%AE%8C%E6%95%B4%E7%9A%84%E6%8F%A1%E6%89%8B%E8%BF%87%E7%A8%8B"><span class="nav-number">8.</span> <span class="nav-text">完整的握手过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ClientHello"><span class="nav-number">8.1.</span> <span class="nav-text">ClientHello</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ServerHello"><span class="nav-number">8.2.</span> <span class="nav-text">ServerHello</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Certificate-optional"><span class="nav-number">8.3.</span> <span class="nav-text">Certificate (optional)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ServerKeyExchange-optional"><span class="nav-number">8.4.</span> <span class="nav-text">ServerKeyExchange (optional)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CertificateRequest-optional"><span class="nav-number">8.5.</span> <span class="nav-text">CertificateRequest (optional)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ServerHelloDone"><span class="nav-number">8.6.</span> <span class="nav-text">ServerHelloDone</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Certificate-optional-1"><span class="nav-number">8.7.</span> <span class="nav-text">Certificate (optional)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ClientKeyExchange"><span class="nav-number">8.8.</span> <span class="nav-text">ClientKeyExchange</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CertificateVerify-optional"><span class="nav-number">8.9.</span> <span class="nav-text">CertificateVerify (optional)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Finished-Encrypted-Handshake-Message"><span class="nav-number">8.10.</span> <span class="nav-text">Finished (Encrypted Handshake Message)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E8%A7%A3%E5%AF%86-HTTPS-%E6%B5%81%E9%87%8F"><span class="nav-number">9.</span> <span class="nav-text">解密 HTTPS 流量</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E5%90%91%E5%AE%89%E5%85%A8%E6%80%A7%EF%BC%88Forward-Secrecy%EF%BC%89"><span class="nav-number">10.</span> <span class="nav-text">前向安全性（Forward Secrecy）</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DH-%E7%AE%97%E6%B3%95"><span class="nav-number">10.1.</span> <span class="nav-text">DH 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DHE-%E7%AE%97%E6%B3%95"><span class="nav-number">10.2.</span> <span class="nav-text">DHE 算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ECDHE-%E7%AE%97%E6%B3%95"><span class="nav-number">10.3.</span> <span class="nav-text">ECDHE 算法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">11.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">130</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2023/03/30/%E6%B7%B1%E5%85%A5%20TLS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="深入 TLS | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          深入 TLS
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2023-03-30 11:35:00" itemprop="dateCreated datePublished" datetime="2023-03-30T11:35:00+00:00">2023-03-30</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%AE%89%E5%85%A8/" itemprop="url" rel="index"><span itemprop="name">安全</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>一直以来对于 TLS 的运行机制一知半解，平常的工作和生活中也只是使用它，很少有机会深入了解它。最近 ChatGPT 大火，在体验了一段时间之后，反而意外地想静下心来学习和整理一番。</p>
+<span id="more"></span>
+
+<h1 id="HTTP-为什么不安全"><a href="#HTTP-为什么不安全" class="headerlink" title="HTTP 为什么不安全"></a>HTTP 为什么不安全</h1><p>由于 HTTP 采用明文传输，明文数据经过中间代理服务器、路由器、运营商等多个网络节点，如果信息在传输过程中被劫持，传输的内容就完全暴露了。劫持者可以<strong>窃听</strong>、<strong>篡改</strong>传输的内容，甚至<strong>冒充</strong>通信双方的身份且不被双方察觉，也就是所谓的中间人攻击（MITM）。</p>
+<h1 id="使用对称加密"><a href="#使用对称加密" class="headerlink" title="使用对称加密"></a>使用对称加密</h1><p>既然传输内容是明文的，那我们很容易就能想到对传输内容进行加密。对称加密速度快，性能好，如果通信双方都知道对称加密的密钥，且没有任何第三方知道，那么通信当然是安全的。但是如何让通信的双方都知道该密钥呢？浏览器预存所有网站的密钥？这不现实。服务器通过网络传输密钥给浏览器？如果传输过程中被第三方劫持获取到了该密钥，那么之后双方所有的通信内容都能被解密。</p>
+<h1 id="使用非对称加密"><a href="#使用非对称加密" class="headerlink" title="使用非对称加密"></a>使用非对称加密</h1><p>既然对称加密行不通，那么非对称加密呢？由于非对称加密的机制，我们可能会有以下思路：服务器明文传输公钥给浏览器，之后浏览器向服务器传输数据之前都会先用该公钥加密后再传输，只有服务器的私钥能解密该数据。但是反过来，服务器向浏览器传输数据，只能用私钥加密数据，浏览器可以用公钥解密，然而该公钥是服务器一开始通过明文传输给浏览器的，中间人一样可以获取到该公钥来解密服务器传输的数据。这个方案似乎只能保证浏览器向服务器传输数据的安全性（其实仍有问题）。</p>
+<h1 id="改良非对称加密"><a href="#改良非对称加密" class="headerlink" title="改良非对称加密"></a>改良非对称加密</h1><p>基于以上方案，我们很快就能发现既然一对公私钥只能保证一侧的安全，那么我们使用两对公私钥，不就能保证双方通信的安全了吗？</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">服务器持有公钥 A 和私钥 A，浏览器持有公钥 B 和私钥 B</span><br><span class="line">双方通过明文传输各自的公钥</span><br><span class="line">之后浏览器向服务器传输数据都用公钥 A 加密，服务器使用私钥 A 解密</span><br><span class="line">同理服务器向浏览器传输数据都用公钥 B 加密，浏览器使用私钥 B 解密</span><br></pre></td></tr></table></figure>
+
+<p>表面上看，这个方案似乎没有问题，但是 HTTPS 并没有采用这种方案，一个原因是因为非对称加密非常耗时，当然另一个原因是该方案有漏洞，这个一会儿再说，我们先来看看应该如何优化该方案。</p>
+<h1 id="非对称加密-对称加密"><a href="#非对称加密-对称加密" class="headerlink" title="非对称加密+对称加密"></a>非对称加密+对称加密</h1><p>既然非对称加密与对称加密相比性能较差，那么我们是否可以将两者结合起来呢？答案是可以！在密钥交换阶段，我们可以使用非对称加密保护通信时使用的对称加密密钥，在数据交换阶段使用对称加密保护传输的内容。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">服务器有一对公钥 A 和私钥 A</span><br><span class="line">服务器通过明文传输公钥 A 给浏览器</span><br><span class="line">浏览器随机生成一个用于对称加密的密钥 X，使用公钥 A 加密后传给服务器</span><br><span class="line">服务器通过私钥 A 解密得到对称加密的密钥 X</span><br><span class="line">这样双方都持有密钥 X，且第三方不知道，接下来所有的数据传输都可以使用该密钥加密和解密</span><br></pre></td></tr></table></figure>
+
+<h1 id="中间人攻击"><a href="#中间人攻击" class="headerlink" title="中间人攻击"></a>中间人攻击</h1><p>我们刚才提到使用两对公私钥以及后续的优化方案都存在漏洞，这个漏洞就是存在中间人攻击。以优化的方案为例，我们来模拟中间人的操作：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">服务器有一对公钥 A 和私钥 A</span><br><span class="line">服务器通过明文传输公钥 A 给浏览器</span><br><span class="line">中间人劫持到了公钥 A，保存下来，并把数据包中的公钥 A 替换成自己伪造的公钥 B（它自然有对应的私钥 B）</span><br><span class="line">浏览器随机生成一个用于对称加密的密钥 X，使用公钥 B（浏览器不知道公钥被替换了）加密后传输给服务器</span><br><span class="line">中间人劫持后用私钥 B 解密得到密钥 X，再用公钥 A 加密后传给服务器</span><br><span class="line">服务器使用私钥 A 解密得到密钥 X</span><br></pre></td></tr></table></figure>
+
+<p>这样在双方都没有发现的情况下，中间人已经获取到了双方用于通信加密的密钥 X。究其根本，是因为<strong>浏览器无法确认它接收到的公钥是不是服务器自己的</strong>。我们总不能再对公钥进行加密吧，那么又得进行密钥交换，重复之前的步骤并且永远没有尽头。</p>
+<h1 id="如何保证公钥可信"><a href="#如何保证公钥可信" class="headerlink" title="如何保证公钥可信"></a>如何保证公钥可信</h1><p>很多时候证明的源头都是一条条不证自明的“公理”。现实生活中，员工入职时需要向企业提供学历证明，这个学历证明必须是由教育部颁发的学历证书。在这里，学历证书由教育部做担保，“公理”也就是“教育部可信”。</p>
+<p>互联网世界也有一个类似的“公理”存在，那就是 CA 机构（Certificate Authority），CA 机构颁发的证书叫数字证书。网站在使用 HTTPS 之前，需要向 CA 机构申请一个数字证书，数字证书中包含证书持有者和颁发者的相关信息（组织、DNS 主机名、公钥等），服务器把证书传输给浏览器，浏览器从证书中获取网站的公钥。</p>
+<p>由于证书也是通过网络传输的，那么如何确保证书的真实性，防止证书被篡改呢？答案是使用<strong>数字签名</strong>。CA 机构在颁发证书时，会使用某种散列函数（比如 MD5、SHA-1 等）计算公开的明文信息的信息摘要，然后使用 CA 的私钥对信息摘要进行加密，形成的密文即数字签名，最后将证书中的明文信息和数字签名一起组成数字证书。</p>
+<blockquote>
+<p>为什么要先生成摘要再加密，而不是直接加密呢？因为非对称加密对于加密的内容长度有限制（与公钥长度有关），同时非对称加密还比较耗时，采用直接加密会导致客户端验签时同样耗时，而采用摘要算法可以将明文内容压缩到很短的固定长度字符串，客户端验签时会快很多。当然还有一方面是出于安全考虑，这里比较复杂，可以参考：<a target="_blank" rel="noopener" href="https://crypto.stackexchange.com/questions/12768/why-hash-the-message-before-signing-it-with-rsa/">Why hash the message before signing it with RSA?</a></p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">浏览器拿到数字证书之后，得到证书明文的 T 和数字签名 S</span><br><span class="line">使用 CA 机构的公钥解密数字签名得到信息摘要 S&#x27;，使用证书中指明的摘要算法对明文 T 进行 hash 得到 T&#x27;</span><br><span class="line">接下来只要对比 S&#x27; 和 T&#x27; 是否一致即可，如果不一致则代表明文 T 或者数字签名 S 被篡改</span><br></pre></td></tr></table></figure>
+
+<p>上面提到浏览器使用 CA 机构的公钥来解密数字签名，那么浏览器是怎么得到这个公钥的呢？换句话说，如何确保 CA 机构的公钥是可信的呢？我们回想一下数字证书是用来解决什么问题的？没错，为了证明某个公钥可信，即该公钥对应该网站，那么 CA 机构的公钥理所应当的也可以使用数字证书来证明。一般的，操作系统、浏览器都会预装一些他们信任的根证书，其中会有 CA 机构的根证书，这样客户端就可以拿到 CA 机构的公钥了。</p>
+<p>我们提到的 CA 机构的根证书，是根证书机构（Root CA）颁发的公钥证书，它是互联网安全中信任链的起点，由于根证书没有上层机构为其签名，所以根证书都是自签证书，即使用者和颁发者都是它自己。实际上，证书之间的认证也不止一层，如果 A 信任 B，B 信任 C，那么这里的 B 就作为中间证书颁发机构。这一连串的数字证书，以根证书为起点，通过层层信任，使得数字证书的持有者可以获得转授的信任来证明其身份。</p>
+<blockquote>
+<p>增加中间证书有哪些好处？首先能够减少根证书机构的管理工作，提高证书审核和签发的效率。其次根证书一般内置，私钥一般离线存储，一旦私钥泄漏，吊销过程会比较困难，可能无法及时补救，而中间证书的私钥泄漏，则可以快速在线吊销并重新生成。</p>
+</blockquote>
+<p>现在我们已经能够保证证书内容不被篡改了，那么证书有没有可能被第三方掉包呢？因为实际上任何站点都可以向 CA 申请证书，中间人可以在客户端获取证书时劫持，返回自己向 CA 机构申请的有效的数字证书。针对这种情况，应对方法也很简单，只需要客户端在验签的同时，再验证一下证书上的域名与自己请求的域名是否一致即可。</p>
+<h1 id="完整的握手过程"><a href="#完整的握手过程" class="headerlink" title="完整的握手过程"></a>完整的握手过程</h1><p>根据配置和协商的结果，握手过程会有许多变种，常见的有：只对服务端进行身份验证的握手；恢复之前会话采用的简短握手；对客户端和服务端都进行验证的握手等。下面是 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5246">RFC 5246</a> 中 TLS（TLS 1.2）握手的全过程：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">+--------+                                        +--------+</span><br><span class="line">|        |    1. ClientHello                      |        |</span><br><span class="line">|        | -------------------------------------&gt; |        |</span><br><span class="line">|        |                                        |        |</span><br><span class="line">|        |    2. ServerHello                      |        |</span><br><span class="line">|        |    3. Certificate (optional)           |        |</span><br><span class="line">|        |    4. ServerKeyExchange (optional)     |        |</span><br><span class="line">|        |    5. CertificateRequest (optional)    |        |</span><br><span class="line">|        |    6. ServerHelloDone                  |        |</span><br><span class="line">|        | &lt;------------------------------------- |        |</span><br><span class="line">|        |                                        |        |</span><br><span class="line">| Client |    7. Certificate (optional)           | Server |</span><br><span class="line">|        |    8. ClientKeyExchange                |        |</span><br><span class="line">|        |    9. CertificateVerify (optional)     |        |</span><br><span class="line">|        |   10. [ChangeCipherSpec]               |        |</span><br><span class="line">|        |   11. Finished                         |        |</span><br><span class="line">|        | -------------------------------------&gt; |        |</span><br><span class="line">|        |                                        |        |</span><br><span class="line">|        |   12. [ChangeCipherSpec]               |        |</span><br><span class="line">|        |   13. Finished                         |        |</span><br><span class="line">|        | &lt;------------------------------------- |        |</span><br><span class="line">|        |                                        |        |</span><br><span class="line">+--------+                                        +--------+</span><br></pre></td></tr></table></figure>
+
+<h2 id="ClientHello"><a href="#ClientHello" class="headerlink" title="ClientHello"></a>ClientHello</h2><p>首先客户端发送 ClientHello 消息，其中包含一个随机数（Client Random）、客户端支持的加密算法列表和压缩算法列表、最高支持的 TLS 协议版本、扩展字段等信息。扩展字段包含一些额外的辅助信息，比如最常见的 SNI。</p>
+<p>客户端支持的加密算法更正式的叫法为密码套件（cipher suites），在 TLS 1.3 以前，一个密码套件包含非对称加密算法、对称加密算法以及信息摘要算法。非对称加密算法用来协商共享密钥，对称加密算法用来批量加密通信数据，摘要算法用来进行数据的完整性校验。</p>
+<p>比如这样一个密码套件：TLS_RSA_WITH_AES_128_CBC_SHA，这个套件比较特殊的是，RSA 作为非对称加密算法，在密钥交换过程中使用，在通信的过程中需要签名的地方也会使用，同时也表示证书的公钥采用的也是该算法。AES_128_CBC 是对称加密算法，其密钥由 RSA 协商后计算产生。SHA 是信息摘要算法，表示后面证书里的签名用的就是该算法，同时后续通信需要数据校验时也会采用该算法。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">client -&gt; server</span><br><span class="line"></span><br><span class="line">你好，咱俩建立连接呗</span><br><span class="line">我这边最高支持 TLS 1.1</span><br><span class="line">支持的密码套件有 TLS_RSA_WITH_AES_128_CBC_SHA、TLS_RSA_WITH_AES_256_CBC_SHA256 等等</span><br><span class="line">支持的压缩算法 DEFLATE</span><br><span class="line">随机数为 8c9006c661dbf0b3dc989c5e72124bc3ae2fa1d7c94a22f820f3c920264419d7</span><br></pre></td></tr></table></figure>
+
+<h2 id="ServerHello"><a href="#ServerHello" class="headerlink" title="ServerHello"></a>ServerHello</h2><p>接下来服务端返回协商的结果，即发送 ServerHello 消息，其中包含一个随机数（Server Random）、要使用的加密算法和压缩算法、要使用的 TLS 协议版本等。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">server -&gt; client</span><br><span class="line"></span><br><span class="line">你好，没有问题啊</span><br><span class="line">我们使用 TLS 1.1 吧</span><br><span class="line">算法采用 TLS_RSA_WITH_AES_256_CBC_SHA256</span><br><span class="line">压缩算法不支持就不要了</span><br><span class="line">随机数为 73078baa0251a216a7e1489f685da66212ff2649734e3da7a8f8e0414d3fd722</span><br></pre></td></tr></table></figure>
+
+<h2 id="Certificate-optional"><a href="#Certificate-optional" class="headerlink" title="Certificate (optional)"></a>Certificate (optional)</h2><p>该消息包含服务端的证书链，是可选的，服务端会根据加密算法的选择来决定是否发送，比如 DH_ANON 算法就不会发送该消息，当然这是不安全也是不推荐的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server -&gt; client</span><br><span class="line"></span><br><span class="line">这是我的证书，你验证一下吧</span><br></pre></td></tr></table></figure>
+
+<h2 id="ServerKeyExchange-optional"><a href="#ServerKeyExchange-optional" class="headerlink" title="ServerKeyExchange (optional)"></a>ServerKeyExchange (optional)</h2><p>该消息也是可选的，服务端会根据加密算法的选择来决定，比如 RSA 算法就不需要发送该消息，客户端直接生成一个 Pre-master 就可以了，但是基于 DH 的算法就需要发送特殊的参数给客户端，以便它生成 Pre-master。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/05/q4j.png" alt="ServerKeyExchange"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server -&gt; client</span><br><span class="line"></span><br><span class="line">这是生成 pre-master 所需要的一些参数，请查收</span><br></pre></td></tr></table></figure>
+<h2 id="CertificateRequest-optional"><a href="#CertificateRequest-optional" class="headerlink" title="CertificateRequest (optional)"></a>CertificateRequest (optional)</h2><p>该消息也是可选的，在需要验证客户端身份时才会发送，以此来告诉客户端提供它的证书来证明身份。一般我们使用的都是单向身份认证，即只有服务端认证是不需要发送该消息的。需要双向认证的场景：比如访问银行网站进行交易时，此时证书由 U 盾提供。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server -&gt; client</span><br><span class="line"></span><br><span class="line">把你的证书发给我看看吧，我要确认一下你是不是 XXX</span><br></pre></td></tr></table></figure>
+
+<h2 id="ServerHelloDone"><a href="#ServerHelloDone" class="headerlink" title="ServerHelloDone"></a>ServerHelloDone</h2><p>最后是 ServerHelloDone 消息，告诉客户端所有消息都已经发送完毕。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">server -&gt; client</span><br><span class="line"></span><br><span class="line">我要告诉你的就这些了，处理完给我发消息吧</span><br></pre></td></tr></table></figure>
+
+<h2 id="Certificate-optional-1"><a href="#Certificate-optional-1" class="headerlink" title="Certificate (optional)"></a>Certificate (optional)</h2><p>如果客户端在前面收到了服务端的 CertificateRequest 消息，那么在这里客户端会发送自己的证书给服务端，即使没有证书，也会告诉服务端，由服务端来决定是否继续。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">client -&gt; server</span><br><span class="line"></span><br><span class="line">这是我的证书，请查收</span><br></pre></td></tr></table></figure>
+
+<h2 id="ClientKeyExchange"><a href="#ClientKeyExchange" class="headerlink" title="ClientKeyExchange"></a>ClientKeyExchange</h2><p>客户端在收到服务端的证书后，会进行证书校验。包括验证证书链的可信性，检查证书是否吊销（CRL 离线验证、OSCP 在线验证等），检查证书有效期以及证书域名与当前访问域名是否一致。接着，客户端会计算产生 Pre-master 随机数（或者产生 DH 算法的客户端参数），使用服务端的证书公钥加密后发送给服务端。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/05/4vV.png" alt="ClientKeyExchange"></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">client -&gt; server</span><br><span class="line"></span><br><span class="line">这是计算真正密钥要用到的 pre-master，我使用你证书里的公钥加密了</span><br></pre></td></tr></table></figure>
+
+<h2 id="CertificateVerify-optional"><a href="#CertificateVerify-optional" class="headerlink" title="CertificateVerify (optional)"></a>CertificateVerify (optional)</h2><p>如果客户端给服务端发送了证书，那么就需要发送该消息来告诉服务端证书的私钥确实在该客户端手里。该消息是将迄今为止所有的握手数据（从 ClientHello 开始，不包括本条消息）经过指定的摘要算法压缩后再通过客户端私钥加密后得到的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">client -&gt; server</span><br><span class="line"></span><br><span class="line">这是一段我用私钥加密后的数据，你可以用我证书里的公钥解密后查看</span><br><span class="line">如果解密后的数据与你使用已有握手数据计算摘要后的数据一致，则证明我没有骗你</span><br></pre></td></tr></table></figure>
+
+<h2 id="Finished-Encrypted-Handshake-Message"><a href="#Finished-Encrypted-Handshake-Message" class="headerlink" title="Finished (Encrypted Handshake Message)"></a>Finished (Encrypted Handshake Message)</h2><p>接下来客户端和服务端就能够根据已有的数据计算对称加密需要的密钥了，这是 <a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc5246">RFC 5246</a> 给出的计算主密钥的方法：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">master_secret = PRF(pre_master_secret, &quot;master secret&quot;,</span><br><span class="line">                          ClientHello.random + ServerHello.random)</span><br><span class="line">                          [0..47];</span><br></pre></td></tr></table></figure>
+
+<p>然后双方将自己缓存的所有握手数据通过摘要算法计算后，再用刚刚算出来的主密钥加密后发送给对方。这样做有两个目的：一个是保证双方算出来的主密钥是一致的；另一个是确保双方通信过程中的每一步都没有其他人篡改，因为握手的前半部分都是明文的，存在被篡改的风险，只要双方根据各自缓存的握手数据算出来的校验数据一致，就说明中间没有被篡改过。验证数据的计算方法如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">verify_data = PRF(master_secret, finished_label, Hash(handshake_messages))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">client -&gt; server 这是我们之前握手数据的摘要，用主密钥加密了，你看看能不能解开，并比较一下摘要</span><br><span class="line">server -&gt; client 这是我们之前握手数据的摘要，用主密钥加密了，你看看能不能解开，也比较一下摘要</span><br></pre></td></tr></table></figure>
+
+<p>如果双方发送完 Finished 消息而对方都没有报错，握手就完成了，后续所有数据的传输都会使用这个密钥进行加密。在上面的握手过程中，如果任何一方觉得有问题，都可能随时终止握手过程。</p>
+<h1 id="解密-HTTPS-流量"><a href="#解密-HTTPS-流量" class="headerlink" title="解密 HTTPS 流量"></a>解密 HTTPS 流量</h1><p>我们知道，一些常见的 HTTP&#x2F;HTTPS 抓包工具（比如 <a target="_blank" rel="noopener" href="https://www.telerik.com/fiddler">Fiddler</a>、<a target="_blank" rel="noopener" href="https://www.charlesproxy.com/">Charles</a>、<a target="_blank" rel="noopener" href="https://github.com/avwo/whistle/">whistle</a>），都是通过创建本地代理服务，再修改浏览器的代理设置来达到流量拦截的目的的，他们的工作原理与中间人攻击一致。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Server &lt;---&gt; Local Proxy &lt;---&gt; Browser</span><br></pre></td></tr></table></figure>
+
+<p>在服务端与中间人之间，中间人冒充客户端，由于任何客户端都可以与服务端建立连接，所以这部分一般没有问题。而对于客户端与中间人之间，中间人想要冒充服务端，就必须拿到对应域名的证书私钥，中间人可以通过这几种手段获取或替换私钥：入侵网站服务器，从 CA 处重签发该域名的证书，以及自己签发证书。</p>
+<p>为了防范以上风险，我们要对服务器和网站做好安全防护，避免网站私钥被盗。同时保证域名解析安全，避免攻击者获取到域名管理的相关权限从而重签证书。对于攻击者自签发的证书，由于系统和浏览器内置有根证书校验，因此我们只需要注意不要随便信任第三方的证书，不向浏览器和系统中导入不明证书。</p>
+<p>对于 Fiddler 这类工具来说，能够解密 HTTPS 流量的关键在于他们会往系统受信任的根证书列表中导入自己的证书，这样他们自签发的证书就能被浏览器所信任。在设置好相关配置之后，Fiddler 会在浏览器中设置对应的代理地址，接下来浏览器在浏览 HTTPS 的网站时，Fiddler 会根据网站自动生成站点的数字证书。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202303311750/2023/03/31/yvK.png" alt="Fiddler"></p>
+<p>由于该证书是由 Fiddler 生成的，所以它肯定知道该证书的私钥，通过这种方式，Fiddler 完成了证书的掉包（证书域名与客户端请求的域名一致）。整个过程相当于 Fiddler 分别与客户端和服务端通过 TLS 握手建立了连接，具体类似下面的形式：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">客户端向服务端发送握手请求，Fiddler 拦截后伪装成客户端向服务端发送 TLS 握手请求</span><br><span class="line">Fiddler 收到服务端的响应后，使用根证书公钥验签并拿到证书公钥，然后用自己伪造的证书传递给客户端</span><br><span class="line">客户端进行同样的验签操作，然后生成第三个随机数 pre-master，使用 Fiddler 的证书公钥加密传输给服务端</span><br><span class="line">Fiddler 拦截客户端的请求，使用自己的私钥解密 pre-master，此时 Fiddler 已经可以通过三个随机数生成对称加密的密钥</span><br><span class="line">接下来客户端与服务端之间通过对称加密发送的消息都可以被 Fiddler 解密</span><br></pre></td></tr></table></figure>
+
+<p>而像 Wireshark 这类工具的抓包原理则是直接读取并分析网卡的数据，要想让它解密 HTTPS 流量，有两种方法：一种是知道网站的证书私钥，在工具中配置该私钥来解密；另一种需要浏览器支持，一些浏览器可以将 TLS 会话中使用的对称加密密钥保存到外部文件中，然后在 Wireshark 的 TLS 配置面板中配置 <code>(Pre)-Master-Secret log filename</code> 选项即可。</p>
+<h1 id="前向安全性（Forward-Secrecy）"><a href="#前向安全性（Forward-Secrecy）" class="headerlink" title="前向安全性（Forward Secrecy）"></a>前向安全性（Forward Secrecy）</h1><p>我们知道，TLS 握手阶段需要进行密钥交换、证书验证、身份验证等几个重要步骤。密钥交换是为了在一个不安全的数据通道中产生一个只有通信双方知道的共享密钥（pre-master），进而产生后续对称加密的密钥。客户端进行证书验证的目的是为了确保证书公钥是可信的。而进行身份验证的目的是为了确保握手消息没有被篡改。</p>
+<p>在以前，RSA 密钥交换（TLS_RSA 系列的密码套件）是比较常见的密钥交换方式，浏览器使用证书提供的 RSA 公钥加密相关信息，如果服务端能够解密，意味着服务端拥有与公钥对应的私钥，同时服务端也能解密所需的共享密钥，即密钥交换与服务端身份验证合并在了一起。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202304092054/2023/04/04/pPr.png" alt="RSA 密钥交换"></p>
+<p>由于 Client Random 和 Server Random 明文传输，中间人可以直接查看。客户端生成的 Pre-master 用服务端证书公钥加密后传输，中间人如果获取到了私钥，一样可以解密得到 Pre-master，通过这三个随机数，中间人就可以计算出双方最终通信使用的对称加密密钥。这也是为什么 Wireshark 可以通过配置私钥来解密 HTTPS 数据。</p>
+<p>所以说 RSA 这种密钥交换方式不具备前向安全性，即攻击者可以把监听到的加密数据先存起来，一旦后续拿到了证书私钥，之前所有的数据都可以成功解密。常见的前向安全的密码套件有 ECDHE_RSA、ECDHE_ECDSA 等，其中 ECDHE 为密钥交换算法，RSA 或者 ECDSA 为数字签名算法。</p>
+<blockquote>
+<p>内置 ECDSA 公钥的证书一般称为 ECC 证书，内置 RSA 公钥的证书就是 RSA 证书。因为 256 位 ECC Key 在安全性上等同于 3072 位 RSA Key，所以 ECC 证书体积比 RSA 证书小，而且 ECC 运算速度更快，ECDHE 密钥交换 + ECDSA 数字签名是目前最好的密码套件。</p>
+</blockquote>
+<p>ECDHE 密钥交换与 RSA 密钥交换最大的区别是，ECDHE 在握手过程中需要发送 ServerKeyExchange 消息，而 RSA 不用。那么为什么 ECDHE 算法具有前向安全性呢，这就要讲到它的数学原理了。</p>
+<h2 id="DH-算法"><a href="#DH-算法" class="headerlink" title="DH 算法"></a>DH 算法</h2><p>对于公式 $A &#x3D; G^a\pmod P$，G 为底数，P 为模数，a 为对数，A 为真数。当已知 a 时，可以计算出 A；但是已知 A 时，却几乎无法计算出 a。</p>
+<p>与此同时，给出公式 $B &#x3D; G^b\pmod P$，根据幂模运算的一个基本属性，即 $(G^a)^b\pmod P &#x3D; (G^b)^a\pmod P$，有</p>
+<p>$K &#x3D; A^b\pmod P &#x3D; (G^a)^b\pmod P &#x3D; (G^b)^a\pmod P &#x3D; B^a\pmod P$</p>
+<p>在实际应用中，服务端与客户端协商出要使用的大素数 P 及其原根 G，它俩是公开的参数。然后服务端生成私钥 a，经过幂模运算得到公钥 A。客户端生成私钥 b，经过幂模运算得到公钥 B。服务端将自己计算得出的公钥 A 传递给客户端，为了防止篡改，加上签名参数。客户端将自己计算得出的公钥 B 使用服务端的证书公钥加密后传递给服务端。此时客户端拥有参数 A、b、G、P，服务端拥有参数 B、a、G、P，它俩都可以计算得出共享密钥 K。如果中间人拦截到了公开的参数和公钥 A 和加密后的公钥 B，甚至中间人已经拿到了服务端的证书私钥，也就是说中间人获取到了 A、B、G、P 这几个参数，但是因为没有私钥 a 和 b，一样计算不出最终的共享密钥 K，也就无法破解历史的数据。</p>
+<h2 id="DHE-算法"><a href="#DHE-算法" class="headerlink" title="DHE 算法"></a>DHE 算法</h2><p>根据私钥生成的方式，DH 算法分为 static DH 算法和 DHE（Ephemeral）算法。static DH 算法里有一方的私钥是静态的，也就说每次密钥协商的时候有一方的私钥每次都是一样的，一般是服务器方固定，客户端的私钥则是随机生成的。那么随着时间延长，黑客就会截获海量的密钥协商过程的数据，因为密钥协商过程中，有些数据是公开的，黑客可以依据这些数据暴力破解出服务器的私钥，然后就可以计算出会话密钥了，于是之前截获的加密数据会被破解，所以 static DH 算法不具备前向安全性。</p>
+<h2 id="ECDHE-算法"><a href="#ECDHE-算法" class="headerlink" title="ECDHE 算法"></a>ECDHE 算法</h2><p>DHE 算法由于性能不佳，所以 ECDHE 算法在 DHE 算法的基础上引入了 ECC 椭圆曲线特性，可以使用更少的计算量算出公钥，以及最终的共享密钥。</p>
+<p>椭圆曲线（Elliptic Curve）针对密码学进行了简化，公式为：$y^2 &#x3D; x^3 + ax + b$，例如对于椭圆曲线 <code>secp256k1</code>，<a target="_blank" rel="noopener" href="https://www.secg.org/">SECG</a> 组织给出了推荐的参数：<code>a = 0, b = 7</code>，即该椭圆曲线的公式为：$y^2 &#x3D; x^3 + 7$。</p>
+<p>在椭圆曲线加密（Elliptic Curve Cryptography, ECC）中，则使用了某种特殊形式的椭圆曲线，即定义在有限域上的椭圆曲线。针对具体的椭圆曲线，存在着一个确定的点 G（基点），乘以一个确定的整数 K（私钥），得到椭圆曲线的公钥 P，即 $P &#x3D; KG$。已知 K 和 G，算出公钥很容易，而已知 G 和 P，算出私钥 K 在目前则几乎不可能。</p>
+<p>在实际应用中，服务端会在 ServerKeyExchange 消息中包含一个名为 <code>Named Curve</code> 的参数，它的值就是选定的椭圆曲线，指定了椭圆曲线实际上也就确定了基点的值（SECG 推荐的）。服务端随机生成私钥 Ks 并算出对应的公钥 Ps，客户端随机生成私钥 Kc 并算出公钥 Pc。由于椭圆曲线满足乘法交换律和结合律，所以 $KsPc &#x3D; KsKcG &#x3D; KcKsG &#x3D; KcPs$。也就是说，服务端和客户端只需要知道对方的椭圆曲线公钥，即可通过各自的私钥算出最终的共享密钥。</p>
+<p>通过上面的推算过程也能够看出，在密钥交换阶段如果只使用 DH 系列的算法，中间人可以通过伪造双方的 DH 公钥参数来实施 MITM 攻击，因此使用 DH 算法进行密钥交换时，服务端发送的 DH 公钥参数需要加上数字签名，而客户端发送的 DH 公钥参数则可以使用服务端证书公钥加密后发送。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/43789231">彻底搞懂 HTTPS 的加密原理</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000009002353">SSL&#x2F;TLS 及证书概述</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4346">rfc4346</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.secg.org/sec2-v2.pdf">SEC 2: Recommended Elliptic Curve Domain Parameters</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.desmos.com/calculator/ialhd71we3?lang=zh-CN">椭圆曲线公式生成图形</a></p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.rfc-editor.org/rfc/rfc4492">rfc4492</a> </p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/HTTPS/" rel="tag"># HTTPS</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2022/04/26/Kafka%20%E5%88%86%E5%8C%BA/" rel="prev" title="Kafka 分区">
+                  <i class="fa fa-angle-left"></i> Kafka 分区
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

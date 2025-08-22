@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行校验、解析和初始化，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的类加载机制。Java 类型的加载、连接和初始化都是在程序运行期间完成的，这种方式虽然会增加类加载时的性能开销，但是能够为 Java 应用提供更好的灵活性，Java 天生可以动态扩展的语言特性就是依靠运行期动态加载和动态连接这个特点实现的。例如，我们编写一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="虚拟机的类加载机制">
+<meta property="og:url" content="https://blog.nekolr.com/2020/06/08/%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行校验、解析和初始化，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的类加载机制。Java 类型的加载、连接和初始化都是在程序运行期间完成的，这种方式虽然会增加类加载时的性能开销，但是能够为 Java 应用提供更好的灵活性，Java 天生可以动态扩展的语言特性就是依靠运行期动态加载和动态连接这个特点实现的。例如，我们编写一">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202006091622/2020/06/08/jrY.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202006091622/2020/06/09/z1g.png">
+<meta property="article:published_time" content="2020-06-08T11:14:00.000Z">
+<meta property="article:modified_time" content="2025-08-22T02:24:31.993Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="JVM">
+<meta property="article:tag" content="Java">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202006091622/2020/06/08/jrY.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2020/06/08/%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/06/08/%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/","path":"2020/06/08/虚拟机的类加载机制/","title":"虚拟机的类加载机制"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>虚拟机的类加载机制 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%97%B6%E6%9C%BA"><span class="nav-number">1.</span> <span class="nav-text">类加载时机</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="nav-number">2.</span> <span class="nav-text">类加载的过程</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8A%A0%E8%BD%BD"><span class="nav-number">2.1.</span> <span class="nav-text">加载</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%AA%8C%E8%AF%81"><span class="nav-number">2.2.</span> <span class="nav-text">验证</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%87%86%E5%A4%87"><span class="nav-number">2.3.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90"><span class="nav-number">2.4.</span> <span class="nav-text">解析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%9D%E5%A7%8B%E5%8C%96"><span class="nav-number">2.5.</span> <span class="nav-text">初始化</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8"><span class="nav-number">3.</span> <span class="nav-text">类加载器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%AF%E5%8A%A8%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%EF%BC%88Bootstrap-ClassLoader%EF%BC%89"><span class="nav-number">3.1.</span> <span class="nav-text">启动类加载器（Bootstrap ClassLoader）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%A9%E5%B1%95%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%EF%BC%88Extension-ClassLoader%EF%BC%89"><span class="nav-number">3.2.</span> <span class="nav-text">扩展类加载器（Extension ClassLoader）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E7%B1%BB%E5%8A%A0%E8%BD%BD%E5%99%A8%EF%BC%88Application-ClassLoader%EF%BC%89"><span class="nav-number">3.3.</span> <span class="nav-text">应用类加载器（Application ClassLoader）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE%E6%A8%A1%E5%9E%8B"><span class="nav-number">3.4.</span> <span class="nav-text">双亲委派模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E2%80%9C%E7%A0%B4%E5%9D%8F%E2%80%9D%E5%8F%8C%E4%BA%B2%E5%A7%94%E6%B4%BE"><span class="nav-number">3.5.</span> <span class="nav-text">“破坏”双亲委派</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">130</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2020/06/08/%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E7%B1%BB%E5%8A%A0%E8%BD%BD%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="虚拟机的类加载机制 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          虚拟机的类加载机制
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-06-08 11:14:00" itemprop="dateCreated datePublished" datetime="2020-06-08T11:14:00+00:00">2020-06-08</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>虚拟机把描述类的数据从 Class 文件加载到内存，并对数据进行校验、解析和初始化，最终形成可以被虚拟机直接使用的 Java 类型，这就是虚拟机的类加载机制。Java 类型的加载、连接和初始化都是在程序运行期间完成的，这种方式虽然会增加类加载时的性能开销，但是能够为 Java 应用提供更好的灵活性，Java 天生可以动态扩展的语言特性就是依靠运行期动态加载和动态连接这个特点实现的。例如，我们编写一个面向接口的应用，可以等到运行时再指定它的实现类；我们可以通过 Java 预定义的或者我们自定义的类加载器，从网络或者其他地方加载一个二进制的流作为应用程序代码的一部分。</p>
+<span id="more"></span>
+
+<h1 id="类加载时机"><a href="#类加载时机" class="headerlink" title="类加载时机"></a>类加载时机</h1><p>类从被加载到虚拟机内存开始，到卸载出内存为止，它的整个生命周期包括：加载、验证、准备、解析、初始化、使用和卸载七个阶段，其中验证、准备和解析三个部分又统称为连接。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202006091622/2020/06/08/jrY.png" alt="类加载过程"></p>
+<p>加载、验证、准备、初始化和卸载这五个阶段的顺序是确定的，类的加载过程必须按照这种顺序按部就班地开始，而解析阶段则不一定，它在某些情况下可以在初始化阶段之后再开始，这是为了支持 Java 语言的运行时绑定（动态绑定或晚期绑定）。需要注意的是，这里说的是按部就班地开始而不是进行或者完成，强调这点是因为这些阶段通常都是互相交叉地混合式进行的，通常会在一个阶段执行的过程中调用激活另一个阶段。</p>
+<p>什么情况下需要开始类加载过程的第一个阶段：加载？Java 虚拟机规范中并没有进行强制约束，因此这由虚拟机的具体实现来自由把握。但是对于初始化阶段，虚拟机返回则严格规定了有且只有五种情况必须立即对类进行初始化（加载、验证、准备阶段自然已经完成）。</p>
+<p>(1) 在遇到 <code>new</code>、<code>getstatic</code>、<code>putstatic</code> 或 <code>invokestatic</code> 这四条字节码指令时，如果类没有进行初始化，则需要先触发初始化操作。生成这四条指令的常见场景就是：使用 new 关键字实例化对象的时候、读取或者设置一个类的静态字段（被 final 修饰、已经在编译器把结果放进常量池的静态字段除外）的时候、以及调用一个类的静态方法的时候。</p>
+<p>(2) 在使用 java.lang.reflect 包的方法对类进行反射调用的时候，如果类没有进行过初始化，需要先进行初始化。</p>
+<p>(3) 当初始化一个类的时候，如果发现其父类还没有进行过初始化，需要先触发其父类的初始化操作。</p>
+<p>(4) 当虚拟机启动时，用户需要指定一个执行的主类，即包含 main 方法的那个类，虚拟机会先初始化该类。</p>
+<p>(5) 当一个 java.lang.invoke.MethodHandle 实例最后的解析结果为 REF_getStatic、REF_putStatic、REF_invokeStatic 方法句柄，并且这个方法句柄对应的类没有进行初始化，则需要先进行初始化。</p>
+<p>这五种会触发类初始化的场景中的行为称为对一个类的主动引用，其他所有的引用方式都不会触发类的初始化，称为被动引用。比如以下代码中，通过子类来引用父类中定义的静态字段，只会触发父类的初始化而不会触发子类的初始化，只有直接定义这个字段的类才会进行初始化。至于是否要触发子类的加载和验证，虚拟机规范中没有明确规定，这取决于虚拟机的具体实现。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SuperClass</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;SuperClass init&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="type">int</span> <span class="variable">value</span> <span class="operator">=</span> <span class="number">123</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">SubClass</span> <span class="keyword">extends</span> <span class="title class_">SuperClass</span> &#123;</span><br><span class="line">    <span class="keyword">static</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;SubClass init&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">Main</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(SubClass.value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h1 id="类加载的过程"><a href="#类加载的过程" class="headerlink" title="类加载的过程"></a>类加载的过程</h1><p>类加载的全过程，也就是加载、验证、准备、解析和初始化这五个阶段。</p>
+<h2 id="加载"><a href="#加载" class="headerlink" title="加载"></a>加载</h2><p>在加载阶段，虚拟机需要完成三件事情。首先需要通过一个类的全限定名来获取定义此类的二进制字节流。接着将这个字节流所代表的静态存储结构转化为方法区的运行时数据结构。最后在内存中生成一个代表这个类的 java.lang.Class 对象，作为方法区这个类的各种数据的访问入口。对于 HotSpot 虚拟机来说，可以通过设置 <code>-XX:+TraceClassLoading</code> 参数在控制台观察类加载的日志。</p>
+<p>虚拟机规范的这三个要求其实不是特别具体，因此虚拟机的实现灵活度很大。比如通过一个类的全限定名来获取定义此类的二进制字节流这一项，并没有规定二进制字节流非要从一个 Class 文件中获取，我们可以从 ZIP 包中读取，这也是我们常见的 JAR、EAR、WAR 格式的基础。也可以通过运行时计算生成，最常见的就是动态代理技术，在 java.lang.reflect.Proxy 中，使用 ProxyGenerator.generateProxyClass 方法来为特定接口生成形式为 “*$Proxy” 的代理类的二进制字节流。或者通过其他文件生成，典型的就是 JSP 应用，即通过 JSP 文件生成对应的 Servlet 类。</p>
+<p>相对于类加载过程的其他阶段，一个非数组类的加载阶段是开发人员可控性最强的，因为加载阶段可以使用系统提供的引导类加载器，也可以使用用户自定义的类加载器，开发人员可以通过自定义类加载器去控制字节流的获取方式（重写 loadClass 方法）。而对于数组而言，情况则有所不同，数组类本身不通过类加载器创建，它是由虚拟机直接创建的。但数组类与类加载器仍然有很密切的关系，因为数组类的元素类型最终是要靠类加载器去创建的。一个数组类的创建过程遵循以下规则：</p>
+<p>(1) 如果数组的组件类型（数组去掉一个维度的类型）是引用类型，那就会采用正常的类加载过程去加载这个组件类型，同时该数组将在加载该组件类型的类加载器的类名称空间上被标识。</p>
+<p>(2) 如果数组的组件类型不是引用类型，比如 int[] 数组，那么 Java 虚拟机将会把该数组标记为与引导类加载器相关联。</p>
+<p>(3) 数组类的可见性与它的组件类型的可见性保持一致，如果组件类型不是引用类型，那么数组的可见性默认为 public。</p>
+<p>加载阶段与连接阶段的部分阶段（比如部分字节码文件的格式验证）是交叉进行的，加载阶段尚未完成，连接阶段可能已经开始，但是这些夹在加载阶段之中进行的动作仍然属于连接阶段的内容，这两个阶段的开始时间仍然保持着固定的先后顺序。</p>
+<h2 id="验证"><a href="#验证" class="headerlink" title="验证"></a>验证</h2><p>验证是连接阶段的第一步，目的是为了确保 Class 文件的字节流包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身的安全。从整体上看，验证阶段大致会完成四个阶段的检验动作，包括文件格式验证、元数据验证、字节码验证和符号引用验证。</p>
+<p>文件格式验证阶段可能会验证包括：是否以魔数 0xCAFEBABE 开头，主次版本号是否在当前虚拟机的处理范围内等等。元数据的验证主要是对字节码描述的信息进行语义分析，包括这个类是否有父类，是否继承了不允许继承的类，这个类是不是抽象类等等。字节码验证最为复杂，主要目的是通过数据流和控制流分析，确定程序语义是否合理合法的。符号引用验证发生在虚拟机将符号引用转化为直接引用的时候，这个转化动作将在连接的解析阶段发生。符号引用验证可以看作是对类自身以外的信息（常量池中的各种符号引用）进行匹配性校验，通常需要验证包括：符号引用中通过字符串描述的全限定名是否能找到对应的类，符号引用中类、字段和方法是否能被当前类访问（private、protected、public、default）等等。</p>
+<h2 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h2><p>准备阶段是正式为<strong>类变量</strong>分配内存并设置初始值的阶段，这些变量所使用的内存都将在方法区中进行分配。需要注意的是，这里所说的初始值通常情况下是数据类型的零值。假设定义一个类变量：<code>public static int value = 1</code>，那么变量 value 在准备阶段过后的初始值为 0 而不是 1，因为把 value 赋值为 1 的 putstatic 指令是程序被编译后，存放于类构造器 <code>&lt;clinit&gt;()</code> 方法之中的，所以把 value 赋值为 1 的动作将在初始化阶段才会进行。在特殊情况下，比如通过 final 修饰的类字段，在准备阶段就会被初始化为指定的值。</p>
+<h2 id="解析"><a href="#解析" class="headerlink" title="解析"></a>解析</h2><p>解析阶段是虚拟机将常量池中的符号引用替换为直接引用的过程。</p>
+<p>符号引用以一组符号来描述所引用的目标，符号可以是任何形式的字面量，只要使用时能够无歧义地定位到目标即可。符号引用与虚拟机实现的内存布局无关，引用的目标并不一定已经加载到内存中。各种虚拟机实现的内存布局可以各不相同，但是它们能够接受的符号引用必须都是一致的，因为符号引用的字面量形式明确定义在 Java 虚拟机规范的 Class 文件格式中。符号引用在 Class 文件中以 CONSTANT_Class_info、CONSTANT_Fieldref_info、CONSTANT_Methodref_info 等类型的常量出现。</p>
+<p>直接引用可以是直接指向目标的指针、相对偏移量或是一个能间接定位到目标的句柄。直接引用和虚拟机实现的内存布局相关，同一个符号引用在不同的虚拟机上翻译出来的直接引用一般不会相同。如果有了直接引用，那么引用的目标必定已经在内存中。</p>
+<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>初始化是类加载过程的最后一步，在前面的类加载过程中，除了在加载阶段用户程序可以通过自定义类加载器参与之外，其余阶段完全由虚拟机主导和控制，到了初始化阶段才真正开始执行类中定义的 Java 程序代码。<strong>初始化阶段可以看作是执行类构造器 <code>&lt;clinit&gt;()</code> 方法的过程。</strong></p>
+<p><code>&lt;clinit&gt;()</code> 方法是由编译器自动收集类中所有类变量的赋值动作和静态代码块中的语句合并产生的。<code>&lt;clinit&gt;()</code> 方法与类的构造函数（或者说是实例构造器 <code>&lt;init&gt;()</code> 方法）不同，它不需要显式地调用父类构造器，虚拟机会保证在子类的 <code>&lt;clinit&gt;()</code> 方法执行之前，父类的 <code>&lt;clinit&gt;()</code> 方法已经执行完毕。在虚拟机中，第一个被执行 <code>&lt;clinit&gt;()</code> 方法的类是 <code>java.lang.Object</code>。</p>
+<p>如果一个类中没有静态代码块，也没有对类变量的赋值操作，那么编译器可以不为这个类生成 <code>&lt;clinit&gt;()</code> 方法。接口中不能使用静态代码块，但是接口仍然可以有静态变量（接口中的变量默认都是静态变量）初始化的操作，因此接口与类一样也可以产生 <code>&lt;clinit&gt;()</code> 方法。但接口与类不同的是，执行接口的 <code>&lt;clinit&gt;()</code> 方法不需要先执行父接口的 <code>&lt;clinit&gt;()</code> 方法，只有当父接口中定义的变量使用时，父接口才会初始化。另外，接口的实现类在初始化时也一样不会执行接口的 <code>&lt;clinit&gt;()</code> 方法。</p>
+<p>虚拟机会保证一个类的 <code>&lt;clinit&gt;()</code> 方法在多线程环境下被正确地加锁、同步，如果多线程同时去初始化一个类，那么只会有一个线程去执行这个类的 <code>&lt;clinit&gt;()</code> 方法，其他线程都会阻塞等待。</p>
+<h1 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h1><p>对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立其在虚拟机中的唯一性，每一个类加载器都拥有一个独立的类名称空间。即使两个类来源于同一个 Class 文件，被同一个虚拟机加载，只要它们的类加载器不同，那这两个类就不相等。这里的相等包括类的 Class 对象的 equals 方法、isAssignableFrom 方法、isInstance 方法的返回结果，也包括使用 instanceof 关键字做对象所属关系判定等情况。</p>
+<p>从虚拟机的角度来讲，只存在两种不同的类加载器：一种是启动类加载器 Bootstrap ClassLoader，这个类加载器使用 C++ 实现，是虚拟机的一部分；另一种就是所有其他的类加载器，这些都是使用 Java 实现的，独立于虚拟机外部，并且都继承自抽象类 <code>java.lang.ClassLoader</code>。从开发人员的角度来讲，类加载器还可以划分得更细致些，包括启动类加载器、扩展类加载器和应用程序类加载器。</p>
+<h2 id="启动类加载器（Bootstrap-ClassLoader）"><a href="#启动类加载器（Bootstrap-ClassLoader）" class="headerlink" title="启动类加载器（Bootstrap ClassLoader）"></a>启动类加载器（Bootstrap ClassLoader）</h2><p>负责将存放在 JAVA_HOME\lib 目录中的，或者被 <code>-Xbootclasspath</code> 参数所指定的路径中的，并且是虚拟机可以识别的（按照文件名识别，如 rt.jar，名称不符合的类库即使放在 lib 目录也不会被加载）类库加载到虚拟机内存中。启动类加载器无法被 Java 程序直接引用，用户在编写自定义类加载器时，如果需要把加载请求委派给启动类加载器，只需要在 getClassLoader 方法中返回 null 即可。</p>
+<h2 id="扩展类加载器（Extension-ClassLoader）"><a href="#扩展类加载器（Extension-ClassLoader）" class="headerlink" title="扩展类加载器（Extension ClassLoader）"></a>扩展类加载器（Extension ClassLoader）</h2><p>由 <code>sun.misc.Launcher$ExtClassLoader</code> 实现，它负责加载 JAVA_HOME\lib\ext 目录中的，或者被 <code>java.ext.dirs</code> 系统变量所指定的路径中的所有类库，开发者可以直接使用扩展类加载器。</p>
+<h2 id="应用类加载器（Application-ClassLoader）"><a href="#应用类加载器（Application-ClassLoader）" class="headerlink" title="应用类加载器（Application ClassLoader）"></a>应用类加载器（Application ClassLoader）</h2><p>由 <code>sun.misc.Launcher$AppClassLoader</code> 实现，由于这个类加载器是 ClassLoader 中的 getSystemClassLoader 方法的返回值，所以一般也称它为系统类加载器。它负责加载用户类路径（比如 java 命令中的 classpath，或者 <code>java.class.path</code> 系统属性，或者 CLASSPATH 操作系统环境变量）指定的类库，开发者可以直接使用这个类加载器，如果应用程序没有自定义过自己的类加载器，一般情况下就是用该类加载器。</p>
+<h2 id="双亲委派模型"><a href="#双亲委派模型" class="headerlink" title="双亲委派模型"></a>双亲委派模型</h2><p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202006091622/2020/06/09/z1g.png" alt="双亲委派模型"></p>
+<p>如果一个类加载器收到了类加载的请求，它首先不会尝试自己加载该类，而是把这个请求委派给父加载器去完成，每一个层次的类加载器都是如此，因此所有的加载请求最终都应该传递给最顶层的启动类加载器中，只有当父加载器无法完成加载请求时（在它的搜索范围中没有找到所需的类），子加载器才会尝试自己去加载。</p>
+<p>实现双亲委派的代码都集中在 java.lang.ClassLoader 中的 loadClass 方法中，该方法首先会检查类是否已经被加载过，如果没有则调用父加载器的 loadClass 方法，如果父加载器为空则默认使用启动类加载器作为父加载器。如果父加载器加载失败抛出 ClassNotFoundException 异常，则会再调用自己的 findClass 方法进行加载。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">protected</span> Class&lt;?&gt; loadClass(String name, <span class="type">boolean</span> resolve)</span><br><span class="line">    <span class="keyword">throws</span> ClassNotFoundException</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">synchronized</span> (getClassLoadingLock(name)) &#123;</span><br><span class="line">        Class&lt;?&gt; c = findLoadedClass(name);</span><br><span class="line">        <span class="keyword">if</span> (c == <span class="literal">null</span>) &#123;</span><br><span class="line">            <span class="type">long</span> <span class="variable">t0</span> <span class="operator">=</span> System.nanoTime();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (parent != <span class="literal">null</span>) &#123;</span><br><span class="line">                    c = parent.loadClass(name, <span class="literal">false</span>);</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    c = findBootstrapClassOrNull(name);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (ClassNotFoundException e) &#123;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (c == <span class="literal">null</span>) &#123;</span><br><span class="line">                <span class="type">long</span> <span class="variable">t1</span> <span class="operator">=</span> System.nanoTime();</span><br><span class="line">                c = findClass(name);</span><br><span class="line">                <span class="comment">// this is the defining class loader; record the stats</span></span><br><span class="line">                sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);</span><br><span class="line">                sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);</span><br><span class="line">                sun.misc.PerfCounter.getFindClasses().increment();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (resolve) &#123;</span><br><span class="line">            resolveClass(c);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> c;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>使用双亲委派的一个优点就是可以防止重复加载某个类。比如 java.lang.Object 类，它存放在 rt.jar 中，无论哪个类加载器要加载这个类，最终都会委派给最顶端的启动类加载器进行加载，因此 Object 类在程序的各种类加载器环境中都是同一个类。</p>
+<h2 id="“破坏”双亲委派"><a href="#“破坏”双亲委派" class="headerlink" title="“破坏”双亲委派"></a>“破坏”双亲委派</h2><p>由于双亲委派模型是在 JDK 1.2 才引入的，而类加载器和抽象类 java.lang.ClassLoader 在 JDK 1.0 就已经存在了，面对已经存在的用户自定义类加载器的实现代码，Java 设计者在引入双亲委派时不得不做出一些妥协，为了向前兼容，JDK 1.2 在 ClassLoader 中添加了一个新的 protected 方法 findClass。通过之前的源码可以看到，双亲委派的具体逻辑就实现在 loadClass 方法中，因此在 JDK 1.2 之后已经不提倡用户再去覆盖 loadClass 方法了，而应当把自己的类加载逻辑写到 findClass 方法中，这样就可以保证双亲委派不会被破坏。</p>
+<p>双亲委派模型的第二次“被破坏”是由这个模型自身的缺陷所导致的，双亲委派很好地解决了各个类加载器的基础类的统一问题，基础类一般都是作为被用户代码调用的 API，但是世事没有绝对，如果基础类又要调用回用户的代码，那该怎么办呢？一个典型的例子便是 JNDI 服务，它的代码由启动类加载器去加载，但是 JNDI 的目的就是对资源进行集中管理和查找，它需要调用由独立厂商实现并部署在应用程序的 CLASSPATH 下的 JNDI 接口提供者（SPI）的代码，但是启动类加载器不可能识别这些代码（不在搜索范围内）。为了解决这个问题，Java 设计团队只好引入了一个不太优雅的设计：线程上下文类加载器。这个类加载器可以通过 java.lang.Thread 类的 setContextClassLoader 方法进行设置，如果在创建线程时还未进行设置，那么它会从父线程中继承一个，如果在应用的全局范围内都没有设置过的话，那么这个类加载器（contextClassLoader）默认就是应用程序类加载器。有了这个线程上下文加载器，JNDI 服务就可以使用这个类加载器去加载需要的 SPI 代码，也就是通过父类加载器请求子类加载器去完成类加载的动作，这明显违背了双亲委派模型的一般性原则，但也无可奈何。Java 中涉及 SPI 的加载动作基本上都采用这种方法，比如 JNDI、JDBC 等。</p>
+<p>双亲委派模型第三次“被破坏”是由于用户对程序动态性的追求而导致的，这里的动态性是指代码热替换（HotSwap）、模块化等，说白了就是希望我们的应用能像计算机外设那样，即插即用。Sun 公司提出的 JSR-294、JSR-277 规范在与 JCP 组织的模块化规范之争中败给了 JSR-291（即 OSGi R4.2），因此在当时，OSGi 已经成为了业界“事实上”的 Java 模块化标准。然而 Sun 不甘失去对 Java 模块化的控制，一直在独立发展 Jigsaw 项目。后来的结果我们也都知道，Sun 在 2009 年被 Oracle 收购，Jigsaw 也就一起被 Oracle 接收并一直发展。使用 Jigsaw 项目作为核心的 JPMS（The Java Platform Module System）在 2014 年 12 月被 JCP 批准（JSR-376），并于 2017 年 9 月作为 JDK 9 的一部分发布。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p>《深入理解 Java 虚拟机:JVM 高级特性与最佳实践》</p>
+</blockquote>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="http://openjdk.java.net/projects/jigsaw/">Project Jigsaw</a></p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/JVM/" rel="tag"># JVM</a>
+              <a href="/tags/Java/" rel="tag"># Java</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/06/05/%E4%BB%A3%E7%90%86%E6%A8%A1%E5%BC%8F/" rel="prev" title="代理模式">
+                  <i class="fa fa-angle-left"></i> 代理模式
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/06/11/%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%20RPC/" rel="next" title="实现一个简单的 RPC">
+                  实现一个简单的 RPC <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

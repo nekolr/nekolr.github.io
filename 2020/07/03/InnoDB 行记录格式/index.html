@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/cat48.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="InnoDB 中最小的存储单位为页，默认每页的大小为 16 KB。页中的数据是按行进行存放的，每页中存放的行记录最少为 2 行，最多为 16 KB &#x2F; 2 - 200 行，也就是 7992 行。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="InnoDB 行记录格式">
+<meta property="og:url" content="https://blog.nekolr.com/2020/07/03/InnoDB%20%E8%A1%8C%E8%AE%B0%E5%BD%95%E6%A0%BC%E5%BC%8F/index.html">
+<meta property="og:site_name" content="nekolr&#39;s blog">
+<meta property="og:description" content="InnoDB 中最小的存储单位为页，默认每页的大小为 16 KB。页中的数据是按行进行存放的，每页中存放的行记录最少为 2 行，最多为 16 KB &#x2F; 2 - 200 行，也就是 7992 行。">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202007052146/2020/07/03/7we.png">
+<meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202007052146/2020/07/04/bRg.png">
+<meta property="article:published_time" content="2020-07-03T16:20:00.000Z">
+<meta property="article:modified_time" content="2025-08-22T02:24:31.984Z">
+<meta property="article:author" content="nekolr">
+<meta property="article:tag" content="数据库">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202007052146/2020/07/03/7we.png">
+
+
+<link rel="canonical" href="https://blog.nekolr.com/2020/07/03/InnoDB%20%E8%A1%8C%E8%AE%B0%E5%BD%95%E6%A0%BC%E5%BC%8F/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/07/03/InnoDB%20%E8%A1%8C%E8%AE%B0%E5%BD%95%E6%A0%BC%E5%BC%8F/","path":"2020/07/03/InnoDB 行记录格式/","title":"InnoDB 行记录格式"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>InnoDB 行记录格式 | nekolr's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<link rel="alternate" href="/atom.xml" title="nekolr's blog" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="Toggle navigation bar" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">nekolr's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="Search" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section">Home</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section">Tags</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section">Categories</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section">Archives</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger">Search
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          Table of Contents
+        </li>
+        <li class="sidebar-nav-overview">
+          Overview
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Compact-%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="nav-number">1.</span> <span class="nav-text">Compact 行格式</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%98%E9%95%BF%E5%AD%97%E6%AE%B5%E9%95%BF%E5%BA%A6%E5%88%97%E8%A1%A8"><span class="nav-number">1.1.</span> <span class="nav-text">变长字段长度列表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NULL-%E6%A0%87%E5%BF%97%E4%BD%8D"><span class="nav-number">1.2.</span> <span class="nav-text">NULL 标志位</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%AE%B0%E5%BD%95%E5%A4%B4"><span class="nav-number">1.3.</span> <span class="nav-text">记录头</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%97%E5%80%BC%E9%83%A8%E5%88%86"><span class="nav-number">1.4.</span> <span class="nav-text">列值部分</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90"><span class="nav-number">1.5.</span> <span class="nav-text">例子</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%A1%8C%E6%BA%A2%E5%87%BA%E6%95%B0%E6%8D%AE"><span class="nav-number">1.6.</span> <span class="nav-text">行溢出数据</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Dynamic-%E5%92%8C-Compressed-%E8%A1%8C%E6%A0%BC%E5%BC%8F"><span class="nav-number">2.</span> <span class="nav-text">Dynamic 和 Compressed 行格式</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8F%82%E8%80%83"><span class="nav-number">3.</span> <span class="nav-text">参考</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">nekolr</p>
+  <div class="site-description" itemprop="description">爱吃咖喱棒的打字员DA☆ZE~</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">130</span>
+          <span class="site-state-item-name">posts</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">35</span>
+        <span class="site-state-item-name">categories</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">58</span>
+        <span class="site-state-item-name">tags</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/nekolr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;nekolr" rel="noopener me" target="_blank"><i class="github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:excalibll@163.com" title="E-Mail → mailto:excalibll@163.com" rel="noopener me" target="_blank"><i class="envelope fa-fw"></i>E-Mail</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="en">
+    <link itemprop="mainEntityOfPage" href="https://blog.nekolr.com/2020/07/03/InnoDB%20%E8%A1%8C%E8%AE%B0%E5%BD%95%E6%A0%BC%E5%BC%8F/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="nekolr">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="nekolr's blog">
+      <meta itemprop="description" content="爱吃咖喱棒的打字员DA☆ZE~">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="InnoDB 行记录格式 | nekolr's blog">
+      <meta itemprop="description" content="">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          InnoDB 行记录格式
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">Posted on</span>
+
+      <time title="Created: 2020-07-03 16:20:00" itemprop="dateCreated datePublished" datetime="2020-07-03T16:20:00+00:00">2020-07-03</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">In</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/" itemprop="url" rel="index"><span itemprop="name">数据库</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>InnoDB 中最小的存储单位为页，默认每页的大小为 16 KB。页中的数据是按行进行存放的，每页中存放的行记录最少为 2 行，最多为 <code>16 KB / 2 - 200</code> 行，也就是 7992 行。</p>
+<span id="more"></span>
+
+<p>MySQL 目前有四种行记录格式：Redundant、Compact、Dynamic 和 Compressed。其中 Redundant 是以前使用的旧格式，为了兼容性还一直保留。自 MySQL 5.1 开始，默认的行记录格式为 Compact，而从 MySQL 5.7 开始，默认的行记录格式为 Dynamic。使用 <code>SHOW TABLE STATUS LIKE &#39;table_name&#39;</code> 可以查看指定表的行格式。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">mysql&gt; SHOW TABLE STATUS LIKE &#x27;test&#x27;\G;</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">           Name: test</span><br><span class="line">         Engine: InnoDB</span><br><span class="line">        Version: 10</span><br><span class="line">     Row_format: Compact</span><br><span class="line">           Rows: 3</span><br><span class="line"> Avg_row_length: 5461</span><br><span class="line">    Data_length: 16384</span><br><span class="line">Max_data_length: 0</span><br><span class="line">   Index_length: 0</span><br><span class="line">      Data_free: 0</span><br><span class="line"> Auto_increment: NULL</span><br><span class="line">    Create_time: 2020-07-03 22:10:01</span><br><span class="line">    Update_time: 2020-07-03 22:11:09</span><br><span class="line">     Check_time: NULL</span><br><span class="line">      Collation: ascii_general_ci</span><br><span class="line">       Checksum: NULL</span><br><span class="line"> Create_options: row_format=COMPACT</span><br><span class="line">        Comment:</span><br><span class="line">1 row in set (0.00 sec)</span><br></pre></td></tr></table></figure>
+
+<h1 id="Compact-行格式"><a href="#Compact-行格式" class="headerlink" title="Compact 行格式"></a>Compact 行格式</h1><p>Compact 行记录格式是在 MySQL 5.0 引入的，其设计目标是高效的存储数据。简单来说就是：一个页中存放的行数据越多，其性能就越高。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202007052146/2020/07/03/7we.png" alt="Compact"></p>
+<h2 id="变长字段长度列表"><a href="#变长字段长度列表" class="headerlink" title="变长字段长度列表"></a>变长字段长度列表</h2><p>MySQL 支持一些变长的数据类型，比如 VARCHAR(M)、各种 TEXT、各种 BLOB 等类型，使用这些数据类型的列可以称为变长字段。由于变长字段存储多少字节的数据是不固定的，因此我们需要在存储真实数据的时候顺便将这些数据占用的字节数也存储起来。在 Compact 行格式中，会把所有的变长字段的真实数据（非 NULL）占用的字节长度都存放在记录的开头，从而形成一个长度列表，各个变长字段的长度<strong>按照列的顺序逆序存放</strong>。至于变长字段长度列表中每个列长度使用多少字节来表示是有一套规则的。</p>
+<p>首先需要说明 W、M 和 L 的含义：其中 W 为某个字符集中表示一个字符最多需要使用的字节数，这个值可以通过 <code>SHOW CHARSET</code> 命令查看，对应 <code>Maxlen</code> 列的值。比如 utf8 字符集中 W 就是 3，ascii 字符集中的 W 就是 1。对于变长类型 VARCHAR(M) 来说，M 代表该类型能够最多存储的<strong>字符个数</strong>，再结合使用的字符集，可以得出该类型最多占用的字节数就是 <code>M*W</code>。而 L 代表的是该类型实际存储的字符串占用的字节数。因此有如下规则：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">如果 M*W &lt;= 255，那么使用 1 个字节来表示长度</span><br><span class="line">如果 M*W &gt; 255，并且 L &lt;= 127，那么使用 1 个字节来表示长度</span><br><span class="line">如果 M*W &gt; 255，并且 L &gt; 127，那么使用 2 个字节来表示长度</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>变长字段的长度最大不会使用超过 2 个字节来表示，原因是在 MySQL 中，对于一条记录占用的最大存储空间是有限制的，除了 BLOB、TEXT 类型之外，其他所有的列（不包括隐藏列和记录头信息）占用的字节长度加起来不能超过 65535 个字节。假如创建的表只有一列，那么这也就意味着该列最多占用 65535 个字节，使用二进制位来表示最多需要 16 位，也就是 2 个字节即可。</p>
+</blockquote>
+<p>还有一个特别需要注意的点就是：如果使用定长字符集，比如 ASCII 字符集，那么 CHAR(M) 这种的类型占用的字节数就是固定的；如果使用变长字符集，比如使用 UTF8（表示一个字符需要 1 到 3 个字节），那么 CHAR(M) 这种类型所占用的字节数也是不确定的，此时该列的长度也会被存储到变长字段长度列表中。</p>
+<h2 id="NULL-标志位"><a href="#NULL-标志位" class="headerlink" title="NULL 标志位"></a>NULL 标志位</h2><p>变长字段之后的第二个部分是 NULL 标志位，该部分将每个允许为 NULL 的列都对应一个二进制位，二进制位同样按照列的顺序逆序存放，二进制位为 1 表示列的值为 NULL；为 0 则表示列的值不为 NULL。该部分一般占用 1 个字节，如果允许为 NULL 的字段超过了 8 个，那么就需要 2 个字节。</p>
+<h2 id="记录头"><a href="#记录头" class="headerlink" title="记录头"></a>记录头</h2><p>记录头信息固定占用 5 个字节，每位的含义如下表：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>大小</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td>1</td>
+<td>预留，未使用</td>
+</tr>
+<tr>
+<td></td>
+<td>1</td>
+<td>预留，未使用</td>
+</tr>
+<tr>
+<td>delete_mask</td>
+<td>1</td>
+<td>记录是否被删除</td>
+</tr>
+<tr>
+<td>min_rec_mask</td>
+<td>1</td>
+<td>B+树的每层非叶子节点中的最小记录都会添加该标记</td>
+</tr>
+<tr>
+<td>n_owned</td>
+<td>4</td>
+<td>记录拥有的记录数</td>
+</tr>
+<tr>
+<td>heap_no</td>
+<td>13</td>
+<td>记录在索引堆的排序信息</td>
+</tr>
+<tr>
+<td>record_type</td>
+<td>3</td>
+<td>记录的类型，0 表示普通记录，1 表示 B+树非叶子节点，2 表示最小记录 Infimum，3 表示最大记录 Supremum</td>
+</tr>
+<tr>
+<td>next_record</td>
+<td>16</td>
+<td>下一条记录的相对位置</td>
+</tr>
+</tbody></table>
+<h2 id="列值部分"><a href="#列值部分" class="headerlink" title="列值部分"></a>列值部分</h2><p>最后的部分就是实际存储的每列的数据。<strong>需要注意的是，NULL 值只占用 NULL 标志位，不占用该部分的任何空间</strong>。同时每行记录除了用户定义的列外，还有三个隐藏的列，分别是 row_id、transaction_id 和 roll_pointer，对应的真实名称分别为 DB_ROW_ID、DB_TRX_ID 和 DB_ROLL_PTR。其中 row_id 不是一定存在的，只有用户没有定义主键，同时也没有定义一个不能为空的 Unique 键时，InnoDB 才会为表默认添加一个 row_id 隐藏列作为主键。</p>
+<table>
+<thead>
+<tr>
+<th>隐藏列名</th>
+<th>是否必须</th>
+<th>占用空间</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>row_id</td>
+<td>否</td>
+<td>6 个字节</td>
+<td>行 ID，唯一标识一条记录</td>
+</tr>
+<tr>
+<td>transaction_id</td>
+<td>是</td>
+<td>6 个字节</td>
+<td>事务 ID</td>
+</tr>
+<tr>
+<td>roll_pointer</td>
+<td>是</td>
+<td>7 个字节</td>
+<td>回滚指针</td>
+</tr>
+</tbody></table>
+<h2 id="例子"><a href="#例子" class="headerlink" title="例子"></a>例子</h2><p>这里创建一张表来具体验证 Compact 行格式：</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> <span class="keyword">table</span> test (</span><br><span class="line">    t1 <span class="type">varchar</span>(<span class="number">10</span>) <span class="keyword">null</span>,</span><br><span class="line">    t2 <span class="type">varchar</span>(<span class="number">10</span>) <span class="keyword">null</span>,</span><br><span class="line">    t3 <span class="type">char</span>(<span class="number">10</span>)    <span class="keyword">null</span>,</span><br><span class="line">    t4 <span class="type">varchar</span>(<span class="number">10</span>) <span class="keyword">null</span></span><br><span class="line">) ENGINE <span class="operator">=</span> InnoDB CHARSET <span class="operator">=</span> ascii ROW_FORMAT <span class="operator">=</span> COMPACT;</span><br><span class="line"></span><br><span class="line"><span class="comment">-- 插入数据</span></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test (t1, t2, t3, t4) <span class="keyword">VALUES</span> (<span class="string">&#x27;a&#x27;</span>, <span class="string">&#x27;bb&#x27;</span>, <span class="string">&#x27;bb&#x27;</span>, <span class="string">&#x27;ccc&#x27;</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test (t1, t2, t3, t4) <span class="keyword">VALUES</span> (<span class="string">&#x27;d&#x27;</span>, <span class="string">&#x27;ee&#x27;</span>, <span class="string">&#x27;ee&#x27;</span>, <span class="string">&#x27;fff&#x27;</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> test (t1, t2, t3, t4) <span class="keyword">VALUES</span> (<span class="string">&#x27;d&#x27;</span>, <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="string">&#x27;fff&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>在这个表中，有三个变长字段，我们可以通过 <code>hexdump -C -v test.ibd &gt; test.txt</code> 命令将表空间文件重定向至 test.txt 文件后直接打开，找到第一行记录开始的位置：<code>0000c078</code>，发现接下来有三个字节的值分别为：<code>03</code>、<code>02</code>、<code>01</code>，与我们的预期相符。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">0000c070: 73 75 70 72 65 6D 75 6D 03 02 01 00 00 00 10 00    supremum........</span><br><span class="line">0000c080: 2C 00 00 00 00 03 00 00 00 00 00 0B 35 A6 00 00    ,...........5&amp;..</span><br><span class="line">0000c090: 01 1A 01 10 61 62 62 62 62 20 20 20 20 20 20 20    ....abbbb.......</span><br><span class="line">0000c0a0: 20 63 63 63 03 02 01 00 00 00 18 00 2B 00 00 00    .ccc........+...</span><br><span class="line">0000c0b0: 00 03 01 00 00 00 00 0B 35 A6 00 00 01 1A 01 1E    ........5&amp;......</span><br><span class="line">0000c0c0: 64 65 65 65 65 20 20 20 20 20 20 20 20 66 66 66    deeee........fff</span><br><span class="line">0000c0d0: 03 01 06 00 00 20 FF 98 00 00 00 00 03 02 00 00    ................</span><br><span class="line">0000c0e0: 00 00 0B 35 A6 00 00 01 1A 01 2C 64 66 66 66 00    ...5&amp;.....,dfff.</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们查看整条记录的值，发现都符合预期：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 变长字段长度列表</span></span><br><span class="line">03 02 01</span><br><span class="line"><span class="comment"># NULL 标志位</span></span><br><span class="line">00</span><br><span class="line"><span class="comment"># 记录头，固定 5 个字节</span></span><br><span class="line">00 00 10 00 2C</span><br><span class="line"><span class="comment"># row_id</span></span><br><span class="line">00 00 00 00 03 00</span><br><span class="line"><span class="comment"># transaction_id</span></span><br><span class="line">00 00 00 00 0B 35</span><br><span class="line"><span class="comment"># roll_pointer</span></span><br><span class="line">A6 00 00 01 1A 01 10</span><br><span class="line"><span class="comment"># 列 1 的数据：a</span></span><br><span class="line">61</span><br><span class="line"><span class="comment"># 列 2 的数据：bb</span></span><br><span class="line">62 62</span><br><span class="line"><span class="comment"># 列 3 的数据：bb，固定 10 个字节</span></span><br><span class="line">62 62 20 20 20 20 20 20 20 20</span><br><span class="line"><span class="comment"># 列 4 的数据：ccc</span></span><br><span class="line">63 63 63</span><br></pre></td></tr></table></figure>
+
+<p>同样，查看最后一行记录的值，发现也都符合预期：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 变长字段长度列表</span></span><br><span class="line">03 01</span><br><span class="line"><span class="comment"># NULL 标志位，对应 0110</span></span><br><span class="line">06</span><br><span class="line"><span class="comment"># 记录头，固定 5 个字节</span></span><br><span class="line">00 00 20 FF 98</span><br><span class="line"><span class="comment"># row_id</span></span><br><span class="line">00 00 00 00 03 02</span><br><span class="line"><span class="comment"># transaction_id</span></span><br><span class="line">00 00 00 00 0B 35</span><br><span class="line"><span class="comment"># roll_pointer</span></span><br><span class="line">A6 00 00 01 1A 01 2</span><br><span class="line"><span class="comment"># 列 1 的数据：d</span></span><br><span class="line">64</span><br><span class="line"><span class="comment"># 列 4 的数据：fff</span></span><br><span class="line">66 66 66</span><br></pre></td></tr></table></figure>
+
+<h2 id="行溢出数据"><a href="#行溢出数据" class="headerlink" title="行溢出数据"></a>行溢出数据</h2><p>我们已经知道了行记录占用的空间大小最多为 65535 字节，也可以认为是列占用的空间大小不能超过 65535 字节。但是由于一页的大小默认为 16 KB，也就是 16384 字节，并且还有一个限制条件是每页需要至少存储 2 行记录（否则就失去了 B+Tree 的意义，变成链表了），因此很有可能会出现一页中连一条记录都存不下的情况。对于一个页中只能存储一条记录甚至连一条记录都存不下的情况，InnoDB 会将占用存储空间非常大的列拆开，在当前列中只存储该列的前 768 个字节的数据和一个指向溢出页（Uncompressed BLOB Page 类型）的地址。</p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202007052146/2020/07/04/bRg.png" alt="行溢出"></p>
+<p>如果可以在一个页中至少放入两行记录，那么 VARCHAR 等类型（TEXT、BLOB 等类型也有可能出现行溢出）的列数据就不会放到 BLOB 页中，MySQL 技术内幕一书中提到长度阈值为 8098，也就是说当一个表只有一列，且该列的定义为：VARCHAR(8098) 时，正好可以存放两条记录而不会出现行溢出的情况。<strong>其实我们可以不用关注这个临界点是多少，我们只需要知道如果一条记录占用的字节数过多时，就有可能出现行溢出。</strong></p>
+<h1 id="Dynamic-和-Compressed-行格式"><a href="#Dynamic-和-Compressed-行格式" class="headerlink" title="Dynamic 和 Compressed 行格式"></a>Dynamic 和 Compressed 行格式</h1><p>InnoDB 1.0.x 版本开始引入了新的文件格式（可以理解为新的页格式），以前支持的 Compact 和 Redundant 格式称为 Antelope 文件格式，新的文件格式称为 Barracuda，该文件格式下拥有两种新的行记录格式：Dynamic 和 Compressed。</p>
+<p>新的两种行记录格式对于存放在 BLOB 中的数据采用了完全行溢出的方式，即连 768 个字节的数据也被移到了溢出页中，数据页（B-Tree Node）中只存放了 20 个字节的溢出页地址。同时 Compressed 行记录格式会对行数据使用 zlib 算法进行压缩，因此在存储 BLOB、TEXT、VARCHAR 这类大长度类型的数据时比较有优势。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><blockquote>
+<p>《MySQL 技术内幕：InnoDB 存储引擎》</p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag"># 数据库</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/06/19/Session%20%E5%85%B1%E4%BA%AB/" rel="prev" title="Session 共享">
+                  <i class="fa fa-angle-left"></i> Session 共享
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2020/07/06/InnoDB%20%E6%95%B0%E6%8D%AE%E9%A1%B5%E7%BB%93%E6%9E%84/" rel="next" title="InnoDB 数据页结构">
+                  InnoDB 数据页结构 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="user"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">nekolr</span>
+  </div>
+  <div class="powered-by">Powered by <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/mist/" rel="noopener" target="_blank">NexT.Mist</a>
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="Back to top">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
