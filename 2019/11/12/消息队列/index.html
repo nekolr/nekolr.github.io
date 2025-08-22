@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="从命名上看，消息队列可以简单理解为存放消息的队列（Queue），而队列是一种常见的数据结构，在 Java 中的 java.util.Queue 接口下就有大量的队列实现。在一些业务场景中，我们可以使用 JDK 以及第三方包提供的队列实现，但是有些场景我们就不得不引入独立的队列组件，这有点类似 java.util.HashMap 与 Redis 的关系，它们都是以 key&#x2F;value 的形">
 <meta property="og:type" content="article">
@@ -36,7 +36,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912131556/2019/12/13/Ywy.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912171721/2019/12/17/v1j.png">
 <meta property="article:published_time" content="2019-11-12T15:17:00.000Z">
-<meta property="article:modified_time" content="2024-01-24T08:38:01.995Z">
+<meta property="article:modified_time" content="2025-08-22T02:12:57.711Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="消息队列">
 <meta name="twitter:card" content="summary">
@@ -44,7 +44,6 @@
 
 
 <link rel="canonical" href="https://blog.nekolr.com/2019/11/12/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">
-
 
 
 <script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2019/11/12/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/","path":"2019/11/12/消息队列/","title":"消息队列中间件"}</script>
@@ -57,6 +56,33 @@
 
 
 
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
 
 
 
@@ -111,25 +137,25 @@
 
 
   <div class="search-pop-overlay">
-    <div class="popup search-popup"><div class="search-header">
-  <span class="search-icon">
-    <i class="fa fa-search"></i>
-  </span>
-  <div class="search-input-container">
-    <input autocomplete="off" autocapitalize="off" maxlength="80"
-           placeholder="Searching..." spellcheck="false"
-           type="search" class="search-input">
-  </div>
-  <span class="popup-btn-close" role="button">
-    <i class="fa fa-times-circle"></i>
-  </span>
-</div>
-<div class="search-result-container no-result">
-  <div class="search-result-icon">
-    <i class="fa fa-spinner fa-pulse fa-5x"></i>
-  </div>
-</div>
-
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -294,7 +320,7 @@
 <p>点对点（PTP）消息模型也可称之为队列模式，特定的一条消息只能被一个消费者消费。生产者将消息发送到指定的 Queue 当中，Broker（中间件）针对消息是否需要持久化进行持久化存储后通知消费者进行处理，消费者处理完毕后发送一个回执（Acknowledge）给 Broker，Broker 认为该消息已被正常消费，于是从持久化存储中删除该条消息。回执的发送逻辑内嵌在 MQ 的 API 中，无需主动调用。消费者通常可以通过两种方式获取新消息：PUSH 和 PULL。PUSH 方式，由 MQ 收到消息后主动调用消费者的新消息通知接口，需要消耗 MQ 宝贵的线程资源，同时消费者只能被动等待消息通知；PULL 方式，由消费者轮询调用 MQ API 去获取新消息，对应于 ActiveMQ 中的 consumer.receive()，不消耗 MQ 线程，消费者更加主动，相对的消费者的处理逻辑会变得稍稍复杂。两种方式的根本区别在于线程消耗问题，由于 MQ 的线程资源相对客户端更加宝贵，PUSH 方式会占用 MQ 过多的线程从而难以适应高并发的消息场景。同时当某一消费者离线一段时间再次上线后，大量积压消息处理会消耗大量 MQ 线程从而拖累其它消费者的消息处理，所以 PULL 方式相对来说更好。Kafka 已经抛弃了 PUSH 模式，全面拥抱 PULL 模式。</p>
 <p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912131556/2019/12/13/9JP.png" alt="PTP"></p>
 <p>发布&#x2F;订阅模式（Pub&#x2F;Sub）也可称之为主题模式，特定的一条消息可以被多个消费者所接收，只要消费者订阅了该主题。消息生产者（发布者）将消息发送到某个称为主题（Topic）的虚拟通道中，Topic 可以被多个消费者订阅，因此该模式类似于广播的方式。发布&#x2F;订阅模式采用 PUSH 的方式传送消息，Subscriber 只需保持在线即可。Subscriber 分为临时性的和持久性的，当 Sub 离线时，MQ 会为持久性的 Sub 持久化消息，当 Sub 恢复时会重新收到消息。但是既然采用 Pub&#x2F;Sub 模式就表明允许部分消费者接收不到消息，所以通常会采用临时性的 Subscriber 而不是持久性的。</p>
-<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912131556/2019/12/13/Ywy.png" alt="Pub/Sub"></p>
+<p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201912131556/2019/12/13/Ywy.png" alt="Pub&#x2F;Sub"></p>
 <h1 id="使用消息队列带来的问题"><a href="#使用消息队列带来的问题" class="headerlink" title="使用消息队列带来的问题"></a>使用消息队列带来的问题</h1><p>引入消息队列后，系统的可用性在某种程度上会下降，同时系统的复杂度也会提升。因为在引入消息队列之前，我们无需考虑消息队列挂掉的情况，但是在引入以后，我们就需要考虑这种情况，为此可能需要引入主从甚至是分布式消息队列，系统的复杂度无疑增加了很多，同时在引入了消息队列以后，我们还需要保证消息没有被重复消费和消息传递的顺序性，同时还要处理消息可能面临的丢失等问题，如果消费者没有正确消费消息，还有可能造成数据不一致的情况。</p>
 <h2 id="如何确保消息不丢失"><a href="#如何确保消息不丢失" class="headerlink" title="如何确保消息不丢失"></a>如何确保消息不丢失</h2><p>消息从生产到消费经过了生产、转储和消费三个阶段，每一个阶段都有可能出现消息丢失的情况。</p>
 <p>生产阶段可以通过确认机制来保证消息的可靠传递。当生产者使用客户端发送消息后，消息会被转发到 Broker，Broker 在接收到消息后会给客户端返回一个确认消息，只要生产者接收到了这个确认消息，就可以保证消息在生产阶段不会丢失。有些消息队列在长时间没有收到发送消息的确认响应时，会自动进行重试，如果再次失败则会返回异常，因此在编写代码时需要考虑异常的情况。</p>
@@ -366,7 +392,7 @@
 
   <div class="copyright">
     &copy; 
-    <span itemprop="copyrightYear">2024</span>
+    <span itemprop="copyrightYear">2025</span>
     <span class="with-love">
       <i class="user"></i>
     </span>
@@ -393,34 +419,6 @@
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
-
-
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
-<script src="/js/third-party/search/local-search.js"></script>
-
-
-
-
-  <script src="/js/third-party/fancybox.js"></script>
-
-
-
-  
-
-
-
-
-  
-
-  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
-<script src="/js/third-party/math/mathjax.js"></script>
-
-
 
 </body>
 </html>

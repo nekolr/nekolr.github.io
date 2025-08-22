@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="有两个字符串，求其中一个字符串在另一个字符串中出现的位置。我们将其中一个字符串称为主字符串，另一个字符串称为模式字符串，那么该问题可以描述为求模式字符串在主字符串中的位置。">
 <meta property="og:type" content="article">
@@ -34,7 +34,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/7Om.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/jN4.png">
 <meta property="article:published_time" content="2019-03-19T10:03:00.000Z">
-<meta property="article:modified_time" content="2024-01-24T08:38:01.987Z">
+<meta property="article:modified_time" content="2025-08-22T02:12:57.702Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="算法">
 <meta name="twitter:card" content="summary">
@@ -42,7 +42,6 @@
 
 
 <link rel="canonical" href="https://blog.nekolr.com/2019/03/19/BF%20%E7%AE%97%E6%B3%95%E4%B8%8E%20KMP%20%E7%AE%97%E6%B3%95/">
-
 
 
 <script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2019/03/19/BF%20%E7%AE%97%E6%B3%95%E4%B8%8E%20KMP%20%E7%AE%97%E6%B3%95/","path":"2019/03/19/BF 算法与 KMP 算法/","title":"BF 算法与 KMP 算法"}</script>
@@ -55,6 +54,33 @@
 
 
 
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
 
 
 
@@ -109,25 +135,25 @@
 
 
   <div class="search-pop-overlay">
-    <div class="popup search-popup"><div class="search-header">
-  <span class="search-icon">
-    <i class="fa fa-search"></i>
-  </span>
-  <div class="search-input-container">
-    <input autocomplete="off" autocapitalize="off" maxlength="80"
-           placeholder="Searching..." spellcheck="false"
-           type="search" class="search-input">
-  </div>
-  <span class="popup-btn-close" role="button">
-    <i class="fa fa-times-circle"></i>
-  </span>
-</div>
-<div class="search-result-container no-result">
-  <div class="search-result-icon">
-    <i class="fa fa-spinner fa-pulse fa-5x"></i>
-  </div>
-</div>
-
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -305,7 +331,7 @@
 </tr>
 </tbody></table>
 <p>在解释这个表之前，首先需要解释一下字符串的前缀和后缀。比如字符串 <code>Saber</code>，它的前缀包括 <code>S</code>、<code>Sa</code>、<code>Sab</code> 和 <code>Sabe</code>，它的后缀包括 <code>r</code>、<code>er</code>、<code>ber</code> 和 <code>aber</code>。字符串本身不是自己的前缀或后缀。  </p>
-<p>有了前缀和后缀的定义，就可以说明 PMT 中每个值的意义了。<strong>PMT 中的值是字符串的前缀集合和后缀集合的交集中最长元素的长度。</strong>比如，字符串 <code>aba</code>，它的前缀集合为 <code>a</code> 和 <code>ab</code>，它的后缀集合为 <code>a</code>、<code>ba</code>，两个集合的交集为 <code>a</code>，那么最长的元素的长度也就是 1。那么对于字符串 <code>abababca</code>，也就是在上表中，pmt[0] 的值为 0，pmt[1] 的值也是 0，pmt[2] 的值为 1，以此类推。  </p>
+<p>有了前缀和后缀的定义，就可以说明 PMT 中每个值的意义了。**PMT 中的值是字符串的前缀集合和后缀集合的交集中最长元素的长度。**比如，字符串 <code>aba</code>，它的前缀集合为 <code>a</code> 和 <code>ab</code>，它的后缀集合为 <code>a</code>、<code>ba</code>，两个集合的交集为 <code>a</code>，那么最长的元素的长度也就是 1。那么对于字符串 <code>abababca</code>，也就是在上表中，pmt[0] 的值为 0，pmt[1] 的值也是 0，pmt[2] 的值为 1，以此类推。  </p>
 <p>比如要在字符串 <code>ababababca</code> 中查找字符串 <code>abababca</code>，如果在指针 j（或者 i）处字符不匹配，那么主串 i 指针之前的 PMT[j - 1] 位就一定与模式字符串的第 0 位到第 PMT[j - 1] 位是相同的。具体来说，因为在指针 j（或者 i）处不匹配，所以主串从 i - j 到 i 之前这段与模式字符串的 0 到 j 之前这段是完全相同的，在这个例子中就是 <code>ababab</code> 这段，它的前缀集合和后缀集合的交集的最长元素为 <code>abab</code>，长度为 4。所以可以说，主串 i 指针之前的 4 位与模式字符串的第 0 位到第 4 位是相同的，这样我们就可以省略掉这些字符的比较，保持 i 指针不动，将 j 指针指向模式字符串的 PMT[j - 1] 位（也就是第 4 位）即可。  </p>
 <p><img src="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@201911242036/2019/06/18/Qlw.png" alt="KMP 算法"></p>
 <p>从上面可以看出，如果在 j 位置失配，那么 j 指针回溯的位置其实是第 j - 1 位置的 PMT 的值。为了编程方便（没有其他意义），我们将 PMT 数组整体向右偏移一位（其中第一位始终为 -1），我们把新得到的数组称为 next 数组。  </p>
@@ -416,7 +442,7 @@
 
   <div class="copyright">
     &copy; 
-    <span itemprop="copyrightYear">2024</span>
+    <span itemprop="copyrightYear">2025</span>
     <span class="with-love">
       <i class="user"></i>
     </span>
@@ -443,34 +469,6 @@
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
-
-
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
-<script src="/js/third-party/search/local-search.js"></script>
-
-
-
-
-  <script src="/js/third-party/fancybox.js"></script>
-
-
-
-  
-
-
-
-
-  
-
-  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
-<script src="/js/third-party/math/mathjax.js"></script>
-
-
 
 </body>
 </html>

@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width">
 <meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.1.1">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
 
   <link rel="apple-touch-icon" sizes="180x180" href="/images/cat192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="/images/cat72.png">
@@ -15,10 +15,10 @@
 
 
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha256-yIDrPSXHZdOZhAqiBP7CKzIwMQmRCJ8UeB8Jo17YC4o=" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.css" integrity="sha256-6cQIC71/iBIYXFK+0RHAvwmjwWzkWd+r7v/BX3/vZDc=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.css" integrity="sha256-gkQVf8UKZgQ0HyuxL/VnacadJ+D2Kox2TCEBuNQg5+w=" crossorigin="anonymous">
 
-<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.19.1","exturl":false,"sidebar":{"position":"right","display":"hide","padding":18,"offset":12,"onmobile":true},"copycode":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":true}}</script><script src="/js/config.js"></script>
+<script class="next-config" data-name="main" type="application/json">{"hostname":"blog.nekolr.com","root":"/","images":"/images","scheme":"Mist","darkmode":true,"version":"8.24.1","exturl":false,"sidebar":{"position":"right","width_expanded":320,"width_dual_column":240,"display":"hide","padding":18,"offset":12,"onmobile":true},"hljswrap":true,"codeblock":{"theme":{"light":"base16/darcula","dark":"base16/darcula"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":null,"show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":false,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"i18n":{"placeholder":"Searching...","empty":"We didn't find any results for the search: ${query}","hits_time":"${hits} results found in ${time} ms","hits":"${hits} results found"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":true,"trigger":"auto"}}</script><script src="/js/config.js" defer></script>
 
     <meta name="description" content="最早在 Java 体系中使用最多的消息队列是 ActiveMQ，但是由于其社区不够活跃且历史包袱较重，目前使用者已经越来越少，此时另一个合适的选择就是 RabbitMQ。">
 <meta property="og:type" content="article">
@@ -31,7 +31,7 @@
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002102344/2020/02/10/71e.png">
 <meta property="og:image" content="https://cdn.jsdelivr.net/gh/nekolr/image-hosting@202002141416/2020/02/14/bBg.png">
 <meta property="article:published_time" content="2020-02-08T21:17:00.000Z">
-<meta property="article:modified_time" content="2024-01-24T08:38:01.991Z">
+<meta property="article:modified_time" content="2025-08-22T02:12:57.706Z">
 <meta property="article:author" content="nekolr">
 <meta property="article:tag" content="消息队列">
 <meta name="twitter:card" content="summary">
@@ -39,7 +39,6 @@
 
 
 <link rel="canonical" href="https://blog.nekolr.com/2020/02/08/RabbitMQ%20%E5%85%A5%E9%97%A8/">
-
 
 
 <script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"en","comments":true,"permalink":"https://blog.nekolr.com/2020/02/08/RabbitMQ%20%E5%85%A5%E9%97%A8/","path":"2020/02/08/RabbitMQ 入门/","title":"RabbitMQ 入门"}</script>
@@ -52,6 +51,33 @@
 
 
 
+
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.31/fancybox/fancybox.umd.js" integrity="sha256-a+H7FYzJv6oU2hfsfDGM2Ohw/cR9v+hPfxHCLdmCrE8=" crossorigin="anonymous" defer></script>
+<script src="/js/utils.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.5.0/search.js" integrity="sha256-xFC6PJ82SL9b3WkGjFavNiA9gm5z6UBxWPiu4CYjptg=" crossorigin="anonymous" defer></script>
+<script src="/js/third-party/search/local-search.js" defer></script>
+
+
+
+
+  <script src="/js/third-party/fancybox.js" defer></script>
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
 
 
 
@@ -106,25 +132,25 @@
 
 
   <div class="search-pop-overlay">
-    <div class="popup search-popup"><div class="search-header">
-  <span class="search-icon">
-    <i class="fa fa-search"></i>
-  </span>
-  <div class="search-input-container">
-    <input autocomplete="off" autocapitalize="off" maxlength="80"
-           placeholder="Searching..." spellcheck="false"
-           type="search" class="search-input">
-  </div>
-  <span class="popup-btn-close" role="button">
-    <i class="fa fa-times-circle"></i>
-  </span>
-</div>
-<div class="search-result-container no-result">
-  <div class="search-result-icon">
-    <i class="fa fa-spinner fa-pulse fa-5x"></i>
-  </div>
-</div>
-
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="Searching..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -348,7 +374,7 @@
 <h3 id="事务机制"><a href="#事务机制" class="headerlink" title="事务机制"></a>事务机制</h3><p>RabbitMQ 客户端中与事务相关的方法有三个，channel.txSelect、channel.txCommit 和 channel.txRollback，其中 channel.txSelect 方法用于将当前信道设置为事务模式，channel.txCommit 方法用于提交事务，channel.txRollback 则用于事务回滚。当信道开启了事务模式后，我们就可以发送消息了，如果事务提交成功，则表示消息一定到达了 RabbitMQ 服务中；如果在事务提交之前由于异常崩溃或其他原因抛出异常，此时就可以将其捕获并进行事务回滚。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    channel.txSelect();</span><br><span class="line">    channel.basicPublish(exchange, routingKey, MessageProperties.PERSISTENT_TEXT_PLAIN, message.getBytes());</span><br><span class="line">    channel.txCommit();</span><br><span class="line">&#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">    channel.txRollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h3 id="发送方确认"><a href="#发送方确认" class="headerlink" title="发送方确认"></a>发送方确认</h3><p>事务确实能够解决发送方和 RabbitMQ 之间消息确认的问题，但是使用事务会严重影响 RabbitMQ 的性能，因此 RabbitMQ 还提供了一种更轻量的改进方案，它就是发送方确认机制。在该机制中，生产者将信道设置为 confirm（确认）模式，一旦信道进入确认模式，所有在该信道上发布的消息都会被指派一个唯一的 ID（即 deliveryTag，从 1 开始）。在消息被投递到所有匹配的队列之后，RabbitMQ 就会发送一个确认（Basic.Ack）给生产者，确认中包含之前指派的唯一 ID。<strong>如果消息和队列是持久化的，那么确认会在消息写入磁盘之后发出。</strong>此外 RabbitMQ 也可以设置 channel.basicAck 方法中的 multiple 参数，表示这个 ID 序号之前的所有消息都已经得到了处理。</p>
+<h3 id="发送方确认"><a href="#发送方确认" class="headerlink" title="发送方确认"></a>发送方确认</h3><p>事务确实能够解决发送方和 RabbitMQ 之间消息确认的问题，但是使用事务会严重影响 RabbitMQ 的性能，因此 RabbitMQ 还提供了一种更轻量的改进方案，它就是发送方确认机制。在该机制中，生产者将信道设置为 confirm（确认）模式，一旦信道进入确认模式，所有在该信道上发布的消息都会被指派一个唯一的 ID（即 deliveryTag，从 1 开始）。在消息被投递到所有匹配的队列之后，RabbitMQ 就会发送一个确认（Basic.Ack）给生产者，确认中包含之前指派的唯一 ID。**如果消息和队列是持久化的，那么确认会在消息写入磁盘之后发出。**此外 RabbitMQ 也可以设置 channel.basicAck 方法中的 multiple 参数，表示这个 ID 序号之前的所有消息都已经得到了处理。</p>
 <p>事务机制在发送一条消息后会使发送端阻塞，以等待 RabbitMQ 的响应，之后才能继续发送下一条消息。与之相比，发送方确认机制最大的好处在于它是异步的，生产者发送消息后可以在等信道返回确认的同时继续发送下一条消息。下面使用一段代码简单介绍确认机制的使用：</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 开启信道的确认模式</span></span><br><span class="line">    channel.confirmSelect();</span><br><span class="line">    channel.basicPublish(<span class="string">&quot;exchange&quot;</span>, <span class="string">&quot;routingKey&quot;</span>, <span class="literal">null</span>, <span class="string">&quot;publisher confirm&quot;</span>.getBytes());</span><br><span class="line">    <span class="comment">// 等待消息确认响应，可能是 Basic.Ack 也可能是 Basic.Nack</span></span><br><span class="line">    <span class="keyword">if</span> (!channel.waitForConfirms()) &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;Send message failed.&quot;</span>);</span><br><span class="line">        <span class="comment">// 此处编写消息发送失败时需要执行的代码</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">    e.printStackTrace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
@@ -398,7 +424,7 @@
 <blockquote>
 <p>需要注意的是，备份交换器与普通的交换器没有太大区别，为了方便使用，一般都会设置为 fanout 类型。如果设置为 direct 类型，那么路由键同样需要进行匹配。</p>
 </blockquote>
-<h2 id="死信队列"><a href="#死信队列" class="headerlink" title="死信队列"></a>死信队列</h2><p>在 RabbitMQ 中，消息可以设置过期时间（TTL）。我们可以通过队列属性来给队列中的所有消息设置过期时间，也可以针对每条消息单独设置过期时间，两种一起使用时则以 TTL 数值较小的一方为准。一旦消息的生存时间超过设置的 TTL 值，该消息就会变成死信（Dead Message）。<strong>一般来说，消息变成死信除了是由于消息过期以外，还可能是由于消息被拒绝（Basic.Reject 或 Basic.Nack）并设置 requeue 为 false，以及队列达到最大长度。</strong>正常情况下消费者将无法收到变成死信的消息，但是为了避免消息变成死信后丢失，我们可以使用死信队列。</p>
+<h2 id="死信队列"><a href="#死信队列" class="headerlink" title="死信队列"></a>死信队列</h2><p>在 RabbitMQ 中，消息可以设置过期时间（TTL）。我们可以通过队列属性来给队列中的所有消息设置过期时间，也可以针对每条消息单独设置过期时间，两种一起使用时则以 TTL 数值较小的一方为准。一旦消息的生存时间超过设置的 TTL 值，该消息就会变成死信（Dead Message）。**一般来说，消息变成死信除了是由于消息过期以外，还可能是由于消息被拒绝（Basic.Reject 或 Basic.Nack）并设置 requeue 为 false，以及队列达到最大长度。**正常情况下消费者将无法收到变成死信的消息，但是为了避免消息变成死信后丢失，我们可以使用死信队列。</p>
 <p>死信队列也可以叫做死信交换器（Dead-Letter-Exchange，DLX），当消息在一个队列中变成死信后，它能够被重新发送到另一个交换器中，这个交换器就是死信交换器，绑定死信交换器的队列就是死信队列。实际上死信交换器与普通的交换器没有区别，它能在任何队列上被指定，实际上设置死信队列就是修改某个队列的属性，在声明队列时加入 <code>x-dead-letter-exchange</code> 参数，这样普通队列就变成了死信队列，普通的交换器也就变成了死信交换器。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">channel.exchangeDeclare(<span class="string">&quot;dlx_exchange&quot;</span>, <span class="string">&quot;direct&quot;</span>, <span class="literal">false</span>, <span class="literal">false</span>, <span class="literal">null</span>);</span><br><span class="line">Map&lt;String, Object&gt; arguments = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line"><span class="comment">// 设置参数，指定死信交换器</span></span><br><span class="line">arguments.put(<span class="string">&quot;x-dead-letter-exchange&quot;</span>, <span class="string">&quot;dlx_exchange&quot;</span>);</span><br><span class="line"><span class="comment">// 也可以给 DLX 指定路由键，如果没有特殊指定则使用原队列的路由键</span></span><br><span class="line">arguments.put(<span class="string">&quot;x-dead-letter-routing-key&quot;</span>, <span class="string">&quot;dlx-routing-key&quot;</span>);</span><br><span class="line">channel.queueDeclare(<span class="string">&quot;dlx_queue&quot;</span>, <span class="literal">false</span>, <span class="literal">false</span>, <span class="literal">false</span>, arguments);</span><br></pre></td></tr></table></figure>
 
@@ -461,7 +487,7 @@
 
   <div class="copyright">
     &copy; 
-    <span itemprop="copyrightYear">2024</span>
+    <span itemprop="copyrightYear">2025</span>
     <span class="with-love">
       <i class="user"></i>
     </span>
@@ -488,34 +514,6 @@
 <noscript>
   <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
 </noscript>
-
-
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fancyapps-ui/5.0.28/fancybox/fancybox.umd.js" integrity="sha256-ytMJGN3toR+a84u7g7NuHm91VIR06Q41kMWDr2pq7Zo=" crossorigin="anonymous"></script>
-<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
-<script src="/js/third-party/search/local-search.js"></script>
-
-
-
-
-  <script src="/js/third-party/fancybox.js"></script>
-
-
-
-  
-
-
-
-
-  
-
-  <script class="next-config" data-name="enableMath" type="application/json">false</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","mhchem":false,"js":{"url":"https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js","integrity":"sha256-MASABpB4tYktI2Oitl4t+78w/lyA+D7b/s9GEP0JOGI="}}</script>
-<script src="/js/third-party/math/mathjax.js"></script>
-
-
 
 </body>
 </html>
